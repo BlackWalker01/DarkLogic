@@ -884,34 +884,31 @@ bool SubRule<Hyp<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarPro
                     return false;
                 }
             }
-            if(ret)
+            std::string nameHypVar=(*m_son)[m_son->arity()-2]->toString();
+            size_t indexHyp=m_son->arity()-2;
+            if(dbVarProp.containsHyp(nameHypVar))
             {
-                std::string nameHypVar=(*m_son)[m_son->arity()-2]->toString();
-                size_t indexHyp=m_son->arity()-2;
-                if(dbVarProp.containsHyp(nameHypVar))
+                //check if old mapping is the same as the current one
+                auto props=dbVarProp.getHypAssoc(nameHypVar);
+                for(size_t k=indexHyp;k<propCast->arity()-1;k++)
                 {
-                    //check if old mapping is the same as the current one
-                    auto props=dbVarProp.getHypAssoc(nameHypVar);
-                    for(size_t k=indexHyp;k<propCast->arity()-1;k++)
+                    ret=*(props[k-indexHyp])==*(propCast->getSon()[k]);
+                    if(!ret)
                     {
-                        ret=*(props[k-indexHyp])==*(propCast->getSon()[k]);
-                        if(!ret)
-                        {
-                            return false;
-                        }
+                        return false;
                     }
                 }
-                else
-                {
-                    //map HYP variable with prop subProperties
-                    for(size_t k=indexHyp;k<propCast->arity()-1;k++)
-                    {
-                        dbVarProp.insertHypAssoc(nameHypVar,propCast->getSon()[k]);
-                    }
-                }
-
-                ret=(*m_son)[m_son->arity()-1]->identifyPriv(propCast->getSon()[propCast->arity()-1],dbVarProp);
             }
+            else
+            {
+                //map HYP variable with prop subProperties
+                for(size_t k=indexHyp;k<propCast->arity()-1;k++)
+                {
+                    dbVarProp.insertHypAssoc(nameHypVar,propCast->getSon()[k]);
+                }
+            }
+
+            ret=(*m_son)[m_son->arity()-1]->identifyPriv(propCast->getSon()[propCast->arity()-1],dbVarProp);
             return ret;
         }
     }
@@ -954,7 +951,7 @@ bool SubRule<Boolean>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp& dbV
     }
     else
     {
-        auto exPropCast=std::dynamic_pointer_cast<const ASubRule>(dbVarProp[m_son->name()]);
+        auto exPropCast=std::dynamic_pointer_cast<const ASubTheorem>(dbVarProp[m_son->name()]);
         if(exPropCast)
         {
             return *prop==*exPropCast;
@@ -1001,19 +998,22 @@ ptr<ASubTheorem> SubRule<Implication<ASubRule>>::applyPriv(const std::string& th
 ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyPriv(const std::string& thName, DbVarProp& dbVarProp) const
 {
     std::vector<ptr<ASubTheorem>> ret;
-    //Handle all variable in Hyp operator before HYP variable
-    for(size_t k=0;k<m_son->arity()-2;k++)
+    //Handle all variable in Hyp operator before implication
+    for(size_t k=0;k<m_son->arity()-1;k++)
     {
-        ret.push_back((*m_son)[k]->applyPriv(thName+"HYP"+sizeToString(k),dbVarProp));
-    }
-
-    //handle Hyp variable
-    std::string hypName=(*m_son)[m_son->arity()-2]->toString();
-    std::vector<ptr<ASubTheorem>> hypAssoc=dbVarProp.getHypAssoc(hypName);
-    for(size_t k=0;k<hypAssoc.size();k++)
-    {
-        auto crtSubProp=hypAssoc[k];
-        ret.push_back(crtSubProp);
+        if((*m_son)[k]->type()==PropType::VAR_PROP && dbVarProp.isHypVariable((*m_son)[k]->toString()))
+        {
+            std::string hypName=(*m_son)[k]->toString();
+            std::vector<ptr<ASubTheorem>> hypAssoc=dbVarProp.getHypAssoc(hypName);
+            for(size_t k=0;k<hypAssoc.size();k++)
+            {
+                ret.push_back(hypAssoc[k]);
+            }
+        }
+        else
+        {
+            ret.push_back((*m_son)[k]->applyPriv(thName+"HYP"+sizeToString(k),dbVarProp));
+        }
     }
 
     if(ret.size()>0)
@@ -1079,18 +1079,21 @@ ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyFirstPriv(const std::string& thNam
 {
     std::vector<ptr<ASubTheorem>> ret;
     //Handle all variable in Hyp operator before HYP variable
-    for(size_t k=0;k<m_son->arity()-2;k++)
+    for(size_t k=0;k<m_son->arity()-1;k++)
     {
-        ret.push_back((*m_son)[k]->applyPriv(thName+"HYP"+sizeToString(k),dbVarProp));
-    }
-
-    //handle Hyp variable
-    std::string hypName=(*m_son)[m_son->arity()-2]->toString();
-    std::vector<ptr<ASubTheorem>> hypAssoc=dbVarProp.getHypAssoc(hypName);
-    for(size_t k=0;k<hypAssoc.size();k++)
-    {
-        auto crtSubProp=hypAssoc[k];
-        ret.push_back(crtSubProp);
+        if((*m_son)[k]->type()==PropType::VAR_PROP && dbVarProp.isHypVariable((*m_son)[k]->toString()))
+        {
+            std::string hypName=(*m_son)[k]->toString();
+            std::vector<ptr<ASubTheorem>> hypAssoc=dbVarProp.getHypAssoc(hypName);
+            for(size_t k=0;k<hypAssoc.size();k++)
+            {
+                ret.push_back(hypAssoc[k]);
+            }
+        }
+        else
+        {
+            ret.push_back((*m_son)[k]->applyPriv(thName+"HYP"+sizeToString(k),dbVarProp));
+        }
     }
 
     if(ret.size()>0)

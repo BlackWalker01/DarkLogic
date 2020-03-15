@@ -36,3 +36,14 @@ std::vector<size_t> DbRule::getActions(const ptr<ASubTheorem> &prop, size_t &nbA
     }
     return ret;
 }
+
+std::vector<Action> DbRule::getHumanActions() const
+{
+    std::vector<Action> ret;
+    for(const auto& rule: m_db)
+    {
+        std::vector<Action> actions=rule->getHumanActions();
+        ret.insert(ret.end(),actions.begin(),actions.end());
+    }
+    return ret;
+}

@@ -28,9 +28,9 @@ DbVarProp::DbVarProp(const std::vector<std::string>& dbVar)
     }
 }
 
-bool DbVarProp::contains(const std::string& nameHypVar) const
+bool DbVarProp::contains(const std::string& nameVar) const
 {
-    return m_hypAssoc.find(nameHypVar)!=m_hypAssoc.end();
+    return (m_db.find(nameVar)->second)!=nullptr;
 }
 
 bool DbVarProp::containsHyp(const std::string& hypProp) const

@@ -16,6 +16,7 @@ public:
     ptr<ASubTheorem> apply(const size_t& actionKey, const ptr<ASubTheorem> &theorem);
     void unapply(const ptr<ASubTheorem> &prop, size_t &nbActions);
     std::vector<size_t> getActions(const ptr<ASubTheorem> &prop, size_t& nbActions);
+    std::vector<Action> getHumanActions() const;
 
     ~DbRule() = default;
 private:

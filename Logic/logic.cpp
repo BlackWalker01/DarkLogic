@@ -75,7 +75,7 @@ void Logic::init()
 
     //set up rules of the logic
     //AXIOME Rule
-    auto ax=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("ax","true<=>({HYP,p}p)"));
+    auto ax=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("ax","true<=>({p,HYP}p)"));
     instance->insert(ax);
 
     //AND rules
@@ -114,6 +114,12 @@ void Logic::init()
     auto fiNot=std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("FI!","({!p,HYP}p)=>({!p,HYP}false)"));
     instance->insert(fiNot);
 
+    //HYPOTHESIS Rules
+    auto hypCom1=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("HypCom1","({p,HYP,q}r)<=>({p,q,HYP}r)"));
+    instance->insert(hypCom1);
+    auto hypCom2=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("HypCom2","({p,q,HYP}r)<=>({q,p,HYP}r)"));
+    instance->insert(hypCom2);
+
     //WEAKENING Rule
     auto weak=std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("weakening","({HYP}p)=>({q,HYP}p)"));
     instance->insert(weak);
@@ -127,24 +133,36 @@ void Logic::init()
     Log::Debug("Rules Instantiated");
 }
 
+bool Logic::isDemonstrated()
+{
+    try
+    {
+       bool ret=N_Logic::Logic::evaluate();
+       if(ret)
+       {
+           return ret;
+       }
+       else
+       {
+           return true;
+       }
+    }
+    catch (std::runtime_error& e)
+    {
+        return false;
+    }
+}
+
 bool Logic::evaluate()
 {
     if(instance->m_theorem)
     {
-        try
-        {
-            return instance->m_theorem->evaluate();
-        }
-        catch (std::runtime_error& e)
-        {
-            Log::Debug(e.what());
-        }
+        return instance->m_theorem->evaluate();
     }
     else
     {
-        Log::Error("Cannot evaluate an invalid theorem");
+        throw std::runtime_error("Cannot evaluate an invalid theorem");
     }
-    return false;
 }
 
 bool Logic::makeTheorem(const std::string& name, const std::string& cont)
@@ -153,6 +171,10 @@ bool Logic::makeTheorem(const std::string& name, const std::string& cont)
     try
     {
         instance->m_theorem=createTheorem(name,cont);
+
+        //Compute actions
+        getActions();
+
         return true;
     }
     catch (std::runtime_error& e)
@@ -206,6 +228,12 @@ std::vector<size_t> Logic::getActions()
     return instance->m_rules.getActions(instance->m_theorem,instance->m_nbAppliedRule);
 }
 
+std::vector<Action> Logic::getHumanActions()
+{
+    getActions();
+    return instance->m_rules.getHumanActions();
+}
+
 void Logic::apply(const size_t &actionKey)
 {
     auto antecedent=instance->m_theorem;
@@ -216,11 +244,16 @@ void Logic::apply(const size_t &actionKey)
 
 void Logic::unapply()
 {
-   instance->m_nbAppliedRule--;
+    instance->m_nbAppliedRule--;
     auto antecedent=instance->m_antecedents.top();
     instance->m_rules.unapply(antecedent,instance->m_nbAppliedRule);
     instance->m_theorem=antecedent;
     instance->m_antecedents.pop();
+}
+
+bool Logic::hasAlreadyPlayed()
+{
+    return instance->m_antecedents.size();
 }
 
 template<typename OpeType>

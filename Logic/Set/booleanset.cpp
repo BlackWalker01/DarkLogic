@@ -7,7 +7,7 @@ using namespace N_Logic;
 void BooleanSet::init()
 {
     //AXIOME Rule
-    auto ax=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("ax","true<=>({HYP,p}p)"));
+    auto ax=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("ax","true<=>({p,HYP}p)"));
     insert(ax);
 
     //AND rules
