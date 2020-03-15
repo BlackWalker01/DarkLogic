@@ -366,7 +366,7 @@ ptr<ValueTypeObject> N_Logic::createTheorem(const std::string &name, std::vector
                 }
                 default:
                 {
-                    throw std::runtime_error("Empty SubRule");
+                    throw std::runtime_error("Empty Theorem");
                 }
             }
         }

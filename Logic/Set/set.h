@@ -25,6 +25,10 @@ public:
     template<typename SubPropertyType>
     void insert(const ptr<Rule<SubPropertyType>>& rule);
 
+    constexpr bool operator==(const Set&) const
+    {
+        return true;
+    }
 private:
     static const std::string s_name;
     //static const std::unique_ptr<AxiomSet<SetType_>> s_axiomSet;

@@ -2,6 +2,7 @@
 #define RULE_H
 #include "Generic/subrulegeneric.h"
 #include "Formula/Arithmetic/inontermarithmetic.h"
+#include "Utils/action.h"
 
 namespace N_Logic {
 
@@ -20,6 +21,7 @@ public:
 
     std::vector<size_t> getActions(const ptr<ASubTheorem>& prop, const size_t& nbAppliedActions, size_t& lastActionIndex) const
     override final;
+    std::vector<Action> getHumanActions() const override final;
 
     ptr<ASubTheorem> apply(const size_t& actionKey, const ptr<ASubTheorem> &theorem) const override final;
     ptr<IISubTheoremFormula> applyAnnexe(const size_t& actionKey, const ptr<IISubTheoremFormula>& theorem, std::vector<Arity>& indexes) const override final;
@@ -97,13 +99,23 @@ std::vector<size_t> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem> &pr
 }
 
 template<typename SubPropertyType>
+std::vector<Action> Rule<SubPropertyType>::getHumanActions() const
+{
+    std::vector<Action> ret;
+    for(auto it=m_crtActions->begin();it!=m_crtActions->end();it++)
+    {
+        ret.push_back(Action(it->first,this->m_name,this->toString(),it->second));
+    }
+    return ret;
+}
+
+template<typename SubPropertyType>
 ptr<ASubTheorem> Rule<SubPropertyType>::apply(const size_t &actionKey, const ptr<ASubTheorem> &theorem) const
 {
     std::vector<Arity> indexes=m_crtActions->at(actionKey);
     if(indexes.size()==0)
     {
-        auto ante=(*(this->m_son))[0];
-        return ante->applyFirstPriv(theorem->name(),*(m_actionToIdentifications->at(actionKey)));
+        return (*(this->m_son))[0]->applyFirstPriv(theorem->name(),*(m_actionToIdentifications->at(actionKey)));
     }
     else
     {
@@ -118,8 +130,7 @@ ptr<IISubTheoremFormula> Rule<SubPropertyType>::applyAnnexe(const size_t &action
     auto theoremCast=std::dynamic_pointer_cast<const ASubTheorem>(theorem); //?? cast not only to ASubTheorem
     if(indexes.size()==0)
     {
-        auto ante=(*(this->m_son))[0];
-        return ante->applyPriv(theoremCast->name(),*(m_actionToIdentifications->at(actionKey)));
+        return (*(this->m_son))[0]->applyPriv(theoremCast->name(),*(m_actionToIdentifications->at(actionKey)));
     }
     else
     {

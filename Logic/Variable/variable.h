@@ -24,8 +24,6 @@ public:
     void operator=(const ValueType& val);
 
     //comparison operators
-    template<typename T>
-    constexpr bool operator==(const T&) const;
     template<typename SetType2>
     constexpr bool operator==(const Variable<SetType2>&) const;
     constexpr bool operator==(const Variable<SetType>& var) const;
@@ -43,11 +41,6 @@ Variable<SetType_>::Variable(const std::string& name_): AbstractTerm(name_), m_v
 
 }
 
-template<typename SetType> template<typename T>
-constexpr bool Variable<SetType>::operator==(const T&) const
-{
-    return false;
-}
 
 template<typename SetType> template<typename SetType2>
 constexpr bool Variable<SetType>::operator==(const Variable<SetType2>&) const

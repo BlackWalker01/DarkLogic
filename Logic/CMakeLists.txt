@@ -47,6 +47,7 @@ add_library(Logic STATIC
     Variable/dbvar.cpp
     Variable/term.cpp
     Logger/log.cpp
+    Utils/action.cpp
 
     logic.h
     Utils/utils.h
@@ -159,6 +160,7 @@ add_library(Logic STATIC
     Variable/variable.h
     Variable/variable.hxx
     Logger/log.h
+    Utils/action.h
 )
 
 target_compile_definitions(Logic PRIVATE LOGIC_LIBRARY)

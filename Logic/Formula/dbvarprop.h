@@ -16,7 +16,7 @@ public:
     DbVarProp(const DbVarProp& dbVarProp);
     DbVarProp(const std::vector<std::string>& dbVar);
 
-    bool contains(const std::string& nameHypVar) const;
+    bool contains(const std::string& nameVar) const;
     bool containsHyp(const std::string& hypProp) const;
     const ptr<IISubTheoremFormula>& operator[](const std::string& nameVar) const;
     ptr<IISubTheoremFormula>& operator[](const std::string& nameVar);

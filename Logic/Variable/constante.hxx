@@ -33,11 +33,11 @@ bool Constante<SetType_>::isConstant() const
     return true;
 }
 
-template<typename SetType> template<typename T>
+/*template<typename SetType> template<typename T>
 constexpr bool Constante<SetType>::operator==(const T&) const
 {
     return false;
-}
+}*/
 
 template<typename SetType>
 constexpr bool Constante<SetType>::operator==(const ValueType& val2) const
