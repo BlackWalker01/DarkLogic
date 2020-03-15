@@ -1,19 +1,21 @@
 #ifndef LOGIC_H
 #define LOGIC_H
 #include <unordered_map>
+#include <stack>
+#include "logic_global.h"
 #include "Operator/operator.h"
 #include "Formula/Boolean/dbrule.h"
-#include <stack>
 
 namespace N_Logic {
 
-class Logic
+class LOGICSHARED_EXPORT Logic
 {
 private:
     Logic();
 
 public:
-    friend typename std::_MakeUniq<Logic>::__single_object std::make_unique<Logic>();
+    //friend typename std::_MakeUniq<Logic>::__single_object std::make_unique<Logic>(); //mingw
+    friend std::unique_ptr<Logic> std::make_unique();
     static void init();
 
     //property access methods.

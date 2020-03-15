@@ -6,7 +6,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(LIB_DIR ${CMAKE_SOURCE_DIR}/../../Lib)
+set(LIB_DIR ${CMAKE_SOURCE_DIR}/Lib)
 include_directories("Logic")
 
 add_executable(BlackLogic
@@ -15,4 +15,7 @@ add_executable(BlackLogic
   MainBlackLogic/logicgame.h
 )
 
-target_link_libraries(BlackLogic ${LIB_DIR}/libLogic.a)
+link_directories(${LIB_DIR})
+
+target_link_libraries(BlackLogic ${LIB_DIR}/Logic.lib)
+install(TARGETS BlackLogic DESTINATION ${CMAKE_SOURCE_DIR}/Lib)
