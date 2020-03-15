@@ -5,7 +5,7 @@ using namespace N_Logic;
 
 void Log::Debug(const std::string &msg)
 {
-    #ifdef NDEBUG
+    #ifndef NDEBUG
     std::cout<<"[DEBUG] "<<msg<<std::endl;
     #endif
 }

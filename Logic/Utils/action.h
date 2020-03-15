@@ -2,10 +2,11 @@
 #define ACTION_H
 #include <string>
 #include <vector>
+#include "logic_global.h"
 
 namespace N_Logic
 {
-class Action
+class LOGICSHARED_EXPORT Action
 {
 public:
     Action(const size_t& _id, const std::string& _ruleName, const std::string& _ruleStr, const std::vector<size_t>& _path);

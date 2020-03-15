@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-add_library(Logic STATIC
+add_library(Logic SHARED
     #Sources
     logic.cpp
     Utils/utils.cpp
@@ -49,6 +49,7 @@ add_library(Logic STATIC
     Logger/log.cpp
     Utils/action.cpp
 
+    logic_global.h
     logic.h
     Utils/utils.h
     Formula/Arithmetic/ConstantFormula/constantruleformula.h
@@ -164,4 +165,4 @@ add_library(Logic STATIC
 )
 
 target_compile_definitions(Logic PRIVATE LOGIC_LIBRARY)
-install(TARGETS Logic DESTINATION ${CMAKE_SOURCE_DIR}/../../../Lib)
+install(TARGETS Logic DESTINATION ${CMAKE_SOURCE_DIR}/../Lib)
