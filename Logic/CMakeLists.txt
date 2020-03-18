@@ -11,6 +11,7 @@ add_library(Logic SHARED
     #Sources
     logic.cpp
     Utils/utils.cpp
+    Utils/state.cpp
     Formula/Arithmetic/aarithmeticformula.cpp
     Formula/Arithmetic/inontermarithmetic.cpp
     Formula/Boolean/asubimpurerule.cpp
@@ -52,6 +53,7 @@ add_library(Logic SHARED
     logic_global.h
     logic.h
     Utils/utils.h
+    Utils/state.h
     Formula/Arithmetic/ConstantFormula/constantruleformula.h
     Formula/Arithmetic/ConstantFormula/constanttheoremformula.h
     Formula/Arithmetic/PlusFormula/plusruleformula.h

@@ -62,7 +62,7 @@ const std::string BelongsToStr::s_symbol="€";
 
 std::unique_ptr<Logic> Logic::instance=nullptr;
 
-Logic::Logic(): m_theorem(nullptr), m_nbAppliedRule(0)
+Logic::Logic(): m_theorem(nullptr), m_nbAppliedRule(0), m_isLastRuleSymetric(true)
 {
 
 }
@@ -70,118 +70,38 @@ Logic::Logic(): m_theorem(nullptr), m_nbAppliedRule(0)
 void Logic::init()
 {
     instance=std::make_unique<Logic>();
-
     Log::Debug("Logic Instantiation");
+    instance->_init();
+}
 
-    //set up rules of the logic
-    //AXIOME Rule
-    auto ax=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("ax","true<=>({p,HYP}p)"));
-    instance->insert(ax);
-
-    //AND rules
-    auto andI=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&I","(({HYP}p)&&({HYP}q))<=>({HYP}p&&q)"));
-    instance->insert(andI);
-    auto andE=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&E","({HYP}p&&q)<=>(({HYP}p)&&({HYP}q))"));
-    instance->insert(andE);
-
-    auto andEl=std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("&&Eg","({HYP}p&&q)=>({HYP}p)")); //complicated to use!
-    instance->insert(andEl);
-    auto andEr=std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("&&Ed","({HYP}p&&q)=>({HYP}q)")); //complicated to use!
-    instance->insert(andEr);
-
-    //OR Rules
-    auto orI=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("||I","(({HYP}p)||({HYP}q))<=>({HYP}p||q)"));
-    instance->insert(orI);
-    auto orIl=std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||Ig","({HYP}p)=>({HYP}p||q)"));
-    instance->insert(orIl);
-    auto orIr=std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||Id","({HYP}q)=>({HYP}p||q)"));
-    instance->insert(orIr);
-    auto orE=std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||E","(({HYP}p||q)&&({p,HYP}r)&&({q,HYP}r))=>(({HYP}r)")); //complicated to use!
-    instance->insert(orE);
-
-    //IMPLICATION Rules
-    auto implI=std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("=>I","({p,HYP}q)=>({HYP}p=>q)"));
-    instance->insert(implI);
-    auto implE=std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("=>E","(({HYP}p)&&({HYP}p=>q))=>({p,p=>q,HYP}q)"));
-    instance->insert(implE);
-
-
-    //FALSE Rules
-    auto fi=std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("FI","({HYP}(p&&!p))=>({HYP}false)"));
-    instance->insert(fi);
-    auto fe=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("FE","({p,HYP}false)<=>({HYP}!p)"));
-    instance->insert(fe);
-    auto fiNot=std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("FI!","({!p,HYP}p)=>({!p,HYP}false)"));
-    instance->insert(fiNot);
-
-    //HYPOTHESIS Rules
-    auto hypCom1=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("HypCom1","({p,HYP,q}r)<=>({p,q,HYP}r)"));
-    instance->insert(hypCom1);
-    auto hypCom2=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("HypCom2","({p,q,HYP}r)<=>({q,p,HYP}r)"));
-    instance->insert(hypCom2);
-
-    //WEAKENING Rule
-    auto weak=std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("weakening","({HYP}p)=>({q,HYP}p)"));
-    instance->insert(weak);
-
-    //ABSURD REASONNING Rules (ARR)
-    auto arr=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("arr","({!p,HYP}false)<=>({HYP}p)"));
-    instance->insert(arr);
-    auto doubleNot=std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("!!","({HYP}!!p)<=>({HYP}p)"));
-    instance->insert(doubleNot);
-
-    Log::Debug("Rules Instantiated");
+bool N_Logic::Logic::isOver()
+{
+    return instance->_isOver();
 }
 
 bool Logic::isDemonstrated()
 {
-    try
-    {
-       bool ret=N_Logic::Logic::evaluate();
-       if(ret)
-       {
-           return ret;
-       }
-       else
-       {
-           return true;
-       }
-    }
-    catch (std::runtime_error& e)
-    {
-        return false;
-    }
+    return instance->_isDemonstrated();
+}
+
+bool N_Logic::Logic::isAlreadyPlayed()
+{
+    return instance->_isAlreadyPlayed();
+}
+
+bool N_Logic::Logic::canBeDemonstrated()
+{
+    return instance->_canBeDemonstrated();
 }
 
 bool Logic::evaluate()
 {
-    if(instance->m_theorem)
-    {
-        return instance->m_theorem->evaluate();
-    }
-    else
-    {
-        throw std::runtime_error("Cannot evaluate an invalid theorem");
-    }
+    return instance->_evaluate();    
 }
 
 bool Logic::makeTheorem(const std::string& name, const std::string& cont)
 {
-    Log::Debug("New Theorem: "+name);
-    try
-    {
-        instance->m_theorem=createTheorem(name,cont);
-
-        //Compute actions
-        getActions();
-
-        return true;
-    }
-    catch (std::runtime_error& e)
-    {
-        Log::Error(e.what());
-    }
-    return false;
+    return instance->_makeTheorem(name,cont);
 }
 
 void Logic::testTheorem()
@@ -220,45 +140,217 @@ void Logic::testTheorem()
 
 void Logic::printTheorem()
 {
-    instance->m_theorem->print();
+    instance->_printTheorem();
 }
 
 std::vector<size_t> Logic::getActions()
 {
-    return instance->m_rules.getActions(instance->m_theorem,instance->m_nbAppliedRule);
+    return instance->_getActions();
 }
 
 std::vector<Action> Logic::getHumanActions()
 {
-    getActions();
-    return instance->m_rules.getHumanActions();
+    return instance->_getHumanActions();
 }
 
 void Logic::apply(const size_t &actionKey)
 {
-    auto antecedent=instance->m_theorem;
-    instance->m_antecedents.push(antecedent);
-    instance->m_theorem=instance->m_rules.apply(actionKey,instance->m_theorem);
-    instance->m_nbAppliedRule++;
+    instance->_apply(actionKey);    
 }
 
 void Logic::unapply()
 {
-    instance->m_nbAppliedRule--;
-    auto antecedent=instance->m_antecedents.top();
-    instance->m_rules.unapply(antecedent,instance->m_nbAppliedRule);
-    instance->m_theorem=antecedent;
-    instance->m_antecedents.pop();
+    instance->_unapply();    
 }
 
 bool Logic::hasAlreadyPlayed()
 {
-    return instance->m_antecedents.size();
+    return instance->_hasAlreadyPlayed();    
 }
 
 template<typename OpeType>
 void Logic::insert(const ptr<Rule<OpeType> > &rule)
 {
-    m_ruleNameToIndex[rule->name()]=m_ruleNameToIndex.size();
     m_rules.insert(rule);
+}
+
+void N_Logic::Logic::_init()
+{
+    //set up rules of the logic
+    //AXIOME Rule
+    auto ax = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("ax", "true<=>({p,HYP}p)"));
+    insert(ax);
+
+    //AND rules
+    auto andI = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&I", "(({HYP}p)&&({HYP}q))<=>({HYP}p&&q)"));
+    insert(andI);
+    auto andE = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&E", "({HYP}p&&q)<=>(({HYP}p)&&({HYP}q))"));
+    insert(andE);
+
+    auto andEl = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("&&Eg", "({HYP}p&&q)=>({HYP}p)")); //complicated to use!
+    insert(andEl);
+    auto andEr = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("&&Ed", "({HYP}p&&q)=>({HYP}q)")); //complicated to use!
+    insert(andEr);
+
+    //OR Rules
+    auto orI = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("||I", "(({HYP}p)||({HYP}q))<=>({HYP}p||q)"));
+    insert(orI);
+    auto orIl = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||Ig", "({HYP}p)=>({HYP}p||q)"));
+    insert(orIl);
+    auto orIr = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||Id", "({HYP}q)=>({HYP}p||q)"));
+    insert(orIr);
+    auto orE = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||E", "(({HYP}p||q)&&({p,HYP}r)&&({q,HYP}r))=>(({HYP}r)")); //complicated to use!
+    insert(orE);
+
+    //IMPLICATION Rules
+    auto implI = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("=>I", "({p,HYP}q)=>({HYP}p=>q)"));
+    insert(implI);
+    auto implE = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("=>E", "(({HYP}p)&&({HYP}p=>q))=>({p,p=>q,HYP}q)"));
+    insert(implE);
+
+
+    //FALSE Rules
+    auto fi = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("FI", "({HYP}(p&&!p))=>({HYP}false)"));
+    insert(fi);
+    auto fe = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("FE", "({p,HYP}false)<=>({HYP}!p)"));
+    insert(fe);
+    auto fiNot = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("FI!", "({!p,HYP}p)=>({!p,HYP}false)"));
+    insert(fiNot);
+
+    //HYPOTHESIS Rules
+    auto hypCom1 = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("HypCom1", "({p,HYP,q}r)<=>({p,q,HYP}r)"));
+    insert(hypCom1);
+    auto hypCom2 = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("HypCom2", "({p,q,HYP}r)<=>({q,p,HYP}r)"));
+    insert(hypCom2);
+
+    //WEAKENING Rule
+    auto weak = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("weakening", "({HYP}p)=>({q,HYP}p)"));
+    insert(weak);
+
+    //ABSURD REASONNING Rules (ARR)
+    auto arr = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("arr", "({!p,HYP}false)<=>({HYP}p)"));
+    insert(arr);
+    auto doubleNot = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("!!", "({HYP}!!p)<=>({HYP}p)"));
+    insert(doubleNot);
+
+    Log::Debug("Rules Instantiated");
+}
+
+bool N_Logic::Logic::_isOver()
+{
+    return _isDemonstrated() || !_canBeDemonstrated() || _isAlreadyPlayed();
+}
+
+bool N_Logic::Logic::_isDemonstrated()
+{
+    try
+    {
+        _evaluate();
+        return m_isLastRuleSymetric;
+        
+    }
+    catch (std::runtime_error&)
+    {
+        return false;
+    }
+}
+
+bool N_Logic::Logic::_isAlreadyPlayed()
+{
+    for (const auto& pairTheorem : m_antecedents)
+    {
+        auto theorem = pairTheorem.first;
+        if ((*theorem) == (*m_theorem))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool N_Logic::Logic::_canBeDemonstrated()
+{
+    try
+    {
+        if (!_evaluate())
+        {
+            return m_isLastRuleSymetric;
+        }
+        return true;
+    }
+    catch (std::runtime_error&)
+    {
+        return true;
+    }    
+}
+
+bool N_Logic::Logic::_evaluate()
+{
+    if (m_theorem)
+    {
+        return m_theorem->evaluate();
+    }
+    else
+    {
+        throw std::runtime_error("Cannot evaluate an invalid theorem");
+    }
+}
+
+bool N_Logic::Logic::_makeTheorem(const std::string& name, const std::string& cont)
+{
+    Log::Debug("New Theorem: " + name);
+    try
+    {
+        m_theorem = createTheorem(name, cont);
+
+        //Compute actions
+        _getActions();
+
+        return true;
+    }
+    catch (std::runtime_error & e)
+    {
+        Log::Error(e.what());
+    }
+    return false;
+}
+
+void N_Logic::Logic::_printTheorem()
+{
+    m_theorem->print();
+}
+
+std::vector<size_t> N_Logic::Logic::_getActions()
+{
+    return m_rules.getActions(instance->m_theorem, instance->m_nbAppliedRule);
+}
+
+std::vector<Action> N_Logic::Logic::_getHumanActions()
+{
+    _getActions();
+    return m_rules.getHumanActions();
+}
+
+void N_Logic::Logic::_apply(const size_t& actionKey)
+{
+    auto antecedent = m_theorem;
+    m_antecedents.push_back({ antecedent, m_isLastRuleSymetric });
+    m_theorem = m_rules.apply(actionKey, m_theorem);
+    m_isLastRuleSymetric = m_isLastRuleSymetric && m_rules.isLastRuleSymetric(actionKey);
+    m_nbAppliedRule++;
+}
+
+void N_Logic::Logic::_unapply()
+{
+    m_nbAppliedRule--;
+    auto antecedent = m_antecedents.back().first;
+    m_isLastRuleSymetric = m_antecedents.back().second;
+    m_rules.unapply(antecedent, m_nbAppliedRule);
+    m_theorem = antecedent;
+    m_antecedents.pop_back();
+}
+
+bool N_Logic::Logic::_hasAlreadyPlayed()
+{
+    return m_antecedents.size();
 }

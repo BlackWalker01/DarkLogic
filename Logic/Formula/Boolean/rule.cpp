@@ -307,3 +307,8 @@ ptr<ASubRule> N_Logic::createRule(const std::string &name, std::vector<OperatorO
     return nullptr;
 }
 
+template<>
+inline bool Rule<Equivalent<ASubRule>>::isSymetric() const
+{
+    return true;
+}
