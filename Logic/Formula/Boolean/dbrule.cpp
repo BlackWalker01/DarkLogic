@@ -47,3 +47,8 @@ std::vector<Action> DbRule::getHumanActions() const
     }
     return ret;
 }
+
+bool DbRule::isLastRuleSymetric(const size_t& actionKey) const
+{
+    return m_actionKeyToRule.at(actionKey)->isSymetric();
+}

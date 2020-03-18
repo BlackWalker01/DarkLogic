@@ -22,6 +22,7 @@ public:
 
     virtual ptr<IISubTheoremFormula> applyAnnexe(const size_t& actionKey,
                                                         const ptr<IISubTheoremFormula> &theorem, std::vector<Arity>& indexes) const;
+    virtual bool isSymetric() const;
 
     static void addAbstractTerm(const std::string& varName, std::vector<std::shared_ptr<VariableContainer> > &varList, DbVarContainer &dbVar);
 

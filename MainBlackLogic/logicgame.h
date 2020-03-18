@@ -18,6 +18,9 @@ public:
     void start();
 private:
     bool isOver();
+    bool isDemonstrated();
+    bool isAlreadyPlayed();
+    bool canBeDemonstrated();
     void game();
     void askCall();
 

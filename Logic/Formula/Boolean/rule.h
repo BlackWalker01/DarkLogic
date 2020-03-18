@@ -19,13 +19,19 @@ class Rule: public SubRule<SubPropertyType>
 public:
     Rule(const std::string& name_, const ptr<ASubRule>& leftSubProp, const ptr<ASubRule>& rightSubProp);
 
+    //getAction methods
     std::vector<size_t> getActions(const ptr<ASubTheorem>& prop, const size_t& nbAppliedActions, size_t& lastActionIndex) const
     override final;
     std::vector<Action> getHumanActions() const override final;
 
+    //inference methods
     ptr<ASubTheorem> apply(const size_t& actionKey, const ptr<ASubTheorem> &theorem) const override final;
     ptr<IISubTheoremFormula> applyAnnexe(const size_t& actionKey, const ptr<IISubTheoremFormula>& theorem, std::vector<Arity>& indexes) const override final;
     void unapply() const override final;
+
+    //reciprocity methods
+    bool isSymetric() const override;
+    ptr<Rule> getReciprocal() const;
 
     ~Rule() override = default;
 
@@ -143,6 +149,18 @@ void Rule<SubPropertyType>::unapply() const
 {
     clearIdentifications();
     (*m_nbActions)--;
+}
+
+template<typename SubPropertyType>
+inline bool Rule<SubPropertyType>::isSymetric() const
+{
+    return false;
+}
+
+template<typename SubPropertyType>
+inline ptr<Rule<SubPropertyType>> Rule<SubPropertyType>::getReciprocal() const
+{
+    return std::make_shared<const Rule<SubPropertyType>>(name()+"_Recip",(*this)[1],(*this)[0]);
 }
 
 /**

@@ -17,6 +17,7 @@ public:
     void unapply(const ptr<ASubTheorem> &prop, size_t &nbActions);
     std::vector<size_t> getActions(const ptr<ASubTheorem> &prop, size_t& nbActions);
     std::vector<Action> getHumanActions() const;
+    bool isLastRuleSymetric(const size_t& actionKey) const;
 
     ~DbRule() = default;
 private:
@@ -27,7 +28,15 @@ private:
 template<typename OpeType>
 void DbRule::insert(const ptr<Rule<OpeType> > &rule)
 {
-    m_db.push_back(rule);
+    if constexpr (std::is_same_v<OpeType, Equivalent<ASubRule>>)
+    {
+        m_db.push_back(rule);
+        m_db.push_back(rule->getReciprocal());
+    }
+    else
+    {
+        m_db.push_back(rule);
+    }    
 }
 }
 #endif // DBRULE_H

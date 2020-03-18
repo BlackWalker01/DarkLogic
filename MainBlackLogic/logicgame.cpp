@@ -146,15 +146,22 @@ bool LogicGame::popAction()
 
 bool LogicGame::isOver()
 {
-    try
-    {
-        N_Logic::Logic::evaluate();
-    }
-    catch (std::runtime_error& e)
-    {
-        return false;
-    }
-    return true;
+    return N_Logic::Logic::isOver();
+}
+
+bool LogicGame::isDemonstrated()
+{
+    return N_Logic::Logic::isDemonstrated();
+}
+
+bool LogicGame::isAlreadyPlayed()
+{
+    return N_Logic::Logic::isAlreadyPlayed();
+}
+
+bool LogicGame::canBeDemonstrated()
+{
+    return N_Logic::Logic::canBeDemonstrated();
 }
 
 void LogicGame::game()
@@ -163,7 +170,20 @@ void LogicGame::game()
     {
         askCall();
     }
-    std::cout<<"you finished the demonstration!"<<std::endl;
+    
+    if (isDemonstrated())
+    {
+        std::cout << "You won! you finished the demonstration!" << std::endl;
+    }
+    else if (isAlreadyPlayed())
+    {
+        std::cout << "You lost! you have already had this theorem!" << std::endl;
+    }
+    else /*if (!canBeDemonstrated())*/
+    {
+        std::cout << "You lost! you cannot (\"back-\")demonstrate that your theorem is false with implications!" << std::endl;
+    }  
+    
 }
 
 void LogicGame::askCall()

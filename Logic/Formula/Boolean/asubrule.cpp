@@ -35,6 +35,11 @@ ptr<IISubTheoremFormula> ASubRule::applyAnnexe(const size_t &, const ptr<IISubTh
     throw std::runtime_error("SubRule cannot call applyAnnexe method");
 }
 
+bool ASubRule::isSymetric() const
+{
+	return false;
+}
+
 
 ptr<IOperator> N_Logic::createRuleOperator(const Name name, const Arity &arity)
 {
