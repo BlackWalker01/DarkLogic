@@ -1,21 +1,18 @@
 #ifndef LOGICGAME_H
 #define LOGICGAME_H
 #include <unordered_map>
+#include "EnumFun.h"
+#include <memory>
+#include "player.h"
 
 class LogicGame
-{
-    enum Fun
-    {
-        GET_ACTION,
-        PUSH_ACTION,
-        POP_ACTION,
-        HELP
-    };
-
+{   
 public:
     LogicGame() = default;
 
     void start();
+
+    ~LogicGame() = default;
 private:
     bool isOver();
     bool isDemonstrated();
@@ -30,8 +27,10 @@ private:
     bool pushAction(const std::string& action);
     bool popAction();
 
+    void askPlayer();    
 
-    static const std::unordered_map<std::string,Fun> s_funHash;
+    //Attribute
+    std::unique_ptr<Player> m_player;
 };
 
 #endif // LOGICGAME_H

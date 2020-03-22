@@ -1,29 +1,12 @@
 #include "logicgame.h"
 #include "logic.h"
-
-const std::unordered_map<std::string,LogicGame::Fun> LogicGame::s_funHash=
-{{"getaction",GET_ACTION},
- {"getAction",GET_ACTION},
- {"GetAction",GET_ACTION},
- {"GETACTION",GET_ACTION},
-
-{"pushaction",PUSH_ACTION},
- {"pushAction",PUSH_ACTION},
- {"PushAction",PUSH_ACTION},
- {"PUSHACTION",PUSH_ACTION},
-
-{"popaction",POP_ACTION},
- {"popAction",POP_ACTION},
- {"PopAction",POP_ACTION},
- {"POPACTION",POP_ACTION},
-
- {"help",HELP},
-  {"Help",HELP},
-  {"HELP",PUSH_ACTION},
-};
+#include "Human/human.h"
+#include "AI/ai.h"
+#include "action.h"
 
 void LogicGame::start()
 {
+    askPlayer();
     N_Logic::Logic::init();
     createTheorem();
     game();
@@ -144,6 +127,31 @@ bool LogicGame::popAction()
     }
 }
 
+void LogicGame::askPlayer()
+{
+    bool ok = false;
+    while (!ok)
+    {
+        std::cout << "Choose the mode (Human/AI)" << std::endl;
+        std::string mode = "";
+        std::getline(std::cin, mode);
+        if (mode=="Human" || mode=="human"||mode=="HUMAN")
+        {
+            m_player = std::make_unique<Human>();
+            ok = true;
+        }
+        else if (mode=="ai"|| mode=="AI" || mode=="Ai")
+        {
+            m_player = std::make_unique<AI>();
+            ok = true;
+        }
+        else
+        {
+            std::cout << "mode '" << mode << "' unknwon" << std::endl;
+        }
+    }
+}
+
 bool LogicGame::isOver()
 {
     return N_Logic::Logic::isOver();
@@ -168,7 +176,41 @@ void LogicGame::game()
 {
     while(!isOver())
     {
-        askCall();
+        auto action = m_player->play();
+        switch (action->fun())
+        {
+            case GET_ACTION:
+            {
+                printActions();
+                break;
+            }
+            case PUSH_ACTION:
+            {
+                N_Logic::Logic::apply(action->id());
+                N_Logic::Logic::printTheorem();
+                break;
+            }
+            case POP_ACTION:
+            {
+                if (!popAction())
+                {
+                    std::cout << "Cannot pop action!" << std::endl;
+                }
+                else
+                {
+                    N_Logic::Logic::printTheorem();
+                }
+                break;
+            }
+            case HELP:
+            {                
+                break;
+            }
+            case NONE:
+            {
+                break;
+            }
+        }
     }
     
     if (isDemonstrated())
@@ -185,85 +227,3 @@ void LogicGame::game()
     }  
     
 }
-
-void LogicGame::askCall()
-{
-    std::string cmd="";
-    std::string func="";
-    std::string args="";
-    bool ok=false;
-    while(!ok)
-    {
-        std::cout<<"What do you want to do?"<<std::endl;
-        if(!std::getline(std::cin,cmd))
-        {
-            std::cout<<"Error in command"<<std::endl;
-            continue;
-        }
-
-        size_t k=0;
-        size_t firstParIdx=0;
-        size_t nbPar=0;
-        for(;k<cmd.size();k++)
-        {
-            if(cmd[k]=='(')
-            {
-                nbPar++;
-                if(nbPar==1)
-                {
-                    firstParIdx=k;
-                    func=cmd.substr(0,k);
-                }
-            }
-            else if(cmd[k]==')')
-            {
-                if(nbPar==0)
-                {
-                    std::cout<<"Error in command"<<std::endl;
-                    continue;
-                }
-                nbPar--;
-                if(nbPar==0)
-                {
-                    args=cmd.substr(firstParIdx+1,k-firstParIdx-1);
-                }
-            }
-        }
-
-        //call function
-        auto it=s_funHash.find(func);
-        if(it!=s_funHash.end())
-        {
-            switch (it->second)
-            {
-                case GET_ACTION:
-                {
-                    printActions();
-                    ok=true;
-                    break;
-                }
-                case PUSH_ACTION:
-                {
-                    ok=pushAction(args);
-                    break;
-                }
-                case POP_ACTION:
-                {
-                    ok=popAction();
-                    break;
-                }
-                case HELP:
-                {
-                    ok=true;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            std::cout<<"Unknown command "<<func<<std::endl;
-        }
-    }
-
-}
-

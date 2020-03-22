@@ -12,7 +12,17 @@ include_directories("Logic")
 add_executable(BlackLogic
   main.cpp
   MainBlackLogic/logicgame.cpp
+  MainBlackLogic/player.cpp
+  MainBlackLogic/action.cpp
+  Human/human.cpp
+  AI/ai.cpp
+
   MainBlackLogic/logicgame.h
+  MainBlackLogic/player.h
+  MainBlackLogic/action.h
+  MainBlackLogic/EnumFun.h
+  Human/human.h
+  AI/ai.h
 )
 
 link_directories(${LIB_DIR})

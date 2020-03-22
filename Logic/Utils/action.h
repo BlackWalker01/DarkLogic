@@ -1,5 +1,5 @@
-#ifndef ACTION_H
-#define ACTION_H
+#ifndef LOGICACTION_H
+#define LOGICACTION_H
 #include <string>
 #include <vector>
 #include "logic_global.h"
@@ -24,4 +24,4 @@ private:
     std::vector<size_t> m_path;
 };
 }
-#endif // ACTION_H
+#endif // LOGICACTION_H
