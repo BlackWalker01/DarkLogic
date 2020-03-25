@@ -104,19 +104,27 @@ ptr<IOperator> N_Logic::createRuleOperator(const Name name, const Arity &arity)
 }
 
 void N_Logic::addRuleOperator(const Name name, std::vector<OperatorOrdering> &opeList,
-                                  const std::vector<OperatorOrdering> &hyps, const size_t& numPar, const size_t& argIndex)
+                                  const std::vector<OperatorOrdering> &hyps, const size_t& numPar)
 {
     ptr<IOperator> ope=nullptr;
     if((ope=createRuleOperator(name)))
     {
         //if current operator comes just after a Hypothesis operator, then it is a subOperator of this one
-        if(hyps.size() && hyps.back().nbPar>=numPar)
+        if(hyps.size() /*&& hyps.back().nbPar>=numPar*/)
         {
-            opeList.push_back(OperatorOrdering(ope,numPar,hyps.back().ope->arity()-1));
+            //if it is operator in conclusion part of hypothesis operator
+            if (hyps.back().ope)
+            {
+                opeList.push_back(OperatorOrdering(ope, numPar, hyps.back().nbArgs - 1));
+            }
+            else
+            {
+                opeList.push_back(OperatorOrdering(ope, numPar, hyps.back().nbArgs));
+            }
         }
         else
         {
-            opeList.push_back(OperatorOrdering(ope,numPar,argIndex));
+            opeList.push_back(OperatorOrdering(ope,numPar,0));
         }
     }
     else

@@ -15,26 +15,26 @@ private:
 public:
     //friend typename std::_MakeUniq<Logic>::__single_object std::make_unique<Logic>(); //mingw
     friend std::unique_ptr<Logic> std::make_unique();
-    static void init();
+    static void init(const size_t& nbInstances);
 
-    static bool isOver();
+    static bool isOver(const size_t& instanceIdx);
 
     //property access methods.
-    static bool isDemonstrated();
-    static bool isAlreadyPlayed();
-    static bool canBeDemonstrated();
-    static bool evaluate();
+    static bool isDemonstrated(const size_t& instanceIdx);
+    static bool isAlreadyPlayed(const size_t& instanceIdx);
+    static bool canBeDemonstrated(const size_t& instanceIdx);
+    static bool evaluate(const size_t& instanceIdx);
     static bool makeTheorem(const std::string &name, const std::string &cont);
-    static void printTheorem();
+    static void printTheorem(const size_t& instanceIdx);
 
     //operator access methods
-    static std::vector<size_t> getActions();
-    static std::vector<Action> getHumanActions();
+    static std::vector<size_t> getActions(const size_t& instanceIdx);
+    static std::vector<Action> getHumanActions(const size_t& instanceIdx);
 
     //demonstration methods
-    static void apply(const size_t& actionKey);
-    static void unapply();
-    static bool hasAlreadyPlayed();
+    static void apply(const size_t& instanceIdx, const size_t& actionKey);
+    static void unapply(const size_t& instanceIdx);
+    static bool hasAlreadyPlayed(const size_t& instanceIdx);
 
     ~Logic() = default;
 
@@ -46,12 +46,10 @@ private:
     size_t m_nbAppliedRule;
     bool m_isLastRuleSymetric;
 
-    static std::unique_ptr<Logic> instance;
+    static std::vector<std::unique_ptr<Logic>> s_instances;
 
     //Private methods   
-    void _init();
     bool _isOver();
-    static void testTheorem();
     template<typename OpeType>
     void insert(const ptr<Rule<OpeType>>& rule);
 

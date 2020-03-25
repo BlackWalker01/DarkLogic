@@ -30,7 +30,7 @@ public:
 };
 ptr<IOperator> createRuleOperator(const Name name, const Arity& arity=0);
 void addRuleOperator(const Name name, std::vector<OperatorOrdering> &opeList,
-                     const std::vector<OperatorOrdering>& hyps, const size_t &numPar, const size_t &argIndex);
+                     const std::vector<OperatorOrdering>& hyps, const size_t &numPar);
 }
 
 #endif // ASUBRULE_H

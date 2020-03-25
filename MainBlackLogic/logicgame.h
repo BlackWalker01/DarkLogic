@@ -7,8 +7,14 @@
 
 class LogicGame
 {   
+    enum Mode
+    {
+        NoMode,
+        HumanMode,
+        AIMode
+    };
 public:
-    LogicGame() = default;
+    LogicGame();
 
     void start();
 
@@ -30,6 +36,7 @@ private:
     void askPlayer();    
 
     //Attribute
+    Mode m_mode;
     std::unique_ptr<Player> m_player;
 };
 

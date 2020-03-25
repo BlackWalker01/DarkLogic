@@ -20,9 +20,9 @@ public:
     ISubRuleFormula() = default;
 
     //method used by Logic
-    virtual ptr<ATheoremType> apply(const size_t& actionKey, const ptr<ATheoremType>& theorem) const;
+    virtual std::pair<ptr<ATheoremType>,bool> apply(const size_t& actionKey, const ptr<ATheoremType>& theorem) const;
     virtual void unapply() const;
-    virtual std::vector<size_t> getActions(const ptr<ATheoremType>& prop, const size_t& nbActions, size_t& lastActionIndex) const;
+    virtual std::vector<size_t> getActions(const ptr<ATheoremType>& prop, size_t& lastActionIndex) const;
     virtual std::vector<Action> getHumanActions() const;
 
     //internal methods
@@ -35,7 +35,7 @@ public:
 
 
 template<typename ATheoremType>
-ptr<ATheoremType> ISubRuleFormula<ATheoremType>::apply(const size_t &/*actionKey*/, const ptr<ATheoremType> &/*thName*/) const
+std::pair<ptr<ATheoremType>,bool> ISubRuleFormula<ATheoremType>::apply(const size_t &/*actionKey*/, const ptr<ATheoremType> &/*thName*/) const
 {
     throw std::runtime_error("Cannot apply subrule formula");
 }
@@ -47,7 +47,7 @@ void ISubRuleFormula<ATheoremType>::unapply() const
 }
 
 template<typename ATheoremType>
-std::vector<size_t> ISubRuleFormula<ATheoremType>::getActions(const ptr<ATheoremType> &, const size_t &, size_t &) const
+std::vector<size_t> ISubRuleFormula<ATheoremType>::getActions(const ptr<ATheoremType> &, size_t &) const
 {
     throw std::runtime_error("Cannot get possible actions from a subrule formula");
 }

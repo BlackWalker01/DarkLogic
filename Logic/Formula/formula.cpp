@@ -1,4 +1,5 @@
 #include "formula.h"
+#include "formula.h"
 #include "Operator/ioperator.h"
 #include "Variable/term.h"
 #include "Set/booleanset.h"
@@ -172,36 +173,41 @@ std::vector<N_Logic::OperatorOrdering> N_Logic::fusion(const std::vector<Operato
 
 
 
-N_Logic::OperatorOrdering::OperatorOrdering(): ope(nullptr), nbPar(0), argIndex(0)
+N_Logic::OperatorOrdering::OperatorOrdering(): ope(nullptr), nbPar(0), argIndex(0), nbArgs(0)
 {
 
 }
 
+/*N_Logic::OperatorOrdering::OperatorOrdering(const ptr<IOperator>& ope_, const size_t& nbPar_):
+    ope(ope_), nbPar(nbPar_), argIndex(0), nbArgs(0)
+{
+}*/
+
 N_Logic::OperatorOrdering::OperatorOrdering(const ptr<IOperator> &ope_, const size_t &nbPar_, const size_t &argIndex_):
-    ope(ope_), nbPar(nbPar_), argIndex(argIndex_)
+    ope(ope_), nbPar(nbPar_), argIndex(argIndex_), nbArgs(0)
 {
 
 }
 
 N_Logic::OperatorOrdering::OperatorOrdering(const OperatorOrdering &opeOrdering): ope(opeOrdering.ope),
-    nbPar(opeOrdering.nbPar), argIndex(opeOrdering.argIndex)
+    nbPar(opeOrdering.nbPar), argIndex(opeOrdering.argIndex), nbArgs(opeOrdering.nbArgs)
 {
 
 }
 
-N_Logic::ParenthesisParam::ParenthesisParam(): nbPar(0), nbArgs(0), indexInOpeList(0)
+N_Logic::ParenthesisParam::ParenthesisParam(): nbPar(0), indexInOpeList(0)
 {
 
 }
 
-N_Logic::ParenthesisParam::ParenthesisParam(const size_t &nbPar_, const size_t &nbArgs_, const size_t &indexInOpeList_):
-    nbPar(nbPar_), nbArgs(nbArgs_), indexInOpeList(indexInOpeList_)
+N_Logic::ParenthesisParam::ParenthesisParam(const size_t &nbPar_, const size_t &indexInOpeList_):
+    nbPar(nbPar_), indexInOpeList(indexInOpeList_)
 {
 
 }
 
 N_Logic::ParenthesisParam::ParenthesisParam(const ParenthesisParam &parenthesisParam):
-    nbPar(parenthesisParam.nbPar), nbArgs(parenthesisParam.nbArgs), indexInOpeList(parenthesisParam.indexInOpeList)
+    nbPar(parenthesisParam.nbPar), indexInOpeList(parenthesisParam.indexInOpeList)
 {
 
 }

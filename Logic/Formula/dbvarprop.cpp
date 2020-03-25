@@ -57,21 +57,22 @@ void DbVarProp::insert(const std::string &nameVar, const ptr<ASubTheorem>& prop)
 void DbVarProp::insertHypEmpty(const std::string& nameHypVar)
 {
     m_hypAssoc[nameHypVar]={};
+    m_hypMapOrdered[nameHypVar] = {};
 }
 
 void DbVarProp::insertHypAssoc(const std::string& nameHypVar, const ptr<ASubTheorem>& prop)
 {
     std::string key=prop->toString();
     m_hypMapOrdered[nameHypVar].push_back(key);
-    m_hypAssoc[nameHypVar][key]=prop;
+    m_hypAssoc[nameHypVar][key]=prop;    
 }
 
 std::vector<ptr<ASubTheorem>> DbVarProp::getHypAssoc(const std::string& nameHypVar)
 {
     std::vector<ptr<const ASubTheorem>> ret;
-    for(size_t k=0;k<m_hypMapOrdered[nameHypVar].size();k++)
+    for(size_t k=0;k<m_hypMapOrdered.at(nameHypVar).size();k++)
     {
-        ret.push_back(m_hypAssoc[nameHypVar][m_hypMapOrdered[nameHypVar][k]]);
+        ret.push_back(m_hypAssoc.at(nameHypVar).at(m_hypMapOrdered.at(nameHypVar)[k]));
     }
     return ret;
 }

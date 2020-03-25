@@ -3,12 +3,21 @@
 #include "Human/human.h"
 #include "AI/ai.h"
 #include "action.h"
+#include <thread>
+
+LogicGame::LogicGame():
+    m_mode(NoMode), m_player(nullptr)
+{
+
+}
 
 void LogicGame::start()
 {
-    askPlayer();
-    N_Logic::Logic::init();
+    //create player and init logic
+    askPlayer();   
     createTheorem();
+
+    //Start game
     game();
 }
 
@@ -32,7 +41,7 @@ void LogicGame::createTheorem()
         {
             std::cout<<"Error in theorem content"<<std::endl;
             continue;
-        }
+        }        
         //change '?' characters to '€' after let operators
         std::string let="let";
         std::string in="in";
@@ -71,12 +80,14 @@ void LogicGame::createTheorem()
         }
         thStr=thStr2;
         ok=N_Logic::Logic::makeTheorem(thName,thStr);
+        /*std::cout << "[DEBUG] content: " << std::endl;
+        N_Logic::Logic::printTheorem(0);*/
     }
 }
 
 void LogicGame::printActions()
 {
-    auto actions=N_Logic::Logic::getHumanActions();
+    auto actions=N_Logic::Logic::getHumanActions(0);
     for(const auto& action: actions)
     {
         std::cout<<action.toString()<<std::endl;
@@ -89,7 +100,7 @@ bool LogicGame::pushAction(const std::string &action)
     std::stringstream ss;
     ss<<action;
     ss>>id;
-    std::vector<size_t> actions=N_Logic::Logic::getActions();
+    std::vector<size_t> actions=N_Logic::Logic::getActions(0);
     bool foundAction=false;
     for(const auto& actionId: actions)
     {
@@ -101,9 +112,9 @@ bool LogicGame::pushAction(const std::string &action)
     }
     if(foundAction)
     {
-        N_Logic::Logic::apply(id);
+        N_Logic::Logic::apply(0,id);
         std::cout<<"Current theorem is"<<std::endl;
-        N_Logic::Logic::printTheorem();
+        N_Logic::Logic::printTheorem(0);
     }
     else
     {
@@ -114,11 +125,11 @@ bool LogicGame::pushAction(const std::string &action)
 
 bool LogicGame::popAction()
 {
-    if(N_Logic::Logic::hasAlreadyPlayed())
+    if(N_Logic::Logic::hasAlreadyPlayed(0))
     {
-        N_Logic::Logic::unapply();
+        N_Logic::Logic::unapply(0);
         std::cout<<"Current theorem is"<<std::endl;
-        N_Logic::Logic::printTheorem();
+        N_Logic::Logic::printTheorem(0);
         return true;
     }
     else
@@ -137,12 +148,24 @@ void LogicGame::askPlayer()
         std::getline(std::cin, mode);
         if (mode=="Human" || mode=="human"||mode=="HUMAN")
         {
+            std::cout << "Human Mode" << std::endl;
+            m_mode = HumanMode;
+            //Init Logic
+            N_Logic::Logic::init(1);
             m_player = std::make_unique<Human>();
+
             ok = true;
         }
         else if (mode=="ai"|| mode=="AI" || mode=="Ai")
         {
-            m_player = std::make_unique<AI>();
+            std::cout << "AI Mode" << std::endl;
+            m_mode = AIMode;
+            //Init Logic
+            auto nbInstance = std::thread::hardware_concurrency() + 1;
+            //auto nbInstance = 2; //single thread for AI
+            N_Logic::Logic::init(nbInstance);
+            m_player = std::make_unique<AI>(nbInstance);
+
             ok = true;
         }
         else
@@ -154,22 +177,22 @@ void LogicGame::askPlayer()
 
 bool LogicGame::isOver()
 {
-    return N_Logic::Logic::isOver();
+    return N_Logic::Logic::isOver(0);
 }
 
 bool LogicGame::isDemonstrated()
 {
-    return N_Logic::Logic::isDemonstrated();
+    return N_Logic::Logic::isDemonstrated(0);
 }
 
 bool LogicGame::isAlreadyPlayed()
 {
-    return N_Logic::Logic::isAlreadyPlayed();
+    return N_Logic::Logic::isAlreadyPlayed(0);
 }
 
 bool LogicGame::canBeDemonstrated()
 {
-    return N_Logic::Logic::canBeDemonstrated();
+    return N_Logic::Logic::canBeDemonstrated(0);
 }
 
 void LogicGame::game()
@@ -186,8 +209,8 @@ void LogicGame::game()
             }
             case PUSH_ACTION:
             {
-                N_Logic::Logic::apply(action->id());
-                N_Logic::Logic::printTheorem();
+                N_Logic::Logic::apply(0,action->id());
+                N_Logic::Logic::printTheorem(0);
                 break;
             }
             case POP_ACTION:
@@ -195,10 +218,6 @@ void LogicGame::game()
                 if (!popAction())
                 {
                     std::cout << "Cannot pop action!" << std::endl;
-                }
-                else
-                {
-                    N_Logic::Logic::printTheorem();
                 }
                 break;
             }
@@ -211,6 +230,7 @@ void LogicGame::game()
                 break;
             }
         }
+        std::cout << "____________________________________________________________________________" << std::endl;
     }
     
     if (isDemonstrated())

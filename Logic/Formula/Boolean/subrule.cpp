@@ -21,67 +21,43 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
             std::vector<ptr<IISubRuleFormula>> subProps;
             for(size_t k=0;k<ope->arity();k++)
             {
-                if(orderedOpeList.size()>0)
+                if (orderedOpeList.size())
                 {
-                    if((orderedOpeList[0].argIndex==k && orderedOpeList[0].nbPar==nbPar+1) ||
-                            (orderedOpeList[0].nbPar==nbPar && k==ope->arity()-1)) //implication of hypothesis operator
+                    //split between topOrderedOpeList and queueOrderedOpeList
+                    std::unordered_map<ptr<IOperator>, OperatorOrdering> hashLeftOpe;
+                    std::unordered_map<ptr<IOperator>, OperatorOrdering> hashRightOpe;
+                    for (size_t i = 0; i < orderedOpeList.size(); i++)
                     {
-                        auto crtOpe=orderedOpeList[0].ope;
-                        for(unsigned int i=0; i<opeList.size();i++)
+                        if (orderedOpeList[i].argIndex == k)
                         {
-                            if(crtOpe==opeList[i].ope)
-                            {
-                                //if crtOpe is the implication of hypothesis operator
-                                if(orderedOpeList[0].nbPar==nbPar && k==ope->arity()-1)
-                                {
-                                    topOpeList=opeList;
-                                }
-                                else
-                                {
-                                    topOpeList.insert(topOpeList.begin(),opeList.begin(),opeList.begin()+i+1);
-                                    queueOpeList.insert(queueOpeList.begin(),opeList.begin()+i+1,opeList.end());
-                                }
-                                break;
-                            }
+                            topOrderedOpeList.push_back(orderedOpeList[i]);
+                            auto ope = &(orderedOpeList[i]);
+                            hashLeftOpe[ope->ope] = *ope;
                         }
-
-                        //store remaining operators to the left of current operator
-                        std::unordered_map<ptr<IOperator>,OperatorOrdering> hashLeftOpe;
-                        for(unsigned int i=0;i<topOpeList.size();i++)
+                        else
                         {
-                            auto ope=&(topOpeList[i]);
-                            hashLeftOpe[ope->ope]=*ope;
+                            queueOrderedOpeList.push_back(orderedOpeList[i]);
+                            auto ope = &(orderedOpeList[i]);
+                            hashRightOpe[ope->ope] = *ope;
                         }
-
-                        //store remaining operators to the right of current operator
-                        std::unordered_map<ptr<IOperator>,OperatorOrdering> hashRightOpe;
-                        for(unsigned int i=0;i<queueOpeList.size();i++)
-                        {
-                            auto ope=&(queueOpeList[i]);
-                            hashRightOpe[ope->ope]=*ope;
-                        }
-
-                        //separate operators in queueOrderedOpeList to the left and to the right and order them in each list
-                        for(unsigned int i=0;i<orderedOpeList.size();i++)
-                        {
-                            auto ope=&(orderedOpeList[i]);
-                            auto itLeft=hashLeftOpe.find(ope->ope);
-                            if(itLeft!=hashLeftOpe.end())
-                            {
-                                topOrderedOpeList.push_back(*ope);
-                                continue;
-                            }
-                            auto itRight=hashRightOpe.find(ope->ope);
-                            if(itRight!=hashRightOpe.end())
-                            {
-                                queueOrderedOpeList.push_back(*ope);
-                                continue;
-                            }
-                        }
-
-                        orderedOpeList=queueOrderedOpeList;
-                        opeList=queueOpeList;
                     }
+
+                    //split between topOpeList and queueOpeList
+                    for (size_t i = 0; i < opeList.size(); i++)
+                    {
+                        auto it = hashLeftOpe.find(opeList[i].ope);
+                        if (it != hashLeftOpe.end())
+                        {
+                            topOpeList.push_back(opeList[i]);
+                        }
+                        else
+                        {
+                            queueOpeList.push_back(opeList[i]);
+                        }
+                    }
+
+                    orderedOpeList = queueOrderedOpeList;
+                    opeList = queueOpeList;
                 }
 
                 //top sub-SubTheorem
@@ -872,42 +848,68 @@ bool SubRule<Hyp<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarPro
     if(prop->type()==PropType::HYP_PROP)
     {
         auto propCast=std::dynamic_pointer_cast<const SubTheorem<Hyp<ASubTheorem>>>(prop);
-        if(m_son->arity()>=propCast->arity()-1)
+        if(propCast->arity()>=m_son->arity()-1)
         {
             bool ret=false;
-            //Identify all properties before HYP variable and conclusion
-            for(size_t k=0;k<m_son->arity()-2;k++)
+            bool hasAlreadyHyp = false;
+            size_t subThIdx = 0;
+            //Identify all properties before conclusion
+            for(size_t k=0;k<m_son->arity()-1;k++)
             {
-                ret=(*m_son)[k]->identifyPriv(propCast->getSon()[k],dbVarProp);
-                if(!ret)
+                //if is HYP variable
+                if ((*m_son)[k]->type() == PropType::VAR_PROP && dbVarProp.isHypVariable((*m_son)[k]->toString()))
                 {
-                    return false;
-                }
-            }
-            std::string nameHypVar=(*m_son)[m_son->arity()-2]->toString();
-            size_t indexHyp=m_son->arity()-2;
-            if(dbVarProp.containsHyp(nameHypVar))
-            {
-                //check if old mapping is the same as the current one
-                auto props=dbVarProp.getHypAssoc(nameHypVar);
-                for(size_t k=indexHyp;k<propCast->arity()-1;k++)
-                {
-                    ret=*(props[k-indexHyp])==*(propCast->getSon()[k]);
-                    if(!ret)
+                    //only one HYP variable can be automatically identified
+                    if (hasAlreadyHyp)
                     {
                         return false;
                     }
+                    hasAlreadyHyp = true;
+                    size_t nbToIdentify = propCast->arity() - m_son->arity() + 1;
+                    std::string nameHypVar = (*m_son)[k]->toString();
+                    size_t indexHyp = m_son->arity() - 2;
+                    if (dbVarProp.containsHyp(nameHypVar))
+                    {
+                        //check if old mapping is the same as the current one
+                        auto props = dbVarProp.getHypAssoc(nameHypVar);
+                        if (nbToIdentify != props.size())
+                        {
+                            return false;
+                        }
+                        for (size_t i = 0; i < nbToIdentify; i++)
+                        {
+                            ret = *(props[i]) == *(propCast->getSon()[subThIdx]);
+                            if (!ret)
+                            {
+                                return false;
+                            }
+                            subThIdx++;
+                        }
+                    }
+                    else
+                    {
+                        dbVarProp.insertHypEmpty(nameHypVar);
+                        //map HYP variable with prop subProperties
+                        for (size_t i = 0; i < nbToIdentify; i++)
+                        {
+                            dbVarProp.insertHypAssoc(nameHypVar, propCast->getSon()[subThIdx]);
+                            subThIdx++;
+                        }
+                    }
                 }
-            }
-            else
-            {
-                //map HYP variable with prop subProperties
-                for(size_t k=indexHyp;k<propCast->arity()-1;k++)
+                //general case
+                else
                 {
-                    dbVarProp.insertHypAssoc(nameHypVar,propCast->getSon()[k]);
-                }
-            }
+                    ret = (*m_son)[k]->identifyPriv(propCast->getSon()[subThIdx], dbVarProp);
+                    if (!ret)
+                    {
+                        return false;
+                    }
+                    subThIdx++;
+                }                
+            }            
 
+            //conclusion case
             ret=(*m_son)[m_son->arity()-1]->identifyPriv(propCast->getSon()[propCast->arity()-1],dbVarProp);
             return ret;
         }
