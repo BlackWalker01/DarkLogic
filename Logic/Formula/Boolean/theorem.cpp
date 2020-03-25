@@ -55,7 +55,7 @@ ptr<ASubTheorem> N_Logic::createTheorem(const std::string &name, const std::stri
         {
             case '(':
             {
-                parenthesisParams.push_back(ParenthesisParam(numPar,0,opeList.size()));
+                parenthesisParams.push_back(ParenthesisParam(numPar,opeList.size()));
                 numPar++;
                 continue;
             }
@@ -76,42 +76,45 @@ ptr<ASubTheorem> N_Logic::createTheorem(const std::string &name, const std::stri
             //hypothesis cases
             case '{':
             {
-                parenthesisParams.push_back(ParenthesisParam(numPar,0,opeList.size()));
+                parenthesisParams.push_back(ParenthesisParam(numPar,opeList.size()));
                 numPar++;
+                OperatorOrdering opeOrdering;
+                opeOrdering.nbPar = parenthesisParams.back().nbPar;
+                hyps.push_back(opeOrdering);
                 continue;
             }
             case ',':
             {
-                if(numPar==parenthesisParams.back().nbPar+1)
+                if(hyps.size())
                 {
-                    parenthesisParams.back().nbArgs++;
+                    hyps.back().nbArgs++;
                 }
                 else
                 {
-                    throw std::runtime_error("Syntax error in the last function. Exit...");
+                    throw std::runtime_error("unexpected ',' character at " + sizeToString(k) + " index");
                 }
                 continue;
             }
             case '}':
             {
-                if(numPar==parenthesisParams.back().nbPar+1)
+                if((numPar==parenthesisParams.back().nbPar+1) && hyps.size())
                 {
-                    parenthesisParams.back().nbArgs++;
-                    if(parenthesisParams.back().nbArgs>0)
+                    hyps.back().nbArgs++;
+                    if(hyps.back().nbArgs>0)
                     {
-                        parenthesisParams.back().nbArgs++; //increment to add implication of hypothesis operator in its arity
+                        hyps.back().nbArgs++; //increment to add implication of hypothesis operator in its arity
                         auto it=opeList.begin()+static_cast<long long>(parenthesisParams.back().indexInOpeList);
-                        OperatorOrdering opeOrdering(createRuleOperator(HYP,parenthesisParams.back().nbArgs),
-                                                     parenthesisParams.back().nbPar,parenthesisParams[parenthesisParams.size()-2].nbArgs);
-                        opeList.insert(it,opeOrdering);
-                        hyps.push_back(opeOrdering);
+                        hyps.back().ope = createTheoremOperator(HYP, hyps.back().nbArgs);
+                        /*OperatorOrdering opeOrdering(createRuleOperator(HYP,hyps.back().nbArgs),
+                                                     parenthesisParams.back().nbPar,hyps[parenthesisParams.size()-2].nbArgs);*/
+                        opeList.insert(it,hyps.back());
                     }
                     numPar--;
                     parenthesisParams.pop_back();
                 }
                 else
                 {
-                    throw std::runtime_error("Syntax error in hypothesis operator. Exit...");
+                    throw std::runtime_error("Unexpected '}' character at " + sizeToString(k) + " index");
                 }
                 continue;
             }
@@ -124,7 +127,7 @@ ptr<ASubTheorem> N_Logic::createTheorem(const std::string &name, const std::stri
         size_t crtK=k;
         if((crtNameOpe=IOperator::getNextOpeName(content,k)))
         {
-            addTheoremOperator(crtNameOpe,opeList,hyps,numPar,parenthesisParams.back().nbArgs,name,k);
+            addTheoremOperator(crtNameOpe,opeList,hyps,numPar,name,k);
             crtNameOpe=NONE;
             k--;
         }
@@ -275,67 +278,43 @@ ptr<ValueTypeObject> N_Logic::createTheorem(const std::string &name, std::vector
             std::vector<ptr<IISubTheoremFormula>> subProps;
             for(size_t k=0;k<ope->arity();k++)
             {
-                if(orderedOpeList.size()>0)
+                if (orderedOpeList.size())
                 {
-                    if((orderedOpeList[0].argIndex==k && orderedOpeList[0].nbPar==nbPar+1) ||
-                            (orderedOpeList[0].nbPar==nbPar && k==ope->arity()-1)) //implication of hypothesis operator
+                    //split between topOrderedOpeList and queueOrderedOpeList
+                    std::unordered_map<ptr<IOperator>, OperatorOrdering> hashLeftOpe;
+                    std::unordered_map<ptr<IOperator>, OperatorOrdering> hashRightOpe;
+                    for (size_t i = 0; i < orderedOpeList.size(); i++)
                     {
-                        auto crtOpe=orderedOpeList[0].ope;
-                        for(unsigned int i=0; i<opeList.size();i++)
+                        if (orderedOpeList[i].argIndex == k)
                         {
-                            if(crtOpe==opeList[i].ope)
-                            {
-                                //if crtOpe is the implication of hypothesis operator
-                                if(orderedOpeList[0].nbPar==nbPar && k==ope->arity()-1)
-                                {
-                                    topOpeList=opeList;
-                                }
-                                else
-                                {
-                                    topOpeList.insert(topOpeList.begin(),opeList.begin(),opeList.begin()+i+1);
-                                    queueOpeList.insert(queueOpeList.begin(),opeList.begin()+i+1,opeList.end());
-                                }
-                                break;
-                            }
+                            topOrderedOpeList.push_back(orderedOpeList[i]);
+                            auto ope = &(orderedOpeList[i]);
+                            hashLeftOpe[ope->ope] = *ope;
                         }
-
-                        //store remaining operators to the left of current operator
-                        std::unordered_map<ptr<IOperator>,OperatorOrdering> hashLeftOpe;
-                        for(unsigned int i=0;i<topOpeList.size();i++)
+                        else
                         {
-                            auto ope=&(topOpeList[i]);
-                            hashLeftOpe[ope->ope]=*ope;
+                            queueOrderedOpeList.push_back(orderedOpeList[i]);
+                            auto ope = &(orderedOpeList[i]);
+                            hashRightOpe[ope->ope] = *ope;
                         }
-
-                        //store remaining operators to the right of current operator
-                        std::unordered_map<ptr<IOperator>,OperatorOrdering> hashRightOpe;
-                        for(unsigned int i=0;i<queueOpeList.size();i++)
-                        {
-                            auto ope=&(queueOpeList[i]);
-                            hashRightOpe[ope->ope]=*ope;
-                        }
-
-                        //separate operators in queueOrderedOpeList to the left and to the right and order them in each list
-                        for(unsigned int i=0;i<orderedOpeList.size();i++)
-                        {
-                            auto ope=&(orderedOpeList[i]);
-                            auto itLeft=hashLeftOpe.find(ope->ope);
-                            if(itLeft!=hashLeftOpe.end())
-                            {
-                                topOrderedOpeList.push_back(*ope);
-                                continue;
-                            }
-                            auto itRight=hashRightOpe.find(ope->ope);
-                            if(itRight!=hashRightOpe.end())
-                            {
-                                queueOrderedOpeList.push_back(*ope);
-                                continue;
-                            }
-                        }
-
-                        orderedOpeList=queueOrderedOpeList;
-                        opeList=queueOpeList;
                     }
+
+                    //split between topOpeList and queueOpeList
+                    for (size_t i = 0; i < opeList.size(); i++)
+                    {
+                        auto it = hashLeftOpe.find(opeList[i].ope);
+                        if (it != hashLeftOpe.end())
+                        {
+                            topOpeList.push_back(opeList[i]);
+                        }
+                        else
+                        {
+                            queueOpeList.push_back(opeList[i]);
+                        }
+                    }
+
+                    orderedOpeList = queueOrderedOpeList;
+                    opeList = queueOpeList;
                 }
 
                 //top sub-SubTheorem

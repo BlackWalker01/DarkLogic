@@ -60,101 +60,103 @@ ptr<ASubRule> N_Logic::createRule(const std::string &name, const std::string &co
     std::vector<OperatorOrdering> hyps;
     std::vector<std::shared_ptr<VariableContainer>> varList;
     DbVarContainer dbVar;
-    for(size_t k=0;k<content.size();k++)
+    for (size_t k = 0; k < content.size(); k++)
     {
-        c=content[k];
-        switch(c)
+        c = content[k];
+        switch (c)
         {
-            case '(':
+        case '(':
+        {
+            parenthesisParams.push_back(ParenthesisParam(numPar, opeList.size()));
+            numPar++;
+            continue;
+        }
+        case ')':
+        {
+            if (hyps.size() && hyps.back().nbPar == numPar)
             {
-                parenthesisParams.push_back(ParenthesisParam(numPar,0,opeList.size()));
-                numPar++;
-                continue;
+                hyps.pop_back();
             }
-            case ')':
+            numPar--;
+            parenthesisParams.pop_back();
+            continue;
+        }
+        case ' ':
+        {
+            continue;
+        }
+        //hypothesis cases
+        case '{':
+        {
+            parenthesisParams.push_back(ParenthesisParam(numPar, opeList.size()));
+            numPar++;
+            OperatorOrdering opeOrdering;
+            opeOrdering.nbPar = parenthesisParams.back().nbPar;
+            hyps.push_back(opeOrdering);
+            continue;
+        }
+        case ',':
+        {
+            if (hyps.size())
             {
-                //??????
-                if(hyps.size() && hyps.back().nbPar==numPar)
+                hyps.back().nbArgs++;
+            }
+            else
+            {
+                throw std::runtime_error("unexpected ',' character at " + sizeToString(k) + " index");
+            }
+            continue;
+        }
+        case '}':
+        {
+            if ((numPar == parenthesisParams.back().nbPar + 1) && hyps.size())
+            {
+                hyps.back().nbArgs++;
+                if (hyps.back().nbArgs > 0)
                 {
-                    hyps.pop_back();
+                    hyps.back().nbArgs++; //increment to add implication of hypothesis operator in its arity
+                    auto it = opeList.begin() + static_cast<long long>(parenthesisParams.back().indexInOpeList);
+                    hyps.back().ope = createRuleOperator(HYP, hyps.back().nbArgs);
+                    /*OperatorOrdering opeOrdering(createRuleOperator(HYP,hyps.back().nbArgs),
+                                                 parenthesisParams.back().nbPar,hyps[parenthesisParams.size()-2].nbArgs);*/
+                    opeList.insert(it, hyps.back());
                 }
                 numPar--;
                 parenthesisParams.pop_back();
-                continue;
             }
-            case ' ':
+            else
             {
-                continue;
+                throw std::runtime_error("Unexpected '}' character at " + sizeToString(k) + " index");
             }
-            //hypothesis cases
-            case '{':
-            {
-                parenthesisParams.push_back(ParenthesisParam(numPar,0,opeList.size()));
-                numPar++;
-                continue;
-            }
-            case ',':
-            {
-                if(numPar==parenthesisParams.back().nbPar+1)
-                {
-                    parenthesisParams.back().nbArgs++;
-                }
-                else
-                {
-                    throw std::runtime_error("Syntax error in the last function. Exit...");
-                }
-                continue;
-            }
-            case '}':
-            {
-                if(numPar==parenthesisParams.back().nbPar+1)
-                {
-                    parenthesisParams.back().nbArgs++;
-                    if(parenthesisParams.back().nbArgs>0)
-                    {
-                        parenthesisParams.back().nbArgs++; //increment to add implication of hypothesis operator in its arity
-                        auto it=opeList.begin()+static_cast<long long>(parenthesisParams.back().indexInOpeList);
-                        OperatorOrdering opeOrdering(createRuleOperator(HYP,parenthesisParams.back().nbArgs),
-                                                     parenthesisParams.back().nbPar,parenthesisParams[parenthesisParams.size()-2].nbArgs);
-                        opeList.insert(it,opeOrdering);
-                        hyps.push_back(opeOrdering);
-                    }
-                    numPar--;
-                    parenthesisParams.pop_back();
-                }
-                else
-                {
-                    throw std::runtime_error("Syntax error in hypothesis operator. Exit...");
-                }
-                continue;
-            }
-            default:
+            continue;
+        }
+        default:
             break;
         }
 
         //skip strings if it is possible
-        IOperator::skipStrings(content,k);
-        size_t crtK=k;
-        if((crtNameOpe=IOperator::getNextOpeName(content,k)))
+        IOperator::skipStrings(content, k);
+        size_t crtK = k;
+        if ((crtNameOpe = IOperator::getNextOpeName(content, k)))
         {
-            addRuleOperator(crtNameOpe,opeList,hyps,numPar,parenthesisParams.back().nbArgs);
-            crtNameOpe=NONE;
+            addRuleOperator(crtNameOpe, opeList, hyps, numPar);
+            crtNameOpe = NONE;
             k--;
         }
         else
         {
-            crtVar=getVarName(content,k);
-            if(crtVar!="")
+            crtVar = getVarName(content, k);
+            if (crtVar != "")
             {
-                ASubRule::addAbstractTerm(crtVar,varList,dbVar);
-                crtVar="";
+                ASubRule::addAbstractTerm(crtVar, varList, dbVar);
+                crtVar = "";
                 k--;
             }
-            else if(k==crtK)
+            else if (k == crtK)
             {
-                std::string ch="";
-                ch+=c;
-                throw std::runtime_error("Unexpected '"+ch+"' character at "+sizeToString(k)+" index");
+                std::string ch = "";
+                ch += c;
+                throw std::runtime_error("Unexpected '" + ch + "' character at " + sizeToString(k) + " index");
             }
         }
     }

@@ -97,19 +97,27 @@ ptr<IOperator> N_Logic::createTheoremOperator(const Name name, const N_Logic::Ar
 
 
 void N_Logic::addTheoremOperator(const Name opeName, std::vector<OperatorOrdering> &opeList,
-                                    const std::vector<OperatorOrdering> &hyps, const size_t &numPar, const size_t& argIndex, const std::string &name, size_t &index)
+                                    const std::vector<OperatorOrdering> &hyps, const size_t &numPar, const std::string &name, size_t &index)
 {
     ptr<IOperator> ope=nullptr;
     if((ope=createTheoremOperator(opeName)))
     {
         //if current operator comes just after a Hypothesis operator, then it is a subOperator of this one
-        if(hyps.size() && hyps.back().nbPar>=numPar)
+        if(hyps.size() /*&& hyps.back().nbPar>=numPar*/)
         {
-            opeList.push_back(OperatorOrdering(ope,numPar,hyps.back().ope->arity()-1));
+            //if it is operator in conclusion part of hypothesis operator
+            if (hyps.back().ope)
+            {
+                opeList.push_back(OperatorOrdering(ope, numPar, hyps.back().nbArgs-1));
+            }
+            else
+            {
+                opeList.push_back(OperatorOrdering(ope, numPar, hyps.back().nbArgs));
+            }            
         }
         else
         {
-            opeList.push_back(OperatorOrdering(ope,numPar,argIndex));
+            opeList.push_back(OperatorOrdering(ope,numPar,0));
         }
     }
     else

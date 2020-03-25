@@ -16,6 +16,10 @@ add_executable(BlackLogic
   MainBlackLogic/action.cpp
   Human/human.cpp
   AI/ai.cpp
+  AI/masteraithread.cpp
+  AI/aithread.cpp
+  AI/event.cpp
+  AI/node.cpp
 
   MainBlackLogic/logicgame.h
   MainBlackLogic/player.h
@@ -23,6 +27,10 @@ add_executable(BlackLogic
   MainBlackLogic/EnumFun.h
   Human/human.h
   AI/ai.h
+  AI/masteraithread.h
+  AI/aithread.h
+  AI/event.h
+  AI/node.hpp
 )
 
 link_directories(${LIB_DIR})

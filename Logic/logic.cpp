@@ -60,121 +60,9 @@ const std::string LetStr::s_symbol="let ";
 const std::string LetStr::s_symbol2=" in ";
 const std::string BelongsToStr::s_symbol="€";
 
-std::unique_ptr<Logic> Logic::instance=nullptr;
+std::vector<std::unique_ptr<Logic>> Logic::s_instances = {};
 
 Logic::Logic(): m_theorem(nullptr), m_nbAppliedRule(0), m_isLastRuleSymetric(true)
-{
-
-}
-
-void Logic::init()
-{
-    instance=std::make_unique<Logic>();
-    Log::Debug("Logic Instantiation");
-    instance->_init();
-}
-
-bool N_Logic::Logic::isOver()
-{
-    return instance->_isOver();
-}
-
-bool Logic::isDemonstrated()
-{
-    return instance->_isDemonstrated();
-}
-
-bool N_Logic::Logic::isAlreadyPlayed()
-{
-    return instance->_isAlreadyPlayed();
-}
-
-bool N_Logic::Logic::canBeDemonstrated()
-{
-    return instance->_canBeDemonstrated();
-}
-
-bool Logic::evaluate()
-{
-    return instance->_evaluate();    
-}
-
-bool Logic::makeTheorem(const std::string& name, const std::string& cont)
-{
-    return instance->_makeTheorem(name,cont);
-}
-
-void Logic::testTheorem()
-{
-    //Test part
-    std::chrono::high_resolution_clock::time_point start, end;
-    size_t nbTest=1000;
-    start = std::chrono::high_resolution_clock::now();
-    Log::Info("Compute actions for theorem: "+instance->m_theorem->toString());
-    std::vector<size_t> ret=getActions();
-    Log::Info("Number of possible actions: "+sizeToString(ret.size()));
-    for(size_t k=0;k<ret.size();k++)
-    {
-        size_t action=ret[k];
-        apply(action);
-        Log::Info("Current theorem: "+instance->m_theorem->toString());
-        unapply();
-    }
-    for(size_t numTest=1;numTest<nbTest;numTest++)
-    {
-        std::vector<size_t> ret=getActions();
-        for(size_t k=0;k<ret.size();k++)
-        {
-            size_t action=ret[k];
-            apply(action);
-            unapply();
-        }
-    }
-
-    end = std::chrono::high_resolution_clock::now();
-    double elapsed_seconds = std::chrono::duration<double,std::milli>
-                             (end-start).count();
-    std::cout<<"All actions at depth=1 applied "<<nbTest<<" times in "<<elapsed_seconds<<" milliseconds"<<std::endl;
-}
-
-
-void Logic::printTheorem()
-{
-    instance->_printTheorem();
-}
-
-std::vector<size_t> Logic::getActions()
-{
-    return instance->_getActions();
-}
-
-std::vector<Action> Logic::getHumanActions()
-{
-    return instance->_getHumanActions();
-}
-
-void Logic::apply(const size_t &actionKey)
-{
-    instance->_apply(actionKey);    
-}
-
-void Logic::unapply()
-{
-    instance->_unapply();    
-}
-
-bool Logic::hasAlreadyPlayed()
-{
-    return instance->_hasAlreadyPlayed();    
-}
-
-template<typename OpeType>
-void Logic::insert(const ptr<Rule<OpeType> > &rule)
-{
-    m_rules.insert(rule);
-}
-
-void N_Logic::Logic::_init()
 {
     //set up rules of the logic
     //AXIOME Rule
@@ -232,8 +120,89 @@ void N_Logic::Logic::_init()
     insert(arr);
     auto doubleNot = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("!!", "({HYP}!!p)<=>({HYP}p)"));
     insert(doubleNot);
+}
 
-    Log::Debug("Rules Instantiated");
+void Logic::init(const size_t& nbInstances)
+{
+    for (size_t k = 0; k < nbInstances; k++)
+    {
+        s_instances.push_back(std::make_unique<Logic>());
+    }
+    Log::Debug("Logic Instantiated");
+}
+
+bool N_Logic::Logic::isOver(const size_t& instanceIdx)
+{
+    return s_instances[instanceIdx]->_isOver();
+}
+
+bool Logic::isDemonstrated(const size_t& instanceIdx)
+{
+    return s_instances[instanceIdx]->_isDemonstrated();
+}
+
+bool N_Logic::Logic::isAlreadyPlayed(const size_t& instanceIdx)
+{
+    return s_instances[instanceIdx]->_isAlreadyPlayed();
+}
+
+bool N_Logic::Logic::canBeDemonstrated(const size_t& instanceIdx)
+{
+    return s_instances[instanceIdx]->_canBeDemonstrated();
+}
+
+bool Logic::evaluate(const size_t& instanceIdx)
+{
+    return s_instances[instanceIdx]->_evaluate();
+}
+
+bool Logic::makeTheorem(const std::string& name, const std::string& cont)
+{
+    for (size_t instanceIdx = 0; instanceIdx < s_instances.size(); instanceIdx++)
+    {
+        if (!s_instances[instanceIdx]->_makeTheorem(name, cont))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+void Logic::printTheorem(const size_t& instanceIdx)
+{
+    s_instances[instanceIdx]->_printTheorem();
+}
+
+std::vector<size_t> Logic::getActions(const size_t& instanceIdx)
+{
+    return s_instances[instanceIdx]->_getActions();
+}
+
+std::vector<Action> Logic::getHumanActions(const size_t& instanceIdx)
+{
+    return s_instances[instanceIdx]->_getHumanActions();
+}
+
+void Logic::apply(const size_t& instanceIdx, const size_t &actionKey)
+{
+    s_instances[instanceIdx]->_apply(actionKey);
+}
+
+void Logic::unapply(const size_t& instanceIdx)
+{
+    s_instances[instanceIdx]->_unapply();
+}
+
+bool Logic::hasAlreadyPlayed(const size_t& instanceIdx)
+{
+    return s_instances[instanceIdx]->_hasAlreadyPlayed();
+}
+
+template<typename OpeType>
+void Logic::insert(const ptr<Rule<OpeType> > &rule)
+{
+    m_rules.insert(rule);
 }
 
 bool N_Logic::Logic::_isOver()
@@ -245,8 +214,15 @@ bool N_Logic::Logic::_isDemonstrated()
 {
     try
     {
-        _evaluate();
-        return m_isLastRuleSymetric;
+        if (_evaluate())
+        {
+            return true;
+        }
+        else
+        {
+            return m_isLastRuleSymetric;
+        }
+        
         
     }
     catch (std::runtime_error&)
@@ -298,7 +274,6 @@ bool N_Logic::Logic::_evaluate()
 
 bool N_Logic::Logic::_makeTheorem(const std::string& name, const std::string& cont)
 {
-    Log::Debug("New Theorem: " + name);
     try
     {
         m_theorem = createTheorem(name, cont);
@@ -322,7 +297,7 @@ void N_Logic::Logic::_printTheorem()
 
 std::vector<size_t> N_Logic::Logic::_getActions()
 {
-    return m_rules.getActions(instance->m_theorem, instance->m_nbAppliedRule);
+    return m_rules.getActions(m_theorem, m_nbAppliedRule);
 }
 
 std::vector<Action> N_Logic::Logic::_getHumanActions()
@@ -335,19 +310,20 @@ void N_Logic::Logic::_apply(const size_t& actionKey)
 {
     auto antecedent = m_theorem;
     m_antecedents.push_back({ antecedent, m_isLastRuleSymetric });
-    m_theorem = m_rules.apply(actionKey, m_theorem);
-    m_isLastRuleSymetric = m_isLastRuleSymetric && m_rules.isLastRuleSymetric(actionKey);
+    auto couple= m_rules.apply(actionKey, m_theorem);
+    m_theorem = couple.first;
+    m_isLastRuleSymetric = m_isLastRuleSymetric && couple.second;
     m_nbAppliedRule++;
 }
 
 void N_Logic::Logic::_unapply()
-{
-    m_nbAppliedRule--;
+{    
     auto antecedent = m_antecedents.back().first;
     m_isLastRuleSymetric = m_antecedents.back().second;
     m_rules.unapply(antecedent, m_nbAppliedRule);
     m_theorem = antecedent;
     m_antecedents.pop_back();
+    m_nbAppliedRule--;
 }
 
 bool N_Logic::Logic::_hasAlreadyPlayed()

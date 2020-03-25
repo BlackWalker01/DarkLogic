@@ -44,26 +44,28 @@ protected:
     const DbVar m_extVars;
 };
 
+
+struct ParenthesisParam
+{
+    ParenthesisParam();
+    ParenthesisParam(const size_t& nbPar_, const size_t& indexInOpeList_);
+    ParenthesisParam(const ParenthesisParam& parenthesisParam);
+
+    size_t nbPar;
+    size_t indexInOpeList;
+};
+
 struct OperatorOrdering
 {
     OperatorOrdering();
+    //OperatorOrdering(const ptr<IOperator>& ope_, const size_t& nbPar_);
     OperatorOrdering(const ptr<IOperator>& ope_, const size_t& nbPar_, const size_t& argIndex_);
     OperatorOrdering(const OperatorOrdering& opeOrdering);
 
     std::shared_ptr<const IOperator> ope; //operator to order
     size_t nbPar; //number of unclosed parenthesis before the operator
-    size_t argIndex; //index of the operator in the current parenthesis
-};
-
-struct ParenthesisParam
-{
-    ParenthesisParam();
-    ParenthesisParam(const size_t& nbPar_, const size_t& nbArgs_, const size_t& indexInOpeList_);
-    ParenthesisParam(const ParenthesisParam& parenthesisParam);
-
-    size_t nbPar;
+    size_t argIndex; //index in variadic operator over this operator
     size_t nbArgs;
-    size_t indexInOpeList;
 };
 
 struct VariableContainer

@@ -42,6 +42,6 @@ class Hyp;
 ptr<ASubTheorem> create(const std::string &name, const std::string &content);
 ptr<IOperator> createTheoremOperator(const Name name, const Arity& arity=0);
 void addTheoremOperator(const Name opeName, std::vector<OperatorOrdering> &opeList, const std::vector<OperatorOrdering> &hyps,
-                     const size_t &numPar, const size_t& argIndex, const std::string& name, size_t& index);
+                     const size_t &numPar, const std::string& name, size_t& index);
 }
 #endif // ASUBTHEOREM_H
