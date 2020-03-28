@@ -33,6 +33,81 @@ const std::vector<std::vector<Arity> > &ASubTheorem::getAllPaths() const
     return m_allPaths;
 }
 
+/**
+ * Default implementation of canBeDemonstrated method
+ * return true if for all values of its variables, the theorem is evaluate to true (or false) 
+ */
+bool N_Logic::ASubTheorem::canBeDemonstrated() const
+{
+    std::unique_ptr<bool> eval = nullptr;
+    return testCanBeDemonstrated(m_extVars.getVars(), eval);    
+}
+
+/**
+ * return true if the theorem has one crtValue
+ * crtValue is the current evaluation of the theorem
+*/
+bool N_Logic::ASubTheorem::testCanBeDemonstrated(const std::vector<ptr<AbstractTerm>>& vars, 
+    std::unique_ptr<bool>& crtValue) const
+{
+    //try to evaluate directly 
+    try
+    {
+        if (crtValue)
+        {
+            bool newValue = evaluate();
+            return (*crtValue) == newValue;
+        }
+        else
+        {
+            crtValue = std::make_unique<bool>(evaluate());
+            return true;
+        }    
+    }
+    //else simulate with all possible values for variables
+    catch (std::runtime_error&)
+    {
+        bool ret = true;
+        for (size_t k = 0; k < vars.size(); k++)
+        {
+            auto var = vars[k];
+            auto remainVars = vars;
+            remainVars.erase(remainVars.begin() + k);
+
+            //if var is not Boolean continue
+            if (var->valueType() != VALUE_TYPE::BOOL_TYPE)
+            {
+                continue;
+            }
+
+            auto boolVar = std::dynamic_pointer_cast<const Boolean>(var);
+
+            //try to evaluate theorem with var=true
+            (*boolVar) = (true);
+            ret = testCanBeDemonstrated(remainVars, crtValue);
+            if (!ret)
+            {
+                boolVar->unset();
+                return false;
+            }
+
+
+            //try to evaluate theorem with var= false
+            (*boolVar) = (false);
+            ret = testCanBeDemonstrated(remainVars, crtValue);
+            if (!ret)
+            {
+                boolVar->unset();
+                return false;
+            }
+
+            //unset var
+            boolVar->unset();
+        }
+        return ret;
+    }
+}
+
 
 ptr<IOperator> N_Logic::createTheoremOperator(const Name name, const N_Logic::Arity &arity)
 {

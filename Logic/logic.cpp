@@ -1,4 +1,8 @@
 #include "logic.h"
+#include "logic.h"
+#include "logic.h"
+#include "logic.h"
+#include "logic.h"
 #include "Formula/Boolean/theorem.h"
 #include "Formula/Boolean/rule.h"
 #include "Formula/Boolean/axiom.h"
@@ -42,7 +46,11 @@ template<> const std::unique_ptr<DbRule> Set<NaturalIntegerSet>::s_rules=std::ma
 
 const std::unordered_map<std::string,ConstantEnum> AbstractTerm::s_constantHash={
     {"false",FALSE_TYPE},
+    {"False",FALSE_TYPE},
+    {"FALSE",FALSE_TYPE},
     {"true",TRUE_TYPE},
+    {"True",TRUE_TYPE},
+    {"TRUE",TRUE_TYPE},
     {"BB",ConstantEnum::BOOLEAN_SET_TYPE},
     {"NN",NATURALINTEGERSET_TYPE}
 };
@@ -156,6 +164,16 @@ bool Logic::evaluate(const size_t& instanceIdx)
     return s_instances[instanceIdx]->_evaluate();
 }
 
+bool N_Logic::Logic::isEvaluated(const size_t& instanceIdx)
+{
+    return s_instances[instanceIdx]->_isEvaluated();
+}
+
+bool N_Logic::Logic::appliedRuleSymetric(const size_t& instanceIdx)
+{
+    return s_instances[instanceIdx]->_appliedRuleSymetric();
+}
+
 bool Logic::makeTheorem(const std::string& name, const std::string& cont)
 {
     for (size_t instanceIdx = 0; instanceIdx < s_instances.size(); instanceIdx++)
@@ -221,9 +239,7 @@ bool N_Logic::Logic::_isDemonstrated()
         else
         {
             return m_isLastRuleSymetric;
-        }
-        
-        
+        }       
     }
     catch (std::runtime_error&)
     {
@@ -256,7 +272,7 @@ bool N_Logic::Logic::_canBeDemonstrated()
     }
     catch (std::runtime_error&)
     {
-        return true;
+        return m_theorem->canBeDemonstrated();
     }    
 }
 
@@ -270,6 +286,28 @@ bool N_Logic::Logic::_evaluate()
     {
         throw std::runtime_error("Cannot evaluate an invalid theorem");
     }
+}
+
+bool N_Logic::Logic::_isEvaluated()
+{
+    if (m_theorem)
+    {
+        try
+        {
+            m_theorem->evaluate();
+            return true;
+        }
+        catch (std::runtime_error&)
+        {
+            return false;
+        }
+    }
+    return false;
+}
+
+bool N_Logic::Logic::_appliedRuleSymetric()
+{
+    return m_isLastRuleSymetric;
 }
 
 bool N_Logic::Logic::_makeTheorem(const std::string& name, const std::string& cont)

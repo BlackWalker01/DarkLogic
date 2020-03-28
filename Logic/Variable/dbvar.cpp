@@ -40,6 +40,16 @@ std::vector<std::string> DbVar::nameVars() const
     return ret;
 }
 
+std::vector<std::shared_ptr<const AbstractTerm>> N_Logic::DbVar::getVars() const
+{
+	std::vector<std::shared_ptr<const AbstractTerm>> ret;
+    for (const auto& var : db)
+    {
+        ret.push_back(var.second);
+    }
+    return ret;
+}
+
 
 bool DbVar::contains(const std::string& name) const
 {

@@ -10,6 +10,7 @@ public:
     Boolean(const std::string& name_);
 
     VALUE_TYPE valueType() const override final;
+    void operator=(const ValueType& val) const;
 
     ~Boolean() override;
 };

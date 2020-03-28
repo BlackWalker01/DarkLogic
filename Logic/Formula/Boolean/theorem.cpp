@@ -271,7 +271,7 @@ ptr<ValueTypeObject> N_Logic::createTheorem(const std::string &name, std::vector
         auto ope=orderedOpeList[0].ope;
         if(ope->name()==HYP)
         {
-            size_t nbPar=orderedOpeList[0].nbPar;
+            //size_t nbPar=orderedOpeList[0].nbPar;
             orderedOpeList.erase(orderedOpeList.begin());
             opeList.erase(opeList.begin());
             std::vector<OperatorOrdering> topOpeList, topOrderedOpeList, queueOpeList, queueOrderedOpeList;

@@ -14,6 +14,7 @@ public:
     SubTheorem(const SubRule<ConstBoolean>& prop);
 
     bool evaluate() const override final;
+    bool canBeDemonstrated() const override;
 
     bool operator==(const ASubTheorem& prop) const override final;
     bool operator==(const SubTheorem& prop) const;
