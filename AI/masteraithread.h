@@ -1,6 +1,7 @@
 #ifndef MASTERAITHREAD_H
 #define MASTERAITHREAD_H
 #include "aithread.h"
+#include <unordered_map>
 
 class MasterAIThread;
 
@@ -24,6 +25,8 @@ public:
 	void stop();
 	void stopFromThread(const unsigned char threadIdx);
 
+	void stopThread(const unsigned char threadIdx);
+
 	void init();
 private:
 	void _start();
@@ -36,7 +39,7 @@ private:
 	AI& m_ai;
 	const size_t m_maxInstanceIdx;
 	std::vector<std::unique_ptr<AIThread>> m_slaveThreads;
-	unsigned char m_nbThreadAlive;
+	std::unordered_map<unsigned char,unsigned char> m_threadAlive;
 	
 	//Handling events
 	bool m_hasEvents;

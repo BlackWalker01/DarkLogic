@@ -3,7 +3,7 @@
 #include "ai.h"
 
 MasterAIThread::MasterAIThread(const size_t& maxInstanceIdx_, AI& ai_): 
-    m_ai(ai_), m_maxInstanceIdx(maxInstanceIdx_), m_nbThreadAlive(0), m_hasEvents(false), m_thread(runMaster, this), m_lock(m_mutex)
+    m_ai(ai_), m_maxInstanceIdx(maxInstanceIdx_), m_hasEvents(false), m_thread(runMaster, this), m_lock(m_mutex)
 {
     if (maxInstanceIdx_ < 2)
     {
@@ -39,6 +39,11 @@ void MasterAIThread::stopFromThread(const unsigned char threadIdx)
     _pushEvent(threadIdx, Event::STOP_THREAD);
 }
 
+void MasterAIThread::stopThread(const unsigned char threadIdx)
+{
+    m_slaveThreads[threadIdx-1]->stop();
+}
+
 void MasterAIThread::init()
 {
     if (m_slaveThreads.size() == 0)
@@ -60,11 +65,23 @@ void MasterAIThread::_start()
     }
 
     //start slave threads
-    for (auto& slaveThread : m_slaveThreads)
+    if (actions.size() > m_slaveThreads.size())
     {
-        slaveThread->start();
-        m_nbThreadAlive++;
+        for (auto& slaveThread : m_slaveThreads)
+        {
+            slaveThread->start();
+            m_threadAlive[slaveThread->instanceId()] = slaveThread->instanceId();
+        }
     }
+    else
+    {
+        for (unsigned char k = 0; k < actions.size(); k++)
+        {
+            m_slaveThreads[k]->start();
+            m_threadAlive[k] = k;
+        }
+    }
+    
 }
 
 void MasterAIThread::_stop()
@@ -77,10 +94,25 @@ void MasterAIThread::_stop()
 
 void MasterAIThread::_stopFromThread(const unsigned char threadIdx)
 {
-    m_nbThreadAlive--;
-    if (m_nbThreadAlive == 0)
+    //remove this thread from "living threads"
+    //std::cout << "[DEBUG] Stop from thread " << static_cast<unsigned int>(threadIdx) << std::endl;
+    m_threadAlive.erase(threadIdx);    
+
+    //if no thread is alive, warn AI
+    if (m_threadAlive.size() == 0)
     {
         m_ai.stopFromMasterThread();
+    }
+    //else check if the other threads know they must stop
+    else
+    {
+        for (const auto threadIdx : m_threadAlive)
+        {
+            if (!m_slaveThreads[threadIdx.second - 1]->mustStop())
+            {
+                m_slaveThreads[threadIdx.second - 1]->stop();
+            }
+        }
     }
 }
 

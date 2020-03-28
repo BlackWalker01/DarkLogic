@@ -41,6 +41,11 @@ void AIThread::updateLogic(const size_t& actionId)
     m_crtActions.clear();
 }
 
+unsigned char AIThread::instanceId() const
+{
+    return m_instanceId;
+}
+
 void AIThread::_start()
 {
     //std::cout << "[DEBUG] Start thread:"<<m_instanceId << std::endl;

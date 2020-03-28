@@ -28,6 +28,7 @@ public:
 	bool mustStop();
 	
 	void updateLogic(const size_t& actionId);
+	unsigned char instanceId() const;
 
 	~AIThread() = default;
 private:

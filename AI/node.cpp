@@ -57,7 +57,7 @@ unsigned int Node::nbSimu() const
 
 double Node::getMCTSValue(const unsigned int parentNbSimu) const
 {
-	return (10 * static_cast<double>(USHRT_MAX-m_value))/USHRT_MAX + s_cste * sqrt(log(parentNbSimu)/m_nbSimu);
+	return (static_cast<double>(USHRT_MAX-m_value))/USHRT_MAX + s_cste * sqrt(log(parentNbSimu+1)/(m_nbSimu + 1));
 }
 
 
@@ -132,7 +132,7 @@ unsigned short Node::makeSimu(const size_t& threadIdx, const size_t& action, con
 
 			//play random action
 			auto newAction = actions[rand() % actions.size()];
-			unsigned short val = makeSimu(threadIdx, newAction,depth+1);
+			val = makeSimu(threadIdx, newAction,depth+1);
 			if (val < VAL_INIT)
 			{
 				val++;
@@ -163,34 +163,15 @@ unsigned short Node::explore(const std::vector<size_t>& actions)
 			it = m_sons.find(action);
 		}
 		auto subNode = it->second.get();
-		//if subNode have already been explored
-		if (subNode->nbSimu())
+		double mctValue = subNode->getMCTSValue(nbSimu());
+		if (mctValue > maxValue)
 		{
-			if (maxValue == std::numeric_limits<double>::max())
-			{
-				continue;
-			}
-
-			double mctValue = subNode->getMCTSValue(nbSimu());
-			if (mctValue > maxValue)
-			{
-				maxNodes.clear();
-				maxNodes.push_back(subNode);
-				maxValue = mctValue;
-			}
-			else if (mctValue == maxValue)
-			{
-				maxNodes.push_back(subNode);
-			}
+			maxNodes.clear();
+			maxNodes.push_back(subNode);
+			maxValue = mctValue;
 		}
-		//if subNode have not been explored
-		else
+		else if (mctValue == maxValue)
 		{
-			if (maxValue < std::numeric_limits<double>::max())
-			{
-				maxValue = std::numeric_limits<double>::max();
-				maxNodes.clear();
-			}
 			maxNodes.push_back(subNode);
 		}
 	}
@@ -225,9 +206,22 @@ unsigned short Node::explore(const std::vector<size_t>& actions)
 		}
 		else
 		{
-			m_value = node->makeSimu();
+			retValue = node->makeSimu();
+			if ((m_value > retValue + 1))
+			{
+				m_value = retValue + 1;
+			}
+			else
+			{
+				m_value = retValue;
+			}
 		}
 
+
+		if (m_value < MAX_DEPTH)
+		{
+			s_ai->stopThread(m_threadId);
+		}
 			
 		m_nbSimu++;
 	}		
