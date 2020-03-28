@@ -23,7 +23,10 @@ private:
     bool isOver();
     bool isDemonstrated();
     bool isAlreadyPlayed();
+    bool hasAlreadyPlayed();
     bool canBeDemonstrated();
+    bool appliedRuleSymetric();
+    bool isEvaluated();
     void game();
     void askCall();
 

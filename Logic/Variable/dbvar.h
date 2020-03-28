@@ -21,6 +21,7 @@ public:
     void insert(DbVar& ext);
 
     std::vector<std::string> nameVars() const;
+    std::vector<std::shared_ptr<const AbstractTerm>> getVars() const;
     const std::shared_ptr<const AbstractTerm>& find(const std::string &name);
     bool contains(const std::string& name) const;
 

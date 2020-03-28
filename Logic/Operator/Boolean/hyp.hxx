@@ -27,13 +27,26 @@ template<typename SubPropertyType>
 bool HypFun<SubPropertyType>::operator()() const
 {
     bool ret=true;
+    std::unique_ptr<std::runtime_error> except=nullptr;
     for(size_t k=0;k<m_sonProps.size()-1;k++)
     {
-        ret=m_sonProps[k]->evaluate();
-        if(!ret)
+        try
         {
-            break;
+            ret = m_sonProps[k]->evaluate();
+            if (!ret)
+            {
+                except = nullptr;
+                break;
+            }
         }
+        catch (std::runtime_error& e)
+        {
+            except = std::make_unique<std::runtime_error>(e);
+        }        
+    }
+    if (except)
+    {
+        throw *except;
     }
     return ret? m_sonProps.back()->evaluate(): true;
 }

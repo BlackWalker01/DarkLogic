@@ -30,7 +30,21 @@ std::string OrFun<SubPropertyType>::symbol()
 template<typename SubPropertyType>
 bool OrFun<SubPropertyType>::operator()() const
 {
-    return std::get<0>(m_sonProps)->evaluate()||std::get<1>(m_sonProps)->evaluate();
+    try
+    {
+        if (std::get<0>(m_sonProps)->evaluate())
+        {
+            return true;
+        }
+        else
+        {
+            return std::get<1>(m_sonProps)->evaluate();
+        }
+    }
+    catch (std::runtime_error&)
+    {
+        return std::get<1>(m_sonProps)->evaluate();
+    }
 }
 
 template<typename SubPropertyType>

@@ -24,6 +24,9 @@ public:
     static bool isAlreadyPlayed(const size_t& instanceIdx);
     static bool canBeDemonstrated(const size_t& instanceIdx);
     static bool evaluate(const size_t& instanceIdx);
+    static bool isEvaluated(const size_t& instanceIdx);
+    static bool appliedRuleSymetric(const size_t& instanceIdx);
+
     static bool makeTheorem(const std::string &name, const std::string &cont);
     static void printTheorem(const size_t& instanceIdx);
 
@@ -58,6 +61,9 @@ private:
     bool _isAlreadyPlayed();
     bool _canBeDemonstrated();
     bool _evaluate();
+    bool _isEvaluated();
+    bool _appliedRuleSymetric();
+
     bool _makeTheorem(const std::string& name, const std::string& cont);
     void _printTheorem();
 

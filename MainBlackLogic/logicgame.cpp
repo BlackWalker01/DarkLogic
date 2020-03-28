@@ -190,9 +190,24 @@ bool LogicGame::isAlreadyPlayed()
     return N_Logic::Logic::isAlreadyPlayed(0);
 }
 
+bool LogicGame::hasAlreadyPlayed()
+{
+    return N_Logic::Logic::hasAlreadyPlayed(0);
+}
+
 bool LogicGame::canBeDemonstrated()
 {
     return N_Logic::Logic::canBeDemonstrated(0);
+}
+
+bool LogicGame::appliedRuleSymetric()
+{
+    return N_Logic::Logic::appliedRuleSymetric(0);
+}
+
+bool LogicGame::isEvaluated()
+{
+    return N_Logic::Logic::isEvaluated(0);
 }
 
 void LogicGame::game()
@@ -233,17 +248,38 @@ void LogicGame::game()
         std::cout << "____________________________________________________________________________" << std::endl;
     }
     
-    if (isDemonstrated())
+    if (hasAlreadyPlayed())
     {
-        std::cout << "You won! you finished the demonstration!" << std::endl;
+        if (isDemonstrated())
+        {
+            std::cout << m_player->name() << " won! " << m_player->name() << " finished the demonstration!" << std::endl;
+        }
+        else if (isAlreadyPlayed())
+        {
+            std::cout << m_player->name() << " lost! Repetition of theorem!" << std::endl;
+        }
+        else if (isEvaluated())
+        {
+            std::cout << m_player->name() << " lost! Cannot (\"back-\")demonstrate that a theorem is false with implications!" << std::endl;
+        }
+        else /*if (!canBeDemonstrated())*/
+        {
+            std::cout << m_player->name() << " lost! This theorem cannot be demonstrated! " 
+                "It can be true or false according to the values of its variables" << std::endl;
+        }
     }
-    else if (isAlreadyPlayed())
+    else
     {
-        std::cout << "You lost! you have already had this theorem!" << std::endl;
+        if (isDemonstrated())
+        {
+            std::cout <<"Game Over! the demonstration is already finished!" << std::endl;
+        }
+        else /*if (!canBeDemonstrated())*/
+        {
+            std::cout << "Game Over! This theorem cannot be demonstrated! "
+                "It can be true or false according to the values of its variables" << std::endl;
+        }
     }
-    else /*if (!canBeDemonstrated())*/
-    {
-        std::cout << "You lost! you cannot (\"back-\")demonstrate that your theorem is false with implications!" << std::endl;
-    }  
+      
     
 }

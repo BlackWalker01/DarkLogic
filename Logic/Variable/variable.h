@@ -21,7 +21,8 @@ public:
     }
 
     //set operator
-    void operator=(const ValueType& val);
+    void operator=(const ValueType& val) const;
+    void unset() const;
 
     //comparison operators
     template<typename SetType2>
@@ -32,11 +33,12 @@ public:
     virtual ~Variable() = default;
 
 protected:
-    std::unique_ptr<ValueType> m_val;
+    const std::unique_ptr<std::unique_ptr<ValueType>> m_val;
 };
 
 template<typename SetType_>
-Variable<SetType_>::Variable(const std::string& name_): AbstractTerm(name_), m_val(nullptr)
+Variable<SetType_>::Variable(const std::string& name_): AbstractTerm(name_), 
+m_val(std::make_unique<std::unique_ptr<ValueType>>(nullptr))
 {
 
 }
@@ -55,17 +57,23 @@ constexpr bool Variable<SetType>::operator==(const Variable<SetType>& var) const
 }
 
 template<typename SetType>
-void Variable<SetType>::operator=(const ValueType& val)
+void Variable<SetType>::operator=(const ValueType& val) const
 {
-    m_val=std::make_unique(val);
+    (*m_val)=std::make_unique(val);
+}
+
+template<typename SetType>
+inline void Variable<SetType>::unset() const
+{
+    (*m_val) = nullptr;
 }
 
 template<typename SetType>
 bool Variable<SetType>::operator==(const ValueType& val) const
 {
-    if(m_val)
+    if(*m_val)
     {
-        return *m_val==val;
+        return **m_val==val;
     }
     throw std::runtime_error("Variable "+this->m_name+" not initialized");
 }
@@ -73,9 +81,9 @@ bool Variable<SetType>::operator==(const ValueType& val) const
 template<typename SetType>
 constexpr typename Variable<SetType>::ValueType Variable<SetType>::evaluate() const
 {
-    if(m_val)
+    if(*m_val)
     {
-        return *m_val;
+        return **m_val;
     }
     throw std::runtime_error("Variable "+this->m_name+" not initialized");
 }

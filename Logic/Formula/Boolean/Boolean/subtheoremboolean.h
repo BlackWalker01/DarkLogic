@@ -13,6 +13,7 @@ public:
     SubTheorem(const std::string& name, const std::shared_ptr<Boolean>& val);
 
     bool evaluate() const override final;
+    bool canBeDemonstrated() const override;
 
     bool operator==(const ASubTheorem& prop) const override final;
     bool operator==(const SubTheorem& prop) const;

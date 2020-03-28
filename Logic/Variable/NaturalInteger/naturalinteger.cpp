@@ -14,7 +14,7 @@ VALUE_TYPE NaturalInteger::valueType() const
 
 void NaturalInteger::operator=(const Variable::ValueType &val)
 {
-    m_val=std::make_unique<ValueType>(val);
+    *m_val=std::make_unique<ValueType>(val);
 }
 
 NaturalInteger::~NaturalInteger()

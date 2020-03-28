@@ -20,6 +20,7 @@ public:
     virtual ptr<ASubTheorem> copyTheorem() const =0; //method used by a subRule to create a theorem from this subTheorem
     const std::vector<std::vector<Arity> > &getAllPaths() const; //method to get all possible paths to terms of this subtheorem (once computed)
     virtual const std::vector<std::vector<Arity>>& computeAllPaths()=0; //method to compute all possible paths to terms of this subtheorem
+    virtual bool canBeDemonstrated() const;
 
     //apply rule on subtheorem of this theorem following path from indexes
     virtual ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<size_t>& indexes,
@@ -32,6 +33,9 @@ public:
                                 DbVarContainer &dbVar);
     static void deleteAfterExcept(std::vector<OperatorOrdering>& ope, std::vector<std::shared_ptr<VariableContainer>> &varList);
 
+
+private:
+    bool testCanBeDemonstrated(const std::vector<ptr<AbstractTerm>>& vars, std::unique_ptr<bool>& crtValue) const;
 protected:
     std::vector<std::vector<Arity>> m_allPaths;
 };

@@ -26,7 +26,28 @@ const ptr<SubPropertyType>& And<SubPropertyType>::operator[](const size_t &k) co
 template<typename SubPropertyType>
 bool AndFun<SubPropertyType>::operator()() const
 {
-    return std::get<0>(m_sonProps)->evaluate() && std::get<1>(m_sonProps)->evaluate();
+    try
+    {
+        if (!std::get<0>(m_sonProps)->evaluate())
+        {
+            return false;
+        }
+        else
+        {
+            return std::get<1>(m_sonProps)->evaluate();
+        }
+    }
+    catch (std::runtime_error& e)
+    {
+        if (!std::get<1>(m_sonProps)->evaluate())
+        {
+            return false;
+        }
+        else
+        {
+            throw e;
+        }
+    }
 }
 
 

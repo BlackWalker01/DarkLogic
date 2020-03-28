@@ -750,6 +750,20 @@ bool SubTheorem<ConstBoolean>::evaluate() const
 }
 
 /**---------------------------------------------------------------
+ * canBeDemonstrated methods
+ * ---------------------------------------------------------------
+ */
+bool SubTheorem<Boolean>::canBeDemonstrated() const
+{
+    return false;
+}
+
+bool SubTheorem<ConstBoolean>::canBeDemonstrated() const
+{
+    return true;
+}
+
+/**---------------------------------------------------------------
  * operator== methods
  * ---------------------------------------------------------------
  */
