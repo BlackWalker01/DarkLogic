@@ -21,17 +21,6 @@ std::shared_ptr<const Action> AI::play()
 	if (m_condition_var.wait_for(m_lock, std::chrono::seconds(7)) == std::cv_status::timeout)
 	{
 		m_masterThread->stop();
-	}
-	else
-	{
-		if (m_hasEvents)
-		{
-			while (m_eventQueue.size())
-			{
-				m_eventQueue.pop();
-			}
-		}
-		m_hasEvents = false;
 	}	
 	
 	//waiting for threads to stop
@@ -75,6 +64,11 @@ void AI::explore(const std::vector<size_t>& actions)
 bool AI::mustStop(const unsigned char threadIdx) const
 {
 	return m_masterThread->mustStop(threadIdx);
+}
+
+void AI::stopThread(const unsigned char threadIdx) const
+{
+	m_masterThread->stopThread(threadIdx);
 }
 
 std::shared_ptr<MasterAIThread> AI::getMaster() const

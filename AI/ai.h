@@ -22,6 +22,7 @@ private:
 	void stopFromMasterThread();
 	void explore(const std::vector<size_t>& actions);
 	bool mustStop(const unsigned char threadIdx) const;
+	void stopThread(const unsigned char threadIdx) const;
 	std::shared_ptr<MasterAIThread> getMaster() const;
 
 	void _pushEvent(Event::EventEnum type_);
