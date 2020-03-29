@@ -11,6 +11,14 @@ MasterAIThread::MasterAIThread(const size_t& maxInstanceIdx_, AI& ai_):
     }	
 }
 
+void MasterAIThread::computeActions()
+{
+    for (auto& slave : m_slaveThreads)
+    {
+        slave->computeActions();
+    }
+}
+
 void MasterAIThread::updateLogic(const size_t& actionid)
 {
     for (auto& slave : m_slaveThreads)
@@ -40,7 +48,7 @@ void MasterAIThread::stopFromThread(const unsigned char threadIdx)
 }
 
 void MasterAIThread::stopThread(const unsigned char threadIdx)
-{
+{    
     m_slaveThreads[threadIdx-1]->stop();
 }
 
@@ -55,6 +63,31 @@ void MasterAIThread::init()
     }
 }
 
+size_t MasterAIThread::getTotalRootNbSimu() const
+{
+    size_t ret = 0;
+    for (auto& slaveThread : m_slaveThreads)
+    {
+        ret += slaveThread->getRootNbSimu();
+    }
+    return ret;
+}
+
+void MasterAIThread::setRootNbSimu(const size_t& instanceIdx, const size_t& nbSimu)
+{
+    m_slaveThreads[instanceIdx - 1]->setRootNbSimu(nbSimu);
+}
+
+size_t MasterAIThread::getRootNbSimu(const size_t& instanceIdx) const
+{
+    return m_slaveThreads[instanceIdx - 1]->getRootNbSimu();
+}
+
+void MasterAIThread::incrRootNbSimu(const size_t& instanceIdx)
+{
+    m_slaveThreads[instanceIdx - 1]->incrRootNbSimu();
+}
+
 void MasterAIThread::_start()
 {
     //dispatch actions between slave threads
@@ -63,12 +96,19 @@ void MasterAIThread::_start()
     {
         m_slaveThreads[k % m_slaveThreads.size()]->pushAction(actions[k]);
     }
+    //init number of simuations
+    for (auto& slaveThread : m_slaveThreads)
+    {
+        //slaveThread->setRootNbSimu(m_ai.m_crtNode->nbSimu());
+        slaveThread->setRootNbSimu(0);
+    }
 
     //start slave threads
     if (actions.size() > m_slaveThreads.size())
     {
         for (auto& slaveThread : m_slaveThreads)
         {
+            slaveThread->setRootNbSimu(m_ai.m_crtNode->nbSimu());
             slaveThread->start();
             m_threadAlive[slaveThread->instanceId()] = slaveThread->instanceId();
         }
@@ -95,7 +135,6 @@ void MasterAIThread::_stop()
 void MasterAIThread::_stopFromThread(const unsigned char threadIdx)
 {
     //remove this thread from "living threads"
-    //std::cout << "[DEBUG] Stop from thread " << static_cast<unsigned int>(threadIdx) << std::endl;
     m_threadAlive.erase(threadIdx);    
 
     //if no thread is alive, warn AI

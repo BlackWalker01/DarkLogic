@@ -917,8 +917,15 @@ bool SubRule<Hyp<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarPro
     else if(m_son->arity()==2)
     {
         std::string nameHypVar=(*m_son)[0]->toString();
-        dbVarProp.insertHypEmpty(nameHypVar);
-        return (*m_son)[1]->identifyPriv(prop,dbVarProp);
+        if (dbVarProp.containsHyp(nameHypVar))
+        {
+            return false;
+        }
+        else
+        {
+            dbVarProp.insertHypEmpty(nameHypVar);
+            return (*m_son)[1]->identifyPriv(prop, dbVarProp);
+        }        
     }
     return false;
 }

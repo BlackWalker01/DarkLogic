@@ -25,14 +25,13 @@ private:
 	void stopThread(const unsigned char threadIdx) const;
 	std::shared_ptr<MasterAIThread> getMaster() const;
 
-	void _pushEvent(Event::EventEnum type_);
-	unsigned int _getRootNbSimu();
-	void _incrRootNbSimu();
+	size_t getRootNbSimu(const size_t& instanceIdx) const;
+	void incrRootNbSimu(const size_t& instanceIdx);
 
+	void _pushEvent(Event::EventEnum type_);
 
 	const std::shared_ptr<MasterAIThread> m_masterThread;
 	std::unique_ptr<Node> m_crtNode;
-	std::mutex m_mutexRoot;	
 	
 	//handle events
 	bool m_hasEvents;

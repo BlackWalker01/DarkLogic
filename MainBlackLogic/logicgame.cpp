@@ -161,8 +161,9 @@ void LogicGame::askPlayer()
             std::cout << "AI Mode" << std::endl;
             m_mode = AIMode;
             //Init Logic
-            auto nbInstance = std::thread::hardware_concurrency() + 1;
+            //auto nbInstance = std::thread::hardware_concurrency()+1;
             //auto nbInstance = 2; //single thread for AI
+            auto nbInstance = 3;
             N_Logic::Logic::init(nbInstance);
             m_player = std::make_unique<AI>(nbInstance);
 
@@ -224,6 +225,7 @@ void LogicGame::game()
             }
             case PUSH_ACTION:
             {
+                N_Logic::Logic::getActions(0);
                 N_Logic::Logic::apply(0,action->id());
                 N_Logic::Logic::printTheorem(0);
                 break;
