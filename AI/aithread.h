@@ -27,8 +27,13 @@ public:
 	void pushAction(const size_t& action);
 	bool mustStop();
 	
+	void computeActions();
 	void updateLogic(const size_t& actionId);
 	unsigned char instanceId() const;
+
+	void setRootNbSimu(const size_t& nbSimu);
+	size_t getRootNbSimu() const;
+	void incrRootNbSimu();
 
 	~AIThread() = default;
 private:
@@ -43,6 +48,7 @@ private:
 	bool m_hasStarted;
 	std::thread m_thread;
 	std::vector<size_t> m_crtActions;
+	size_t m_rootNbSimu;
 
 	//Handling events
 	bool m_hasEvents;

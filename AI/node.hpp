@@ -36,12 +36,12 @@ public:
 
 	//only AI uses these methods
 	Node* getBestNode();
+	Node* getDemoMode();
 	void setRoot();
 	unsigned int getRootNbSimu() const;
 	void incrRootNbSimu();
 private:
 
-	inline void _incrNbSimu();
 	inline void _decrDepth();
 
 	size_t m_actionId;

@@ -95,22 +95,29 @@ Logic::Logic(): m_theorem(nullptr), m_nbAppliedRule(0), m_isLastRuleSymetric(tru
     insert(orIl);
     auto orIr = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||Id", "({HYP}q)=>({HYP}p||q)"));
     insert(orIr);
-    auto orE = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||E", "(({HYP}p||q)&&({p,HYP}r)&&({q,HYP}r))=>(({HYP}r)")); //complicated to use!
+    auto orE = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||E", 
+        "(({HYP}p||q)&&({p,HYP}r)&&({q,HYP}r))=>(({HYP}r)")); //complicated to use!
     insert(orE);
 
     //IMPLICATION Rules
-    auto implI = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("=>I", "({p,HYP}q)=>({HYP}p=>q)"));
+    auto implI = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("=>I", "({p,HYP}q)<=>({HYP}p=>q)"));
     insert(implI);
-    auto implE = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("=>E", "(({HYP}p)&&({HYP}p=>q))=>({p,p=>q,HYP}q)"));
+    auto implE = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("=>E", 
+        "(({HYP}p)&&({HYP}p=>q))=>({HYP}q)")); //complicated to use!
     insert(implE);
+
+    //EQUIVALENT Rules
+    auto eqI = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("<=>I", 
+        "({HYP}p=>q) && ({HYP}q=>p) <=>({HYP}p<=>q)"));
+    insert(eqI);
 
 
     //FALSE Rules
-    auto fi = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("FI", "({HYP}(p&&!p))=>({HYP}false)"));
+    auto fi = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("FI", "({HYP}(p&&!p))<=>({HYP}false)"));
     insert(fi);
     auto fe = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("FE", "({p,HYP}false)<=>({HYP}!p)"));
     insert(fe);
-    auto fiNot = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("FI!", "({!p,HYP}p)=>({!p,HYP}false)"));
+    auto fiNot = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("FI!", "({!p,HYP}p)<=>({!p,HYP}false)"));
     insert(fiNot);
 
     //HYPOTHESIS Rules

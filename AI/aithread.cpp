@@ -4,7 +4,8 @@
 #include <iostream>
 
 AIThread::AIThread(const size_t& instanceId, AI& ai) : m_instanceId(instanceId), 
-m_ai(ai), m_master(ai.getMaster()), m_hasStarted(false), m_thread(runThread,this), m_hasEvents(false), m_lock(m_mutex), m_mustStop(false)
+m_ai(ai), m_master(ai.getMaster()), m_hasStarted(false), m_thread(runThread,this), m_hasEvents(false), m_lock(m_mutex),
+m_rootNbSimu(0), m_mustStop(false)
 {
 }
 
@@ -35,6 +36,11 @@ bool AIThread::mustStop()
     return m_mustStop.load();
 }
 
+void AIThread::computeActions()
+{
+    N_Logic::Logic::getActions(m_instanceId);
+}
+
 void AIThread::updateLogic(const size_t& actionId)
 {
     N_Logic::Logic::apply(m_instanceId,actionId);
@@ -44,6 +50,21 @@ void AIThread::updateLogic(const size_t& actionId)
 unsigned char AIThread::instanceId() const
 {
     return m_instanceId;
+}
+
+void AIThread::setRootNbSimu(const size_t& nbSimu)
+{
+    m_rootNbSimu = nbSimu;
+}
+
+size_t AIThread::getRootNbSimu() const
+{
+    return m_rootNbSimu;
+}
+
+void AIThread::incrRootNbSimu()
+{
+    m_rootNbSimu++;
 }
 
 void AIThread::_start()

@@ -44,20 +44,12 @@ unsigned short Node::value() const
 
 unsigned int Node::nbSimu() const
 {
-	//if root node
-	if (isRoot())
-	{
-		return s_ai->_getRootNbSimu();
-	}
-	else
-	{
-		return m_nbSimu;
-	}
+	return m_nbSimu;	
 }
 
 double Node::getMCTSValue(const unsigned int parentNbSimu) const
 {
-	return (static_cast<double>(USHRT_MAX-m_value))/USHRT_MAX + s_cste * sqrt(log(parentNbSimu+1)/(m_nbSimu + 1));
+	return (1000*static_cast<double>(USHRT_MAX-m_value))/USHRT_MAX + s_cste * sqrt(log(parentNbSimu+1)/(m_nbSimu + 1));
 }
 
 
@@ -148,7 +140,6 @@ unsigned short Node::makeSimu(const size_t& threadIdx, const size_t& action, con
 
 unsigned short Node::explore(const std::vector<size_t>& actions)
 {	
-	//std::cout << "Explore Node: "<<m_actionId<<" at depth="<<m_depth << std::endl;
 	unsigned int retValue = 0;
 	double maxValue = 0;
 	std::vector<Node*> maxNodes;
@@ -163,7 +154,7 @@ unsigned short Node::explore(const std::vector<size_t>& actions)
 			it = m_sons.find(action);
 		}
 		auto subNode = it->second.get();
-		double mctValue = subNode->getMCTSValue(nbSimu());
+		double mctValue = isRoot()? subNode->getMCTSValue(s_ai->getRootNbSimu(subNode->threadId())) : subNode->getMCTSValue(m_nbSimu);
 		if (mctValue > maxValue)
 		{
 			maxNodes.clear();
@@ -189,7 +180,7 @@ unsigned short Node::explore(const std::vector<size_t>& actions)
 		{
 			node->makeSimu();
 		}
-		s_ai->_incrRootNbSimu();
+		s_ai->incrRootNbSimu(node->threadId());
 	}
 	else if (!s_ai->mustStop(m_threadId))
 	{
@@ -285,9 +276,34 @@ Node* Node::getBestNode()
 	}
 	auto valWinner= minNodes[rand() % minNodes.size()];
 	auto winner = m_sons[valWinner].release();
-	m_sons.clear();
-	std::cout << "[DEBUG] Nb simulations "<<m_nbSimu << std::endl;
-	//m_sons[winner.first] = nullptr; //dereference winner in sons
+	m_sons.clear();	
+	return winner;
+}
+
+Node* Node::getDemoMode()
+{
+	Node* winner = nullptr;
+	std::vector<size_t> minNodes;
+	unsigned short minVal = VAL_INIT-1;
+	for (auto& son : m_sons)
+	{
+		if (son.second->value() < minVal)
+		{
+			minVal = son.second->value();
+			minNodes.clear();
+			minNodes.push_back(son.first);
+		}
+		else if (son.second->value() == minVal)
+		{
+			minNodes.push_back(son.first);
+		}
+	}
+	if (minNodes.size())
+	{
+		auto valWinner = minNodes[rand() % minNodes.size()];
+		winner = m_sons[valWinner].release();
+		m_sons.clear();
+	}	
 	return winner;
 }
 
@@ -305,18 +321,6 @@ unsigned int Node::getRootNbSimu() const
 void Node::incrRootNbSimu()
 {
 	m_nbSimu++;
-}
-
-void Node::_incrNbSimu()
-{
-	if (isRoot())
-	{
-		s_ai->_incrRootNbSimu();
-	}
-	else
-	{
-		m_nbSimu++;
-	}
 }
 
 void Node::_decrDepth()

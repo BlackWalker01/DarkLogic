@@ -13,29 +13,46 @@ AI::AI(const size_t& maxInstanceIdx) : Player("AI"), m_masterThread(std::make_sh
 }
 
 std::shared_ptr<const Action> AI::play()
-{
-	m_masterThread->start();
+{	
 	//start chrono with cadence=1s
 	std::chrono::high_resolution_clock::time_point start, end;
 	start = std::chrono::high_resolution_clock::now();
-	if (m_condition_var.wait_for(m_lock, std::chrono::seconds(7)) == std::cv_status::timeout)
-	{
-		m_masterThread->stop();
-	}	
+	Node* newNode = m_crtNode->getDemoMode();
 	
-	//waiting for threads to stop
-	while (!m_hasEvents)
+	//if AI has not found demonstration yet
+	if (!newNode)
 	{
-		m_condition_var.wait(m_lock);
-	}
-	if (m_eventQueue.size())
-	{
-		//Consuming event
-		m_eventQueue.pop();
-	}
-	m_hasEvents = false;
+		m_masterThread->start();
+		std::cv_status status = std::cv_status::no_timeout;
+		while (!m_hasEvents && (status!=std::cv_status::timeout))
+		{
+			status = m_condition_var.wait_until(m_lock, start + std::chrono::seconds(2)); //time is multiplicated per 2 or 3 in Win64			
+		}
+		if (status == std::cv_status::timeout)
+		{
+			m_masterThread->stop();
+		}
 
-	auto newNode=m_crtNode->getBestNode();
+		//waiting for threads to stop
+		while (!m_hasEvents)
+		{
+			m_condition_var.wait(m_lock);
+		}
+		if (m_eventQueue.size())
+		{
+			//Consuming event
+			m_eventQueue.pop();
+		}
+		m_hasEvents = false;
+
+		newNode = m_crtNode->getBestNode();
+		std::cout << "[DEBUG] Nb simulations " << m_masterThread->getTotalRootNbSimu() << std::endl;
+	}
+	else
+	{
+		m_masterThread->computeActions();
+	}
+	
 	m_crtNode.reset(newNode);
 	m_crtNode->setRoot();
 	m_masterThread->updateLogic(m_crtNode->actionId());
@@ -76,6 +93,16 @@ std::shared_ptr<MasterAIThread> AI::getMaster() const
 	return m_masterThread;
 }
 
+size_t AI::getRootNbSimu(const size_t& instanceIdx) const
+{
+	return m_masterThread->getRootNbSimu(instanceIdx);
+}
+
+void AI::incrRootNbSimu(const size_t& instanceIdx)
+{
+	m_masterThread->incrRootNbSimu(instanceIdx);
+}
+
 void AI::_pushEvent(Event::EventEnum type_)
 {
 	m_mutex.lock();
@@ -83,20 +110,4 @@ void AI::_pushEvent(Event::EventEnum type_)
 	m_mutex.unlock();
 	m_hasEvents = true;
 	m_condition_var.notify_all();
-}
-
-unsigned int AI::_getRootNbSimu()
-{
-	unsigned int ret = 0;
-	m_mutexRoot.lock();
-	ret = m_crtNode->getRootNbSimu();
-	m_mutexRoot.unlock();
-	return ret;
-}
-
-void AI::_incrRootNbSimu()
-{
-	m_mutexRoot.lock();
-	m_crtNode->incrRootNbSimu();
-	m_mutexRoot.unlock();
 }
