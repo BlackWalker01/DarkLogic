@@ -15,9 +15,9 @@ public:
 
     bool evaluate() const override final;
 
-    bool operator==(const ASubTheorem& prop) const override final;
+    bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubTheorem& prop) const;
-    bool operator==(const ASubRule& prop) const override final;
+    bool isEqual(const ASubRule& prop) const override final;
     bool operator==(const SubRule<Hyp<ASubRule>>& prop) const;
 
     size_t arity() const override final;

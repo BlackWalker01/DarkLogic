@@ -31,8 +31,8 @@ public:
 
     const VarType& getSon() const;
 
-    bool operator==(const ASubArithmeticRule<ValueType>& prop) const override final;
-    bool operator==(const ASubArithmeticTheorem<ValueType>& prop) const override final;
+    bool isEqual(const ASubArithmeticRule<ValueType>& prop) const override final;
+    bool isEqual(const ASubArithmeticTheorem<ValueType>& prop) const override final;
     bool operator==(const ConstSubArithmeticRule& prop) const;
     bool operator==(const ConstSubArithmeticTheorem<SubOperatorType>& prop) const;
 
@@ -98,7 +98,7 @@ const VarType &ConstSubArithmeticRule<VarType>::getSon() const
 
 template<typename VarType>
 bool ConstSubArithmeticRule< VarType>::
-operator==(const ASubArithmeticTheorem<ValueType>& prop) const
+isEqual(const ASubArithmeticTheorem<ValueType>& prop) const
 {
     auto propCast=
             dynamic_cast<const ConstSubArithmeticTheorem<VarType>*>(&prop);
@@ -114,7 +114,7 @@ operator==(const ASubArithmeticTheorem<ValueType>& prop) const
 
 template<typename VarType>
 bool ConstSubArithmeticRule< VarType>::
-operator==(const ASubArithmeticRule<ValueType>& prop) const
+isEqual(const ASubArithmeticRule<ValueType>& prop) const
 {
     auto propCast=dynamic_cast<const ConstSubArithmeticRule*>(&prop);
     if(propCast)

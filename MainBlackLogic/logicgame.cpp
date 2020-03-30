@@ -163,7 +163,7 @@ void LogicGame::askPlayer()
             //Init Logic
             //auto nbInstance = std::thread::hardware_concurrency()+1;
             //auto nbInstance = 2; //single thread for AI
-            auto nbInstance = 3;
+            auto nbInstance = 3; //opti for th moment
             N_Logic::Logic::init(nbInstance);
             m_player = std::make_unique<AI>(nbInstance);
 

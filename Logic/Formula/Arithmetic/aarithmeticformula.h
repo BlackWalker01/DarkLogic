@@ -38,14 +38,20 @@ public:
     virtual size_t arity() const =0;
     //virtual DbVar<BooleanSet>& getExtVars()=0;
 
-    virtual bool operator==(const ASubArithmeticRule<ValueType>& prop) const =0;
-    virtual bool operator==(const ASubArithmeticTheorem<ValueType>& prop) const =0;
+    virtual bool isEqual(const ASubArithmeticRule<ValueType>& prop) const =0;
+    virtual bool isEqual(const ASubArithmeticTheorem<ValueType>& prop) const =0;
 
     virtual ~AArithMeticFormula() = default;
 protected:
     const ArithType m_type;
 };
 
+template<typename ValueType>
+inline bool operator==(const ASubArithmeticRule<ValueType>& rule, const ASubArithmeticTheorem<ValueType>& thm);
+template<typename ValueType>
+inline bool operator==(const ASubArithmeticTheorem<ValueType>& th, const ASubArithmeticTheorem<ValueType>& th2);
+template<typename ValueType>
+inline bool operator==(const ASubArithmeticRule<ValueType>& th, const ASubArithmeticRule<ValueType>& th2);
 
 template<typename ValueType>
 struct ToArithType

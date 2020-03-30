@@ -17,8 +17,8 @@ public:
 
     bool evaluate() const override final;
 
-    bool operator==(const ASubRule& prop) const override final;
-    bool operator==(const ASubTheorem& prop) const override final;
+    bool isEqual(const ASubRule& prop) const override final;
+    bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubRule& prop) const;
     bool operator==(const SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,
                     ASubArithmeticTheorem<SetType>>>& prop) const;
@@ -59,7 +59,7 @@ bool SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmetic
 
 template<typename SetType>
 bool SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>>  >::
-operator==(const ASubRule &prop) const
+isEqual(const ASubRule &prop) const
 {
     auto propCast=dynamic_cast<const SubRule<SubPropertyType>*>(&prop);
     if(propCast)
@@ -74,7 +74,7 @@ operator==(const ASubRule &prop) const
 
 template<typename SetType>
 bool SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>>  >::
-operator==(const ASubTheorem &prop) const
+isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
     if(propCast)

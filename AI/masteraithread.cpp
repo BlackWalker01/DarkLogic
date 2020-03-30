@@ -145,7 +145,7 @@ void MasterAIThread::_stopFromThread(const unsigned char threadIdx)
     //else check if the other threads know they must stop
     else
     {
-        for (const auto threadIdx : m_threadAlive)
+        for (const auto& threadIdx : m_threadAlive)
         {
             if (!m_slaveThreads[threadIdx.second - 1]->mustStop())
             {

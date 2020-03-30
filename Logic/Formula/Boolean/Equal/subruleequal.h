@@ -17,8 +17,8 @@ public:
 
     bool evaluate() const override final;
 
-    bool operator==(const ASubRule& prop) const override final;
-    bool operator==(const ASubTheorem& prop) const override final;
+    bool isEqual(const ASubRule& prop) const override final;
+    bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubRule& prop) const;
     bool operator==(const SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2>>>& prop) const;
 
@@ -57,7 +57,7 @@ bool SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2
 }
 
 template<typename ValueType1, typename ValueType2>
-bool SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::operator==(const ASubRule &prop) const
+bool SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::isEqual(const ASubRule &prop) const
 {
     auto propCast=dynamic_cast<const SubRule<SubPropertyType>*>(&prop);
     if(propCast)
@@ -71,7 +71,7 @@ bool SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2
 }
 
 template<typename ValueType1, typename ValueType2>
-bool SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::operator==(const ASubTheorem &prop) const
+bool SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
     if(propCast)

@@ -23,8 +23,8 @@ public:
 
     void operator=(const ValueType& val) const;
 
-    bool operator==(const ASubArithmeticRule<ValueType>& prop) const override final;
-    bool operator==(const ASubArithmeticTheorem<ValueType>& prop) const override final;
+    bool isEqual(const ASubArithmeticRule<ValueType>& prop) const override final;
+    bool isEqual(const ASubArithmeticTheorem<ValueType>& prop) const override final;
     bool operator==(const SubArithmeticTheorem& prop) const;
     bool operator==(const SubArithmeticRule<SubOperatorType>& prop) const;
 
@@ -81,7 +81,7 @@ void SubArithmeticTheorem<VarType>::operator=(const ValueType &val) const
 }
 
 template<typename VarType>
-bool SubArithmeticTheorem<VarType>::operator==(const ASubArithmeticRule<SubArithmeticTheorem::ValueType> &prop) const
+bool SubArithmeticTheorem<VarType>::isEqual(const ASubArithmeticRule<SubArithmeticTheorem::ValueType> &prop) const
 {
     auto propCast=
             dynamic_cast<const SubArithmeticRule<VarType>*>(&prop);
@@ -96,7 +96,7 @@ bool SubArithmeticTheorem<VarType>::operator==(const ASubArithmeticRule<SubArith
 }
 
 template<typename VarType>
-bool SubArithmeticTheorem<VarType>::operator==(const ASubArithmeticTheorem<SubArithmeticTheorem::ValueType> &prop) const
+bool SubArithmeticTheorem<VarType>::isEqual(const ASubArithmeticTheorem<SubArithmeticTheorem::ValueType> &prop) const
 {
     auto propCast=
             dynamic_cast<const SubArithmeticTheorem<VarType>*>(&prop);

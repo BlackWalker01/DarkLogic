@@ -29,8 +29,8 @@ public:
     std::string toString(unsigned short priorityParent=1000) const override final;
     const std::vector<std::vector<Arity>>& computeAllPaths() override final;
 
-    bool operator==(const ASubArithmeticRule<ValueType>& prop) const override final;
-    bool operator==(const ASubArithmeticTheorem<ValueType>& prop) const override final;
+    bool isEqual(const ASubArithmeticRule<ValueType>& prop) const override final;
+    bool isEqual(const ASubArithmeticTheorem<ValueType>& prop) const override final;
     bool operator==(const SubArithmeticTheorem& prop) const;
     bool operator==(const SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>,ASubArithmeticRule<ValueType2>>>& prop) const;
 
@@ -79,7 +79,7 @@ toString(unsigned short priorityParent) const
 
 template<typename ValueType1, typename ValueType2>
 bool SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::
-operator==(const ASubArithmeticRule<ValueType> &prop) const
+isEqual(const ASubArithmeticRule<ValueType> &prop) const
 {
     auto propCast=
             dynamic_cast<const SubArithmeticRule<Plus< ASubArithmeticRule<ValueType1>,ASubArithmeticRule<ValueType2> >>*>(&prop);
@@ -95,7 +95,7 @@ operator==(const ASubArithmeticRule<ValueType> &prop) const
 
 template<typename ValueType1, typename ValueType2>
 bool SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::
-operator==(const ASubArithmeticTheorem<ValueType> &prop) const
+isEqual(const ASubArithmeticTheorem<ValueType> &prop) const
 {
     auto propCast=dynamic_cast<const SubArithmeticTheorem*>(&prop);
     if(propCast)

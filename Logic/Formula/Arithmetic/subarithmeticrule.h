@@ -13,5 +13,23 @@ namespace N_Logic
 template<typename SubFormulaType>
 class SubArithmeticRule;
 
+template<typename ValueType>
+bool operator==(const ASubArithmeticRule<ValueType>& rule, const ASubArithmeticTheorem<ValueType>& thm)
+{
+	return rule.isEqual(thm);
+}
+
+template<typename ValueType>
+bool operator==(const ASubArithmeticTheorem<ValueType>& th, const ASubArithmeticTheorem<ValueType>& th2)
+{
+	return th.isEqual(th2);
+}
+
+template<typename ValueType>
+bool operator==(const ASubArithmeticRule<ValueType>& th, const ASubArithmeticRule<ValueType>& th2)
+{
+	return th.isEqual(th2);
+}
+
 }
 #endif // SUBARITHMETICRULE_H
