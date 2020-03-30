@@ -44,8 +44,8 @@ public:
     //method to get sub properties
     virtual size_t arity() const =0;
 
-    virtual bool operator==(const ASubRule& prop) const =0;
-    virtual bool operator==(const ASubTheorem& prop) const =0;
+    virtual bool isEqual(const ASubRule& prop) const =0;
+    virtual bool isEqual(const ASubTheorem& prop) const =0;
 
     virtual ~IProposition() = default;
 
@@ -54,6 +54,9 @@ protected:
     const PropType m_type;
 };
 
+inline bool operator==(const ASubRule& rule, const ASubTheorem& thm);
+inline bool operator==(const ASubTheorem& th, const ASubTheorem& th2);
+inline bool operator==(const ASubRule& th, const ASubRule& th2);
 }
 
 #endif // IPROPERTY_H

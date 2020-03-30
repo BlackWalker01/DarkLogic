@@ -4,7 +4,7 @@ project(BlackLogic LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(LIB_DIR ${CMAKE_SOURCE_DIR}/Lib)
 include_directories("Logic")
@@ -35,5 +35,6 @@ add_executable(BlackLogic
 
 link_directories(${LIB_DIR})
 
+add_compile_definitions(_SILENCE_CLANG_CONCEPTS_MESSAGE)
 target_link_libraries(BlackLogic ${LIB_DIR}/Logic.lib)
 install(TARGETS BlackLogic DESTINATION ${CMAKE_SOURCE_DIR}/Lib)

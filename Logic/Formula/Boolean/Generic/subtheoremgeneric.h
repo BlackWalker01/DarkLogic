@@ -13,9 +13,9 @@ public:
 
     bool evaluate() const override final;
 
-    bool operator==(const ASubTheorem& prop) const override final;
+    bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubTheorem& prop) const;
-    bool operator==(const ASubRule& prop) const override final;
+    bool isEqual(const ASubRule& prop) const override final;
     bool operator==(const SubRule<SubPropertyType>& prop) const;
 
     std::string toString(unsigned short priorityParent=1000) const override final;

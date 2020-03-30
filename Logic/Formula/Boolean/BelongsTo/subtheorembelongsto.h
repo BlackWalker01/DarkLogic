@@ -18,9 +18,9 @@ public:
 
     bool evaluate() const override final;
 
-    bool operator==(const ASubTheorem& prop) const override final;
+    bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubTheorem& prop) const;
-    bool operator==(const ASubRule& prop) const override final;
+    bool isEqual(const ASubRule& prop) const override final;
     bool operator==(const SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>>>& prop) const;
 
     std::string toString(unsigned short priorityParent=1000) const override final;
@@ -83,7 +83,7 @@ std::string N_Logic::SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType
 
 template<typename SetType>
 bool SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>> >::
-operator==(const ASubTheorem &prop) const
+isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
     if(propCast)
@@ -105,7 +105,7 @@ operator==(const SubTheorem &prop) const
 
 template<typename SetType>
 bool N_Logic::SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>> >::
-operator==(const ASubRule &prop) const
+isEqual(const ASubRule &prop) const
 {
     auto propCast=dynamic_cast<const SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,
             ASubArithmeticRule<SetType>>>*>(&prop);

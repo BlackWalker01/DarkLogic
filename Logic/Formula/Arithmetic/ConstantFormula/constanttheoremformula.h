@@ -21,8 +21,8 @@ public:
     std::string toString(unsigned short priorityParent=1000) const override final;
     const std::vector<std::vector<Arity>>& computeAllPaths() override final;
 
-    bool operator==(const ASubArithmeticRule<ValueType>& prop) const override final;
-    bool operator==(const ASubArithmeticTheorem<ValueType>& prop) const override final;
+    bool isEqual(const ASubArithmeticRule<ValueType>& prop) const override final;
+    bool isEqual(const ASubArithmeticTheorem<ValueType>& prop) const override final;
     bool operator==(const ConstSubArithmeticTheorem& prop) const;
     bool operator==(const SubArithmeticRule<SubOperatorType>& prop) const;
 
@@ -76,7 +76,7 @@ const std::vector<std::vector<Arity> > &ConstSubArithmeticTheorem<VarType>::comp
 }
 
 template<typename VarType>
-bool ConstSubArithmeticTheorem<VarType>::operator==
+bool ConstSubArithmeticTheorem<VarType>::isEqual
 (const ASubArithmeticRule<ConstSubArithmeticTheorem::ValueType> &prop) const
 {
     auto propCast=
@@ -92,7 +92,7 @@ bool ConstSubArithmeticTheorem<VarType>::operator==
 }
 
 template<typename VarType>
-bool ConstSubArithmeticTheorem<VarType>::operator==
+bool ConstSubArithmeticTheorem<VarType>::isEqual
 (const ASubArithmeticTheorem<ConstSubArithmeticTheorem::ValueType> &prop) const
 {
     auto propCast=

@@ -768,7 +768,7 @@ bool SubTheorem<ConstBoolean>::canBeDemonstrated() const
  * ---------------------------------------------------------------
  */
 template<typename SubPropertyType>
-bool SubTheorem<SubPropertyType>::operator==(const ASubTheorem &prop) const
+bool SubTheorem<SubPropertyType>::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem*>(&prop);
     if(propCast)
@@ -781,7 +781,7 @@ bool SubTheorem<SubPropertyType>::operator==(const ASubTheorem &prop) const
     }
 }
 
-bool SubTheorem<Hyp<ASubTheorem>>::operator==(const ASubTheorem &prop) const
+bool SubTheorem<Hyp<ASubTheorem>>::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem*>(&prop);
     if(propCast)
@@ -795,7 +795,7 @@ bool SubTheorem<Hyp<ASubTheorem>>::operator==(const ASubTheorem &prop) const
 }
 
 
-bool SubTheorem<Not<ASubTheorem>>::operator==(const ASubTheorem &prop) const
+bool SubTheorem<Not<ASubTheorem>>::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem*>(&prop);
     if(propCast)
@@ -808,7 +808,7 @@ bool SubTheorem<Not<ASubTheorem>>::operator==(const ASubTheorem &prop) const
     }
 }
 
-bool SubTheorem<Boolean>::operator==(const ASubTheorem &prop) const
+bool SubTheorem<Boolean>::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem*>(&prop);
     if(propCast)
@@ -821,7 +821,7 @@ bool SubTheorem<Boolean>::operator==(const ASubTheorem &prop) const
     }
 }
 
-bool SubTheorem<ConstBoolean>::operator==(const ASubTheorem &prop) const
+bool SubTheorem<ConstBoolean>::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem*>(&prop);
     if(propCast)
@@ -836,7 +836,7 @@ bool SubTheorem<ConstBoolean>::operator==(const ASubTheorem &prop) const
 
 template<>
 bool SubTheorem<Let<ASubTheorem, ASubTheorem> >::
-operator==(const ASubRule &prop) const
+isEqual(const ASubRule &prop) const
 {
     //FIX IT!!!!!!!!! not SubPropertyType
     auto propCast=dynamic_cast<const SubRule<Let<ASubRule, ASubRule> >*>(&prop);
@@ -852,7 +852,7 @@ operator==(const ASubRule &prop) const
 
 template<>
 bool SubTheorem<Let<ASubArithmeticTheorem<void>, ASubTheorem> >::
-operator==(const ASubRule &prop) const
+isEqual(const ASubRule &prop) const
 {
     //FIX IT!!!!!!!!! not SubPropertyType
     auto propCast=dynamic_cast<const SubRule<Let<ASubArithmeticRule<void>, ASubRule> >*>(&prop);

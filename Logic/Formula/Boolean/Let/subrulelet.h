@@ -17,8 +17,8 @@ public:
 
     bool evaluate() const override final;
 
-    bool operator==(const ASubRule& prop) const override final;
-    bool operator==(const ASubTheorem& prop) const override final;
+    bool isEqual(const ASubRule& prop) const override final;
+    bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubRule& prop) const;
     template<typename SubTheoremType>
     bool operator==(const SubTheorem<Let<SubTheoremType, ASubTheorem>>& prop) const;
@@ -58,7 +58,7 @@ bool SubRule<Let<SubRuleType, ASubRule> >::evaluate() const
 }
 
 template<typename SubRuleType>
-bool SubRule<Let<SubRuleType, ASubRule > >::operator==(const ASubRule &prop) const
+bool SubRule<Let<SubRuleType, ASubRule > >::isEqual(const ASubRule &prop) const
 {
     auto propCast=dynamic_cast<const SubRule<SubPropertyType>*>(&prop);
     if(propCast)
@@ -72,7 +72,7 @@ bool SubRule<Let<SubRuleType, ASubRule > >::operator==(const ASubRule &prop) con
 }
 
 template<typename SubRuleType>
-bool SubRule<Let<SubRuleType, ASubRule > >::operator==(const ASubTheorem &prop) const
+bool SubRule<Let<SubRuleType, ASubRule > >::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
     if(propCast)

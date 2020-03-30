@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.5)
 project(Logic LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+#set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 add_library(Logic SHARED
     #Sources
@@ -167,4 +167,6 @@ add_library(Logic SHARED
 )
 
 target_compile_definitions(Logic PRIVATE LOGIC_LIBRARY)
+add_compile_definitions(_SILENCE_CLANG_CONCEPTS_MESSAGE)
+
 install(TARGETS Logic DESTINATION ${CMAKE_SOURCE_DIR}/../Lib)

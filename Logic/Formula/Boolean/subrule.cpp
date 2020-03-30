@@ -14,7 +14,6 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
         auto ope=orderedOpeList[0].ope;
         if(ope->name()==HYP)
         {
-            size_t nbPar=orderedOpeList[0].nbPar;
             orderedOpeList.erase(orderedOpeList.begin());
             opeList.erase(opeList.begin());
             std::vector<OperatorOrdering> topOpeList, topOrderedOpeList, queueOpeList, queueOrderedOpeList;
@@ -867,7 +866,6 @@ bool SubRule<Hyp<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarPro
                     hasAlreadyHyp = true;
                     size_t nbToIdentify = propCast->arity() - m_son->arity() + 1;
                     std::string nameHypVar = (*m_son)[k]->toString();
-                    size_t indexHyp = m_son->arity() - 2;
                     if (dbVarProp.containsHyp(nameHypVar))
                     {
                         //check if old mapping is the same as the current one
@@ -1143,8 +1141,9 @@ ptr<ASubTheorem> SubRule<ConstBoolean>::applyFirstPriv(const std::string&, DbVar
  * SubRule::operator==(ASubTheorem) methods
  * ---------------------------------------------------------------
  */
+
 template<typename SubPropertyType>
-bool SubRule<SubPropertyType>::operator==(const ASubTheorem &prop) const
+bool SubRule<SubPropertyType>::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
     if(propCast)
@@ -1157,7 +1156,7 @@ bool SubRule<SubPropertyType>::operator==(const ASubTheorem &prop) const
     }
 }
 
-bool SubRule<Hyp<ASubRule>>::operator==(const ASubTheorem &prop) const
+bool SubRule<Hyp<ASubRule>>::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
     if(propCast)
@@ -1170,7 +1169,7 @@ bool SubRule<Hyp<ASubRule>>::operator==(const ASubTheorem &prop) const
     }
 }
 
-bool SubRule<Not<ASubRule>>::operator==(const ASubTheorem &prop) const
+bool SubRule<Not<ASubRule>>::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
     if(propCast)
@@ -1183,7 +1182,7 @@ bool SubRule<Not<ASubRule>>::operator==(const ASubTheorem &prop) const
     }
 }
 
-bool SubRule<Boolean>::operator==(const ASubTheorem &prop) const
+bool SubRule<Boolean>::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
     if(propCast)
@@ -1196,7 +1195,7 @@ bool SubRule<Boolean>::operator==(const ASubTheorem &prop) const
     }
 }
 
-bool SubRule<ConstBoolean>::operator==(const ASubTheorem &prop) const
+bool SubRule<ConstBoolean>::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
     if(propCast)
@@ -1215,7 +1214,7 @@ bool SubRule<ConstBoolean>::operator==(const ASubTheorem &prop) const
  * ---------------------------------------------------------------
  */
 template<typename SubPropertyType>
-bool SubRule<SubPropertyType>::operator==(const ASubRule &prop) const
+bool SubRule<SubPropertyType>::isEqual(const ASubRule &prop) const
 {
     auto propCast=dynamic_cast<const SubRule*>(&prop);
     if(propCast)
@@ -1228,7 +1227,7 @@ bool SubRule<SubPropertyType>::operator==(const ASubRule &prop) const
     }
 }
 
-bool SubRule<Hyp<ASubRule>>::operator==(const ASubRule &prop) const
+bool SubRule<Hyp<ASubRule>>::isEqual(const ASubRule &prop) const
 {
     auto propCast=dynamic_cast<const SubRule*>(&prop);
     if(propCast)
@@ -1241,7 +1240,7 @@ bool SubRule<Hyp<ASubRule>>::operator==(const ASubRule &prop) const
     }
 }
 
-bool SubRule<Not<ASubRule>>::operator==(const ASubRule &prop) const
+bool SubRule<Not<ASubRule>>::isEqual(const ASubRule &prop) const
 {
     auto propCast=dynamic_cast<const SubRule*>(&prop);
     if(propCast)
@@ -1254,7 +1253,7 @@ bool SubRule<Not<ASubRule>>::operator==(const ASubRule &prop) const
     }
 }
 
-bool SubRule<Boolean>::operator==(const ASubRule &prop) const
+bool SubRule<Boolean>::isEqual(const ASubRule &prop) const
 {
     auto propCast=dynamic_cast<const SubRule*>(&prop);
     if(propCast)
@@ -1267,7 +1266,7 @@ bool SubRule<Boolean>::operator==(const ASubRule &prop) const
     }
 }
 
-bool SubRule<ConstBoolean>::operator==(const ASubRule &prop) const
+bool SubRule<ConstBoolean>::isEqual(const ASubRule &prop) const
 {
     auto propCast=dynamic_cast<const SubRule*>(&prop);
     if(propCast)
@@ -1286,7 +1285,7 @@ bool SubRule<ConstBoolean>::operator==(const ASubRule &prop) const
  * ---------------------------------------------------------------
  */
 template<typename SubPropertyType>
-bool SubTheorem<SubPropertyType>::operator==(const ASubRule& prop) const
+bool SubTheorem<SubPropertyType>::isEqual(const ASubRule& prop) const
 {
     auto propCast=dynamic_cast<const SubRule<SubPropertyType>*>(&prop);
     if(propCast)
@@ -1299,7 +1298,7 @@ bool SubTheorem<SubPropertyType>::operator==(const ASubRule& prop) const
     }
 }
 
-bool SubTheorem<Hyp<ASubTheorem>>::operator==(const ASubRule& prop) const
+bool SubTheorem<Hyp<ASubTheorem>>::isEqual(const ASubRule& prop) const
 {
     auto propCast=dynamic_cast<const SubRule<SubPropertyType>*>(&prop);
     if(propCast)
@@ -1312,7 +1311,7 @@ bool SubTheorem<Hyp<ASubTheorem>>::operator==(const ASubRule& prop) const
     }
 }
 
-bool SubTheorem<Not<ASubTheorem>>::operator==(const ASubRule& prop) const
+bool SubTheorem<Not<ASubTheorem>>::isEqual(const ASubRule& prop) const
 {
     auto propCast=dynamic_cast<const SubRule<SubPropertyType>*>(&prop);
     if(propCast)
@@ -1325,7 +1324,7 @@ bool SubTheorem<Not<ASubTheorem>>::operator==(const ASubRule& prop) const
     }
 }
 
-bool SubTheorem<Boolean>::operator==(const ASubRule& prop) const
+bool SubTheorem<Boolean>::isEqual(const ASubRule& prop) const
 {
     auto propCast=dynamic_cast<const SubRule<Boolean>*>(&prop);
     if(propCast)
@@ -1338,7 +1337,7 @@ bool SubTheorem<Boolean>::operator==(const ASubRule& prop) const
     }
 }
 
-bool SubTheorem<ConstBoolean>::operator==(const ASubRule& prop) const
+bool SubTheorem<ConstBoolean>::isEqual(const ASubRule& prop) const
 {
     auto propCast=dynamic_cast<const SubRule<SubPropertyType>*>(&prop);
     if(propCast)

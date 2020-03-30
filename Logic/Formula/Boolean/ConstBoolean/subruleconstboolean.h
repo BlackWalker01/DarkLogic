@@ -15,8 +15,8 @@ public:
 
     bool evaluate() const override final;
 
-    bool operator==(const ASubRule& prop) const override final;
-    bool operator==(const ASubTheorem& prop) const override final;
+    bool isEqual(const ASubRule& prop) const override final;
+    bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubRule& prop) const;
     bool operator==(const SubTheorem<SubPropertyType>& prop) const;
 

@@ -30,8 +30,8 @@ public:
     ptr<ATheoremType> applyPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
     ptr<ATheoremType> applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
 
-    bool operator==(const ASubArithmeticRule<ValueType>& prop) const override final;
-    bool operator==(const ASubArithmeticTheorem<ValueType>& prop) const override final;
+    bool isEqual(const ASubArithmeticRule<ValueType>& prop) const override final;
+    bool isEqual(const ASubArithmeticTheorem<ValueType>& prop) const override final;
     bool operator==(const SubArithmeticRule& prop) const;
     bool operator==(const SubArithmeticTheorem<SubOperatorType>& prop) const;
 
@@ -67,7 +67,7 @@ size_t SubArithmeticRule< Plus< ASubArithmeticRule<ValueType1>,ASubArithmeticRul
 
 template<typename ValueType1, typename ValueType2>
 bool SubArithmeticRule< Plus< ASubArithmeticRule<ValueType1>,ASubArithmeticRule<ValueType2> > >::
-operator==(const ASubArithmeticRule<ValueType>& prop) const
+isEqual(const ASubArithmeticRule<ValueType>& prop) const
 {
     auto propCast=dynamic_cast<const SubArithmeticRule*>(&prop);
     if(propCast)
@@ -82,7 +82,7 @@ operator==(const ASubArithmeticRule<ValueType>& prop) const
 
 template<typename ValueType1, typename ValueType2>
 bool SubArithmeticRule< Plus< ASubArithmeticRule<ValueType1>,ASubArithmeticRule<ValueType2> > >::
-operator==(const ASubArithmeticTheorem<ValueType>& prop) const
+isEqual(const ASubArithmeticTheorem<ValueType>& prop) const
 {
     auto propCast=dynamic_cast<const SubArithmeticTheorem<Plus< ASubArithmeticTheorem<ValueType1>,
             ASubArithmeticTheorem<ValueType2> >>*>(&prop);

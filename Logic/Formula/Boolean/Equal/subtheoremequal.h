@@ -17,9 +17,9 @@ public:
 
     bool evaluate() const override final;
 
-    bool operator==(const ASubTheorem& prop) const override final;
+    bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubTheorem& prop) const;
-    bool operator==(const ASubRule& prop) const override final;
+    bool isEqual(const ASubRule& prop) const override final;
     bool operator==(const SubRule<Equal<ASubArithmeticRule<ValueType1>,ASubArithmeticRule<ValueType2>>>& prop) const;
 
     std::string toString(unsigned short priorityParent=1000) const override final;
@@ -78,7 +78,7 @@ toString(unsigned short priorityParent) const
 
 template<typename ValueType1, typename ValueType2>
 bool SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::
-operator==(const ASubTheorem &prop) const
+isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
     if(propCast)
@@ -100,7 +100,7 @@ operator==(const SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithme
 
 template<typename ValueType1, typename ValueType2>
 bool N_Logic::SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::
-operator==(const ASubRule &prop) const
+isEqual(const ASubRule &prop) const
 {
     auto propCast=dynamic_cast<const SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> >>*>(&prop);
     if(propCast)

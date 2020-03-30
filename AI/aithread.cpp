@@ -4,8 +4,8 @@
 #include <iostream>
 
 AIThread::AIThread(const size_t& instanceId, AI& ai) : m_instanceId(instanceId), 
-m_ai(ai), m_master(ai.getMaster()), m_hasStarted(false), m_thread(runThread,this), m_hasEvents(false), m_lock(m_mutex),
-m_rootNbSimu(0), m_mustStop(false)
+m_ai(ai), m_master(ai.getMaster()), m_hasStarted(false), m_thread(runThread,this),  
+m_rootNbSimu(0), m_hasEvents(false), m_lock(m_mutex), m_mustStop(false)
 {
 }
 
