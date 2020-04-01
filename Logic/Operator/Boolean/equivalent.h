@@ -14,7 +14,7 @@ struct EquivalentToStr
  * Eq Function operator
  * return prop1 <=> prop2
  */
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 struct EqFun
 {
     typedef bool ValueType;
@@ -48,7 +48,7 @@ struct EqFun
 
     std::string toString(unsigned short priorityParent) const;
 
-    template<typename SubPropertyType2>
+    template<Proposition SubPropertyType2>
     bool operator==(const EqFun<SubPropertyType2>& ope) const;
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
     bool operator()() const;
@@ -58,23 +58,23 @@ private:
     std::tuple<const ptr<SubPropertyType>,const ptr<SubPropertyType>> m_sonProps;
 };
 
-template<size_t N, typename SubPropertyType>
+template<size_t N, Proposition SubPropertyType>
 const ptr<SubPropertyType>&
 get(const EqFun<SubPropertyType>& ope);
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 class Equivalent : public Operator<EqFun<SubPropertyType>>
 {
 public:
     Equivalent() = default;
     Equivalent(const ptr<SubPropertyType>& prop1, const ptr<SubPropertyType>& prop2);
 
-    template<typename SubPropertyType2>
+    template<Proposition SubPropertyType2>
     bool operator==(const Equivalent<SubPropertyType2>& ope) const;
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
 };
 
-template<size_t N, typename SubPropertyType>
+template<size_t N, Proposition SubPropertyType>
 const ptr<SubPropertyType>&
 get(const Equivalent<SubPropertyType>& ope);
 

@@ -7,7 +7,7 @@
 
 namespace N_Logic
 {
-template<typename SetType_>
+template<SetDerived SetType_>
 class ConstSet: public Constante<OmniSet<SetType_>>
 {
 public:
@@ -20,14 +20,14 @@ public:
     std::string toString(unsigned short =1000) const;
 };
 
-template<typename SetType_>
+template<SetDerived SetType_>
 ConstSet<SetType_>::ConstSet(const ValueType &val):
     Constante<OmniSet<SetType_> > (val)
 {
 
 }
 
-template<typename SetType_>
+template<SetDerived SetType_>
 std::string ConstSet<SetType_>::toString(unsigned short) const
 {
     return this->name();

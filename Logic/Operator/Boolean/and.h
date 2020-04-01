@@ -15,7 +15,7 @@ struct AndToStr
  * And Function operator
  * return prop1 && prop2
  */
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 struct AndFun
 {
     typedef bool ValueType;
@@ -51,7 +51,7 @@ struct AndFun
 
     std::string toString(unsigned short priorityParent=1000) const;
 
-    template<typename SubPropertyType2>
+    template<Proposition SubPropertyType2>
     bool operator==(const AndFun<SubPropertyType2>& ope) const;
 
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
@@ -61,23 +61,23 @@ private:
     std::tuple<const ptr<SubPropertyType>,const ptr<SubPropertyType>> m_sonProps;
 };
 
-template<size_t N, typename SubPropertyType>
+template<size_t N, Proposition SubPropertyType>
 const ptr<SubPropertyType>&
 get(const AndFun<SubPropertyType>& ope);
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 class And : public Operator<AndFun<SubPropertyType>>
 {
 public:
     And() = default;
     And(const ptr<SubPropertyType> &prop1, const ptr<SubPropertyType> &prop2);
 
-    template<typename SubPropertyType2>
+    template<Proposition SubPropertyType2>
     bool operator==(const And<SubPropertyType2>& ope) const;
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
 };
 
-template<size_t N, typename SubPropertyType>
+template<size_t N, Proposition SubPropertyType>
 const std::shared_ptr<SubPropertyType>&
 get(const And<SubPropertyType>& ope);
 

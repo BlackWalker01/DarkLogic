@@ -18,7 +18,7 @@ struct HypToStr
  * {prop1;... propn} implProp
  * return (prop1 && ... && propn) => implProp
  */
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 struct HypFun
 {
     typedef bool ValueType;
@@ -49,7 +49,7 @@ struct HypFun
 
     bool operator()() const;
 
-    template<typename SubPropertyType2>
+    template<Proposition SubPropertyType2>
     bool operator==(const HypFun<SubPropertyType2>& ope) const;
 
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
@@ -59,13 +59,13 @@ private:
     const std::vector<ptr<SubPropertyType>> m_sonProps;
 };
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 class Hyp: public Operator<HypFun<SubPropertyType>>
 {
 public:
     Hyp(const std::vector<ptr<SubPropertyType>>& props);
 
-    template<typename SubPropertyType2>
+    template<Proposition SubPropertyType2>
     bool operator==(const Hyp<SubPropertyType2>& ope) const;
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
 };

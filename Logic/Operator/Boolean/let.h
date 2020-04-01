@@ -14,7 +14,7 @@ namespace N_Logic {
  * p1 is x=a or x€X (where a is a constant and X is a Set)
  * p2 is a property
  */
-template<typename SubFormulaType, typename SubFormulaType2>
+template<typename SubFormulaType, Proposition SubFormulaType2>
 struct LetFun;
 
 /**
@@ -22,7 +22,7 @@ struct LetFun;
  * p1 is x=a or x€X (where a is a constant and X is a Set)
  * p2 is a property
  */
-template<typename SubFormulaType, typename SubFormulaType2>
+template<typename SubFormulaType, Proposition SubFormulaType2>
 class Let;
 
 template<typename SubPropertyType>
@@ -79,7 +79,7 @@ struct LetFun<SubRuleType,ASubRule>
 
     std::string toString(unsigned short priorityParent=1000) const;
 
-    template<typename SubPropertyType,typename SubPropertyType2>
+    template<typename SubPropertyType,Proposition SubPropertyType2>
     bool operator==(const LetFun<SubPropertyType,SubPropertyType2>& ope) const;
 
     const ptr<IISubRuleFormula>& operator[](const size_t& k) const;
@@ -106,7 +106,7 @@ public:
     Let() = default;
     Let(const ptr<SubRuleType>& var, const ptr<ASubRule>& prop);
 
-    template<typename SubPropertyType,typename SubPropertyType2>
+    template<typename SubPropertyType, Proposition SubPropertyType2>
     bool operator==(const Let<SubPropertyType,SubPropertyType2>& ope) const;
 
     const ptr<IISubRuleFormula>& operator[](const size_t& k) const;
@@ -156,7 +156,7 @@ struct LetFun<SubTheoremType,ASubTheorem>
 
     std::string toString(unsigned short priorityParent=1000) const;
 
-    template<typename SubPropertyType, typename SubPropertyType2>
+    template<typename SubPropertyType, Proposition SubPropertyType2>
     bool operator==(const LetFun<SubPropertyType,SubPropertyType2>& ope) const;    
     const ptr<IISubTheoremFormula>& operator[](const size_t& k) const;
 
@@ -182,7 +182,7 @@ public:
     Let() = default;
     Let(const ptr<SubTheoremType>& var, const ptr<ASubTheorem>& prop);
 
-    template<typename SubPropertyType,typename SubPropertyType2>
+    template<typename SubPropertyType, Proposition SubPropertyType2>
     bool operator==(const Let<SubPropertyType,SubPropertyType2>& ope) const;
     const ptr<IISubTheoremFormula>& operator[](const size_t& k) const;
 };
@@ -232,7 +232,7 @@ toString(unsigned short priorityParent) const
     }
 }
 
-template<typename SubRuleType> template<typename SubPropertyType,typename SubPropertyType2>
+template<typename SubRuleType> template<typename SubPropertyType, Proposition SubPropertyType2>
 bool LetFun<SubRuleType, ASubRule>::
 operator==(const LetFun<SubPropertyType,SubPropertyType2> &ope) const
 {
@@ -248,7 +248,7 @@ Let(const ptr<SubRuleType> &var, const ptr<ASubRule> &prop):
 
 }
 
-template<typename SubRuleType> template<typename SubPropertyType, typename SubPropertyType2>
+template<typename SubRuleType> template<typename SubPropertyType, Proposition SubPropertyType2>
 bool Let<SubRuleType,ASubRule>::
 operator==(const Let<SubPropertyType,SubPropertyType2> &ope) const
 {
@@ -295,7 +295,7 @@ toString(unsigned short priorityParent) const
     }
 }
 
-template<typename SubTheoremType> template<typename SubPropertyType,typename SubPropertyType2>
+template<typename SubTheoremType> template<typename SubPropertyType, Proposition SubPropertyType2>
 bool LetFun<SubTheoremType,ASubTheorem>::
 operator==(const LetFun<SubPropertyType,SubPropertyType2> &ope) const
 {
@@ -312,7 +312,7 @@ Let(const ptr<SubTheoremType> &var, const ptr<ASubTheorem> &prop):
 }
 
 
-template<typename SubTheoremType> template<typename SubPropertyType,typename SubPropertyType2>
+template<typename SubTheoremType> template<typename SubPropertyType, Proposition SubPropertyType2>
 bool Let<SubTheoremType,ASubTheorem>::
 operator==(const Let<SubPropertyType,SubPropertyType2> &ope) const
 {

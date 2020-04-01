@@ -1,13 +1,13 @@
 #ifndef OPERATOR_HXX
 #define OPERATOR_HXX
 
-template<typename FunType>
+template<FunOpe FunType>
 Operator<FunType>::Operator(): m_fun()
 {
 
 }
 
-template<typename FunType> template<typename HeadType, typename ...QueueType>
+template<FunOpe FunType> template<typename HeadType, typename ...QueueType>
 Operator<FunType>::Operator(Name /*name*/, HeadType& propHead, QueueType& ...queueHead):
     IOperator(), m_fun(propHead,queueHead...)
 {
@@ -19,37 +19,37 @@ Operator<FunType>::Operator(Name /*name*/, HeadType& propHead, QueueType& ...que
  * parser methods
  */
 
-template<typename FunType>
+template<FunOpe FunType>
 Name Operator<FunType>::name() const
 {
     return FunType::name();
 }
 
-template<typename FunType>
+template<FunOpe FunType>
 Arity Operator<FunType>::arity() const
 {
     return m_fun.arity();
 }
 
-template<typename FunType>
+template<FunOpe FunType>
 unsigned short Operator<FunType>::priority() const
 {
     return FunType::priority();
 }
 
-template<typename FunType>
+template<FunOpe FunType>
 Associativity Operator<FunType>::associativity() const
 {
     return FunType::associativity();
 }
 
-template<typename FunType>
+template<FunOpe FunType>
 std::string Operator<FunType>::symbol() const
 {
     return FunType::symbol();
 }
 
-template<typename FunType>
+template<FunOpe FunType>
 NbArgBefore Operator<FunType>::nbArgBefore() const
 {
     return FunType::nbArgBefore();
@@ -58,13 +58,13 @@ NbArgBefore Operator<FunType>::nbArgBefore() const
 
 
 
-template<typename FunType>
+template<FunOpe FunType>
 typename Operator<FunType>::ValueType Operator<FunType>::evaluate() const
 {
     return m_fun();
 }
 
-template<typename FunType>
+template<FunOpe FunType>
 std::string Operator<FunType>::toString(unsigned short priorityParent) const
 {
     return m_fun.toString(priorityParent);

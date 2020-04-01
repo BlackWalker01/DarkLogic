@@ -3,7 +3,7 @@
 #include "term.h"
 
 namespace N_Logic {
-template<typename SetType_>
+template<SetDerived SetType_>
 class Constante: public AbstractTerm
 {
 public:
@@ -26,7 +26,7 @@ public:
     /*template<typename T>
     constexpr bool operator==(const T&) const;*/
     constexpr bool operator==(const ValueType& val2) const;
-    template<typename SetType2>
+    template<SetDerived SetType2>
     constexpr bool operator==(const Constante<SetType2>&) const;
     constexpr bool operator==(const Constante<SetType>& var) const;
 

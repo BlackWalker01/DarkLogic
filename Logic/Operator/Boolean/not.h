@@ -14,7 +14,7 @@ struct NotToStr
  * Not Function operator
  * return not prop1
  */
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 struct NotFun
 {
     typedef bool ValueType;
@@ -51,7 +51,7 @@ struct NotFun
 
     std::string toString(unsigned short priorityParent=1000) const;
 
-    template<typename SubPropertyType2>
+    template<Proposition SubPropertyType2>
     bool operator==(const NotFun<SubPropertyType2>& ope) const;
 
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
@@ -61,23 +61,23 @@ private:
     const ptr<SubPropertyType> m_sonProp;
 };
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 const ptr<SubPropertyType>&
 get(const NotFun<SubPropertyType>& ope);
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 class Not : public Operator<NotFun<SubPropertyType>>
 {
 public:
     Not() = default;
     Not(const ptr<SubPropertyType> &prop1);
 
-    template<typename SubPropertyType2>
+    template<Proposition SubPropertyType2>
     bool operator==(const Not<SubPropertyType2>& ope) const;
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
 };
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 const ptr<SubPropertyType>&
 get(const Not<SubPropertyType>& ope);
 

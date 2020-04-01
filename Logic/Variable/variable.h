@@ -3,7 +3,7 @@
 #include "term.h"
 
 namespace N_Logic {
-template<typename SetType>
+template<SetDerived SetType>
 class Variable: public AbstractTerm
 {
 public:
@@ -25,7 +25,7 @@ public:
     void unset() const;
 
     //comparison operators
-    template<typename SetType2>
+    template<SetDerived SetType2>
     constexpr bool operator==(const Variable<SetType2>&) const;
     constexpr bool operator==(const Variable<SetType>& var) const;
     bool operator==(const ValueType& val) const;
@@ -36,7 +36,7 @@ protected:
     const std::unique_ptr<std::unique_ptr<ValueType>> m_val;
 };
 
-template<typename SetType_>
+template<SetDerived SetType_>
 Variable<SetType_>::Variable(const std::string& name_): AbstractTerm(name_), 
 m_val(std::make_unique<std::unique_ptr<ValueType>>(nullptr))
 {
@@ -44,31 +44,31 @@ m_val(std::make_unique<std::unique_ptr<ValueType>>(nullptr))
 }
 
 
-template<typename SetType> template<typename SetType2>
+template<SetDerived SetType> template<SetDerived SetType2>
 constexpr bool Variable<SetType>::operator==(const Variable<SetType2>&) const
 {
     return false;
 }
 
-template<typename SetType>
+template<SetDerived SetType>
 constexpr bool Variable<SetType>::operator==(const Variable<SetType>& var) const
 {
     return this->m_name==var.m_name;
 }
 
-template<typename SetType>
+template<SetDerived SetType>
 void Variable<SetType>::operator=(const ValueType& val) const
 {
     (*m_val)=std::make_unique(val);
 }
 
-template<typename SetType>
+template<SetDerived SetType>
 inline void Variable<SetType>::unset() const
 {
     (*m_val) = nullptr;
 }
 
-template<typename SetType>
+template<SetDerived SetType>
 bool Variable<SetType>::operator==(const ValueType& val) const
 {
     if(*m_val)
@@ -78,7 +78,7 @@ bool Variable<SetType>::operator==(const ValueType& val) const
     throw std::runtime_error("Variable "+this->m_name+" not initialized");
 }
 
-template<typename SetType>
+template<SetDerived SetType>
 constexpr typename Variable<SetType>::ValueType Variable<SetType>::evaluate() const
 {
     if(*m_val)
@@ -88,7 +88,7 @@ constexpr typename Variable<SetType>::ValueType Variable<SetType>::evaluate() co
     throw std::runtime_error("Variable "+this->m_name+" not initialized");
 }
 
-template<typename SetType>
+template<SetDerived SetType>
 bool Variable<SetType>::isConstant() const
 {
     return false;
