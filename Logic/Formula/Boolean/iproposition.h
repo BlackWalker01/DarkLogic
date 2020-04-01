@@ -54,6 +54,9 @@ protected:
     const PropType m_type;
 };
 
+template<typename T>
+concept Proposition = std::is_same_v<T,ASubTheorem> || std::is_same_v<T,ASubRule>;
+
 inline bool operator==(const ASubRule& rule, const ASubTheorem& thm);
 inline bool operator==(const ASubTheorem& th, const ASubTheorem& th2);
 inline bool operator==(const ASubRule& th, const ASubRule& th2);

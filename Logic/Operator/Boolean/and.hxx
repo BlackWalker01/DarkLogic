@@ -1,7 +1,7 @@
 #ifndef AND_HXX
 #define AND_HXX
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 And<SubPropertyType>::And(const ptr<SubPropertyType> &prop1,
                           const ptr<SubPropertyType> &prop2):
     Operator<AndFun<SubPropertyType>>(AND,prop1,prop2)
@@ -11,19 +11,19 @@ And<SubPropertyType>::And(const ptr<SubPropertyType> &prop1,
 }
 
 
-template<typename SubPropertyType> template<typename SubPropertyType2>
+template<Proposition SubPropertyType> template<Proposition SubPropertyType2>
 bool And<SubPropertyType>::operator==(const And<SubPropertyType2> &ope) const
 {
     return this->m_fun==ope.m_fun;
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 const ptr<SubPropertyType>& And<SubPropertyType>::operator[](const size_t &k) const
 {
     return this->m_fun[k];
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 bool AndFun<SubPropertyType>::operator()() const
 {
     try
@@ -51,13 +51,13 @@ bool AndFun<SubPropertyType>::operator()() const
 }
 
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 std::string AndFun<SubPropertyType>::symbol()
 {
     return AndToStr::s_symbol;
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 std::string AndFun<SubPropertyType>::toString(unsigned short priorityParent) const
 {
     if(priorityParent<priority())
@@ -70,19 +70,19 @@ std::string AndFun<SubPropertyType>::toString(unsigned short priorityParent) con
     }
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 constexpr unsigned short AndFun<SubPropertyType>::priority()
 {
     return 13;
 }
 
-template<typename SubPropertyType> template<typename SubPropertyType2>
+template<Proposition SubPropertyType> template<Proposition SubPropertyType2>
 bool AndFun<SubPropertyType>::operator==(const AndFun<SubPropertyType2> &ope) const
 {
     return ((*std::get<0>(m_sonProps))==(*std::get<0>(ope.m_sonProps)))&&((*std::get<1>(m_sonProps))==(*std::get<1>(ope.m_sonProps)));
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 const ptr<SubPropertyType>& AndFun<SubPropertyType>::operator[](const size_t &k) const
 {
     switch(k)
@@ -103,7 +103,7 @@ const ptr<SubPropertyType>& AndFun<SubPropertyType>::operator[](const size_t &k)
 }
 
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 AndFun<SubPropertyType>::AndFun(const ptr<SubPropertyType> &prop1,
                                 const ptr<SubPropertyType> &prop2): m_sonProps(prop1,prop2)
 {
@@ -111,20 +111,17 @@ AndFun<SubPropertyType>::AndFun(const ptr<SubPropertyType> &prop1,
                    "SubPropertyType in And operator must be a subTheorem or a subRule" );
 }
 
-template<size_t N, typename SubPropertyType>
+template<size_t N, Proposition SubPropertyType>
 const ptr<SubPropertyType>&
 get(const AndFun<SubPropertyType>& ope)
 {
     return std::get<N>(ope.m_sonProps);
 }
 
-template<size_t N, typename SubPropertyType>
+template<size_t N, Proposition SubPropertyType>
 const ptr<SubPropertyType>&
 get(const And<SubPropertyType>& ope)
 {
     return get<N>(ope.m_fun);
 }
-
-
-
 #endif

@@ -1,7 +1,7 @@
 #ifndef HYP_HXX
 #define HYP_HXX
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 Hyp<SubPropertyType>::Hyp(const std::vector<ptr<SubPropertyType> > &props):
     Operator<HypFun<SubPropertyType>>(HYP,props)
 {
@@ -11,19 +11,19 @@ Hyp<SubPropertyType>::Hyp(const std::vector<ptr<SubPropertyType> > &props):
     }
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 const ptr<SubPropertyType>& Hyp<SubPropertyType>::operator[](const size_t &k) const
 {
     return this->m_fun[k];
 }
 
-template<typename SubPropertyType> template<typename SubPropertyType2>
+template<Proposition SubPropertyType> template<Proposition SubPropertyType2>
 bool Hyp<SubPropertyType>::operator==(const Hyp<SubPropertyType2> &ope) const
 {
     return this->m_fun==ope.m_fun;
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 bool HypFun<SubPropertyType>::operator()() const
 {
     bool ret=true;
@@ -51,19 +51,19 @@ bool HypFun<SubPropertyType>::operator()() const
     return ret? m_sonProps.back()->evaluate(): true;
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 Arity HypFun<SubPropertyType>::arity() const
 {
     return m_sonProps.size();
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 std::string HypFun<SubPropertyType>::symbol()
 {
     return HypToStr::s_symbol;
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 std::string HypFun<SubPropertyType>::toString(unsigned short priorityParent) const
 {
     if(priorityParent<priority())
@@ -103,13 +103,13 @@ std::string HypFun<SubPropertyType>::toString(unsigned short priorityParent) con
     }
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 constexpr unsigned short HypFun<SubPropertyType>::priority()
 {
     return 18;
 }
 
-template<typename SubPropertyType> template<typename SubPropertyType2>
+template<Proposition SubPropertyType> template<Proposition SubPropertyType2>
 bool HypFun<SubPropertyType>::operator==(const HypFun<SubPropertyType2> &ope) const
 {
     if(m_sonProps.size()!=ope.m_sonProps.size())
@@ -126,7 +126,7 @@ bool HypFun<SubPropertyType>::operator==(const HypFun<SubPropertyType2> &ope) co
     return *(m_sonProps.back())==*(ope.m_sonProps.back());
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 const ptr<SubPropertyType>& HypFun<SubPropertyType>::operator[](const size_t &k) const
 {
     if(k<arity())
@@ -143,7 +143,7 @@ const ptr<SubPropertyType>& HypFun<SubPropertyType>::operator[](const size_t &k)
     }
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 HypFun<SubPropertyType>::HypFun(const std::vector<ptr<SubPropertyType> > &props): m_sonProps(props)
 {
 

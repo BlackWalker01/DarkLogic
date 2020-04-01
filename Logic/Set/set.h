@@ -2,6 +2,7 @@
 #define SET_H
 #include <string>
 #include <memory>
+#include <concepts>
 #include "Utils/utils.h"
 
 namespace N_Logic {
@@ -34,6 +35,10 @@ private:
     //static const std::unique_ptr<AxiomSet<SetType_>> s_axiomSet;
     static const std::unique_ptr<DbRule> s_rules;
 };
+
+template<typename T>
+concept SetDerived = std::is_base_of_v<N_Logic::Set<T>, T> ;
+
 
 template<typename SetType_>
 std::ostream& operator<< (std::ostream& os, const Set<SetType_>& set);

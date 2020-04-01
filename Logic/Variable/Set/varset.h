@@ -7,7 +7,7 @@
 
 namespace N_Logic
 {
-template<typename SetType_>
+template<SetDerived SetType_>
 class VarSet: public Variable<OmniSet<SetType_>>
 {
 public:
@@ -21,14 +21,14 @@ public:
     ~VarSet() override = default;
 };
 
-template<typename SetType_>
+template<SetDerived SetType_>
 VarSet<SetType_>::VarSet(const std::string &name_):
     Variable<OmniSet<SetType_> > (name_)
 {
 
 }
 
-template<typename SetType_>
+template<SetDerived SetType_>
 void VarSet<SetType_>::operator=(const VarSet::ValueType &val)
 {
     delete this->m_val;

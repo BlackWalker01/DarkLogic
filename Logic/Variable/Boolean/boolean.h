@@ -4,7 +4,7 @@
 #include "Set/booleanset.h"
 
 namespace N_Logic {
-class Boolean : public N_Logic::Variable<N_Logic::BooleanSet>
+class Boolean : public N_Logic::Variable<BooleanSet>
 {
 public:
     Boolean(const std::string& name_);

@@ -4,8 +4,6 @@
 
 namespace N_Logic {
 
-using UInt=size_t;
-
 class NaturalIntegerSet: public Set<NaturalIntegerSet>
 {
 public:

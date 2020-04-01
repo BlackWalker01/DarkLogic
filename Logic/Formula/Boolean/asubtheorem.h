@@ -40,7 +40,7 @@ protected:
     std::vector<std::vector<Arity>> m_allPaths;
 };
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 class Hyp;
 
 ptr<ASubTheorem> create(const std::string &name, const std::string &content);

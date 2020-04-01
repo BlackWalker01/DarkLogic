@@ -3,7 +3,7 @@
 #include "set.h"
 
 namespace N_Logic {
-template<typename SetType_>
+template<SetDerived SetType_>
 class OmniSet: Set<OmniSet<SetType_>>
 {
 public:
@@ -13,7 +13,7 @@ public:
     OmniSet();
 };
 
-template<typename SetType_>
+template<SetDerived SetType_>
 OmniSet<SetType_>::OmniSet()
 {
 

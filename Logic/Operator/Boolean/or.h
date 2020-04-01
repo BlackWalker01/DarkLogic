@@ -14,7 +14,7 @@ struct OrToStr
  * Or Function operator
  * return prop1 || prop2
  */
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 struct OrFun
 {
     typedef bool ValueType;
@@ -50,7 +50,7 @@ struct OrFun
 
     std::string toString(unsigned short priorityParent=1000) const;
 
-    template<typename SubPropertyType2>
+    template<Proposition SubPropertyType2>
     bool operator==(const OrFun<SubPropertyType2>& ope) const;
 
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
@@ -60,23 +60,23 @@ private:
     std::tuple<const ptr<SubPropertyType>,const ptr<SubPropertyType>> m_sonProps;
 };
 
-template<size_t N, typename SubPropertyType>
+template<size_t N, Proposition SubPropertyType>
 const ptr<SubPropertyType>&
 get(const OrFun<SubPropertyType>& ope);
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 class Or : public Operator<OrFun<SubPropertyType>>
 {
 public:
     Or() = default;
     Or(const ptr<SubPropertyType> &prop1, const ptr<SubPropertyType> &prop2);
 
-    template<typename SubPropertyType2>
+    template<Proposition SubPropertyType2>
     bool operator==(const Or<SubPropertyType2>& ope) const;
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
 };
 
-template<size_t N, typename SubPropertyType>
+template<size_t N, Proposition SubPropertyType>
 const ptr<SubPropertyType>&
 get(const Or<SubPropertyType>& ope);
 

@@ -1,7 +1,7 @@
 #ifndef EQUIVALENT_HXX
 #define EQUIVALENT_HXX
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 Equivalent<SubPropertyType>::Equivalent(const ptr<SubPropertyType>& prop1, const ptr<SubPropertyType>& prop2):
     Operator<EqFun<SubPropertyType>>(EQUIVALENT,prop1,prop2)
 {
@@ -10,32 +10,32 @@ Equivalent<SubPropertyType>::Equivalent(const ptr<SubPropertyType>& prop1, const
 }
 
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 const ptr<SubPropertyType>& Equivalent<SubPropertyType>::operator[](const size_t &k) const
 {
     return this->m_fun[k];
 }
 
-template<typename SubPropertyType> template<typename SubPropertyType2>
+template<Proposition SubPropertyType> template<Proposition SubPropertyType2>
 bool Equivalent<SubPropertyType>::operator==(const Equivalent<SubPropertyType2> &ope) const
 {
     return this->m_fun==ope.m_fun;
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 bool EqFun<SubPropertyType>::operator()() const
 {
     return std::get<0>(m_sonProps)->evaluate() == std::get<1>(m_sonProps)->evaluate();
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 std::string EqFun<SubPropertyType>::symbol()
 {
     return EquivalentToStr::s_symbol;
 }
 
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 std::string EqFun<SubPropertyType>::toString(unsigned short priorityParent) const
 {
     if(priorityParent<priority())
@@ -48,19 +48,19 @@ std::string EqFun<SubPropertyType>::toString(unsigned short priorityParent) cons
     }
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 constexpr unsigned short EqFun<SubPropertyType>::priority()
 {
     return 18;
 }
 
-template<typename SubPropertyType> template<typename SubPropertyType2>
+template<Proposition SubPropertyType> template<Proposition SubPropertyType2>
 bool EqFun<SubPropertyType>::operator==(const EqFun<SubPropertyType2> &ope) const
 {
     return ((*std::get<0>(m_sonProps))==(*std::get<0>(ope.m_sonProps)))&&((*std::get<1>(m_sonProps))==(*std::get<1>(ope.m_sonProps)));
 }
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 const ptr<SubPropertyType>& EqFun<SubPropertyType>::operator[](const size_t &k) const
 {
     switch(k)
@@ -81,20 +81,20 @@ const ptr<SubPropertyType>& EqFun<SubPropertyType>::operator[](const size_t &k) 
 }
 
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 EqFun<SubPropertyType>::EqFun(const ptr<SubPropertyType>& prop1, const ptr<SubPropertyType>& prop2): m_sonProps(prop1,prop2)
 {
 
 }
 
-template<size_t N, typename SubPropertyType>
+template<size_t N, Proposition SubPropertyType>
 const ptr<SubPropertyType>&
 get(const EqFun<SubPropertyType>& ope)
 {
     return std::get<N>(ope.m_sonProps);
 }
 
-template<size_t N, typename SubPropertyType>
+template<size_t N, Proposition SubPropertyType>
 const ptr<SubPropertyType>&
 get(const Equivalent<SubPropertyType>& ope)
 {

@@ -14,7 +14,7 @@ struct ImplToStr
  * Impl Function operator
  * return prop1 => prop2
  */
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 struct ImplFun
 {
     typedef bool ValueType;
@@ -50,7 +50,7 @@ struct ImplFun
 
     bool operator()() const;
 
-    template<typename SubPropertyType2>
+    template<Proposition SubPropertyType2>
     bool operator==(const ImplFun<SubPropertyType2>& ope) const;
 
     const ptr<const SubPropertyType>& operator[](const size_t &k) const;
@@ -60,23 +60,23 @@ private:
     std::tuple<const ptr<const SubPropertyType>,const ptr<const SubPropertyType>> m_sonProps;
 };
 
-template<size_t N, typename SubPropertyType>
+template<size_t N, Proposition SubPropertyType>
 const ptr<SubPropertyType>&
 get(const ImplFun<SubPropertyType>& ope);
 
-template<typename SubPropertyType>
+template<Proposition SubPropertyType>
 class Implication : public Operator<ImplFun<SubPropertyType>>
 {
 public:
     Implication() = default;
     Implication(const ptr<SubPropertyType> &prop1, const ptr<SubPropertyType> &prop2);
 
-    template<typename SubPropertyType2>
+    template<Proposition SubPropertyType2>
     bool operator==(const Implication<SubPropertyType2>& ope) const;
     const ptr<const SubPropertyType>& operator[](const size_t &k) const;
 };
 
-template<size_t N, typename SubPropertyType>
+template<size_t N, Proposition SubPropertyType>
 const ptr<SubPropertyType>&
 get(const Implication<SubPropertyType>& ope);
 
