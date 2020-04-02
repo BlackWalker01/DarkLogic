@@ -15,10 +15,12 @@ class IOperator;
 class ASubRule;
 class ASubTheorem;
 
-template<typename ValueType>
+template<Type ValueType_>
 class AbstractFormula: public ValueTypeObject
 {
 public:
+    using ValueType = ValueType_;
+
     AbstractFormula(const std::string& name_);
     AbstractFormula(const std::string& name_, const DbVar& dbVar);
     AbstractFormula(const std::string& name_, const DbVar& dbVar, const DbVar& dbVar2);
@@ -101,28 +103,28 @@ std::vector<OperatorOrdering> orderOperator(std::vector<OperatorOrdering>& opeLi
 std::vector<OperatorOrdering> fusion(const std::vector<OperatorOrdering >& opeList1,
                                                          const std::vector<OperatorOrdering >& opeList2);
 
-template<typename ValueType>
+template<Type ValueType>
 AbstractFormula<ValueType>::AbstractFormula(const std::string &name_, const DbVar &dbVar):
     m_name(name_), m_extVars(dbVar)
 {
 
 }
 
-template<typename ValueType>
+template<Type ValueType>
 AbstractFormula<ValueType>::AbstractFormula(const std::string &name_, const DbVar &dbVar, const DbVar &dbVar2):
     m_name(name_), m_extVars(dbVar,dbVar2)
 {
 
 }
 
-template<typename ValueType>
+template<Type ValueType>
 AbstractFormula<ValueType>::AbstractFormula(const std::string &name_, const std::vector<DbVar> &dbVars):
     m_name(name_), m_extVars(dbVars)
 {
 
 }
 
-template<typename ValueType>
+template<Type ValueType>
 std::vector<DbVar> AbstractFormula<ValueType>::getDbVarFromFormulas(const std::vector<ptr<AbstractFormula> > &formulas)
 {
     std::vector<DbVar> ret;

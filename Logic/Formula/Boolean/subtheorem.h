@@ -10,11 +10,13 @@
 
 namespace N_Logic
 {
-
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 class SubRule;
 
-template<typename SubPropertyType>
+template<typename T>
+concept SubTheoremProperty = std::is_base_of_v<Operator<typename T::FunType>, T> || std::is_same_v<T, Boolean> || std::is_same_v<T, ConstBoolean>;
+
+template<SubTheoremProperty SubPropertyType>
 class SubTheorem;
 
 ptr<ValueTypeObject> createSubTheorem(const std::string &name, std::vector<OperatorOrdering> &opeList,

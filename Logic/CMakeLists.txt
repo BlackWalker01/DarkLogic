@@ -21,10 +21,8 @@ add_library(Logic SHARED
     Formula/Boolean/axiom.cpp
     Formula/Boolean/iproposition.cpp
     Formula/formula.cpp
-    Formula/iisubruleformula.cpp
     Formula/iisubtheoremformula.cpp
-    Formula/isubruleformula.cpp
-    Formula/isubtheoremformula.cpp
+    Formula/iisubruleformula.cpp
     Formula/valuetypeobject.cpp
     Operator/ioperator.cpp
     Formula/Boolean/asubrule.cpp
@@ -136,7 +134,6 @@ add_library(Logic SHARED
     Formula/dbvarprop.h
     Formula/formula.h
     Formula/formula.hxx
-    Formula/logichash.h
     Formula/Boolean/rule.h
     Formula/Boolean/subrule.h
     Formula/Boolean/subrule.hxx

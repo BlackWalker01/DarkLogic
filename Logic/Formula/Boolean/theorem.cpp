@@ -197,7 +197,7 @@ Theorem<ConstBoolean>::Theorem(const SubRule<ConstBoolean>& prop):
  * ruleApply methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 ptr<IISubTheoremFormula> N_Logic::Theorem<SubPropertyType>::ruleApply(const IISubRuleFormula &rule, std::vector<size_t> &indexes,
                                                                   const size_t &actionKey) const
 {

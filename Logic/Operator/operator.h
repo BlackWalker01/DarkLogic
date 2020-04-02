@@ -12,21 +12,6 @@ namespace N_Logic {
 
 class IProposition;
 
-template<typename T>
-concept FunOpe = requires(T t, unsigned short priorityParent)
-{
-    typename T::ValueType;
-    T::name();
-    t.arity();
-    T::priority();
-    T::associativity();
-    T::symbol();
-    T::nbArgBefore();
-    t.toString(priorityParent);
-};
-
-
-
 template<FunOpe FunType_>
 class Operator: public IOperator
 {

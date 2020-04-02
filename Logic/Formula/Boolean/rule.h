@@ -13,7 +13,7 @@ ptr<ASubRule> createRule(const std::string &name, std::vector<OperatorOrdering> 
 
 class DbVarProp;
 
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 class Rule: public SubRule<SubPropertyType>
 {
 public:
@@ -45,7 +45,7 @@ private:
     const std::unique_ptr<std::unordered_map<size_t,std::vector<Arity>>> m_crtActions;
 };
 
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 Rule<SubPropertyType>::Rule(const std::string &name_, const ptr<ASubRule> &leftSubProp, const ptr<ASubRule> &rightSubProp):
     SubRule<SubPropertyType> (name_,leftSubProp,rightSubProp),
     m_basicIdentifications(this->nameVars()),
@@ -55,7 +55,7 @@ Rule<SubPropertyType>::Rule(const std::string &name_, const ptr<ASubRule> &leftS
 
 }
 
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 std::vector<size_t> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem> &prop, size_t &lastActionIndex) const
 {
     std::vector<size_t> ret;
@@ -97,7 +97,7 @@ std::vector<size_t> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem> &pr
     return ret;
 }
 
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 std::vector<Action> Rule<SubPropertyType>::getHumanActions() const
 {
     std::vector<Action> ret;
@@ -108,7 +108,7 @@ std::vector<Action> Rule<SubPropertyType>::getHumanActions() const
     return ret;
 }
 
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 std::pair<ptr<ASubTheorem>,bool> Rule<SubPropertyType>::apply(const size_t &actionKey, const ptr<ASubTheorem> &theorem) const
 {
     std::vector<Arity> indexes=m_crtActions->at(actionKey);
@@ -122,7 +122,7 @@ std::pair<ptr<ASubTheorem>,bool> Rule<SubPropertyType>::apply(const size_t &acti
     }
 }
 
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 ptr<IISubTheoremFormula> Rule<SubPropertyType>::applyAnnexe(const size_t &actionKey, const ptr<IISubTheoremFormula> &theorem,
                                                     std::vector<Arity> &indexes) const
 {
@@ -137,19 +137,19 @@ ptr<IISubTheoremFormula> Rule<SubPropertyType>::applyAnnexe(const size_t &action
     }
 }
 
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 void Rule<SubPropertyType>::unapply() const
 {
     clearIdentifications();
 }
 
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 inline bool Rule<SubPropertyType>::isSymetric() const
 {
     return false;
 }
 
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 inline ptr<Rule<SubPropertyType>> Rule<SubPropertyType>::getReciprocal() const
 {
     return std::make_shared<const Rule<SubPropertyType>>(name()+"_Recip",(*this)[1],(*this)[0]);
@@ -161,7 +161,7 @@ inline ptr<Rule<SubPropertyType>> Rule<SubPropertyType>::getReciprocal() const
  * @param propIndexes
  * @return true if it can identify all variable in the antecedent of this rule with sub-properties of prop
  */
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 bool Rule<SubPropertyType>::identify(const ptr<ASubTheorem> &prop, const size_t &crtAction) const
 {
     auto impl=(*(this->m_son))[1];
@@ -204,7 +204,7 @@ bool Rule<SubPropertyType>::identify(const ptr<ASubTheorem> &prop, const size_t 
     }
 }
 
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 void Rule<SubPropertyType>::clearIdentifications() const
 {
     m_crtActions->clear();

@@ -5,7 +5,7 @@
 
 namespace N_Logic
 {
-template<typename SetType_> template<typename SubPropertyType>
+template<typename SetType_> template<SubRuleProperty SubPropertyType>
 void Set<SetType_>::insert(const ptr<Rule<SubPropertyType> > &rule)
 {
     s_rules->insert(rule);

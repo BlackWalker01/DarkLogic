@@ -8,8 +8,7 @@
 
 namespace N_Logic
 {
-
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 class SubRule;
 
 ptr<ValueTypeObject> createSubRule(const std::string &name, std::vector<OperatorOrdering> &opeList,

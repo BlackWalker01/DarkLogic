@@ -31,7 +31,6 @@ public:
     //static methods
     static void addAbstractTerm(const std::string &varName, std::vector<std::shared_ptr<VariableContainer>> &varList,
                                 DbVarContainer &dbVar);
-    static void deleteAfterExcept(std::vector<OperatorOrdering>& ope, std::vector<std::shared_ptr<VariableContainer>> &varList);
 
 
 private:
