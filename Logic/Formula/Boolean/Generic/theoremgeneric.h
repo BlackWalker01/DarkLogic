@@ -4,7 +4,7 @@
 
 namespace N_Logic
 {
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 class Theorem: public SubTheorem<SubPropertyType>
 {
 public:
@@ -18,7 +18,7 @@ public:
 };
 
 
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 Theorem<SubPropertyType>::Theorem(const std::string &name_, const ptr<ASubTheorem> &leftSubProp, const ptr<ASubTheorem> &rightSubProp):
     SubTheorem<SubPropertyType>(name_,leftSubProp,rightSubProp)
 {

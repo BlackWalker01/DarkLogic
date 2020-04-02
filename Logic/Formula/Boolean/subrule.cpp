@@ -666,7 +666,7 @@ SubRule<ConstBoolean>::SubRule(const std::string& name_, const bool& val):
  * ---------------------------------------------------------------
  */
 
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 bool SubRule<SubPropertyType>::evaluate() const
 {
     return m_son->evaluate();
@@ -697,7 +697,7 @@ bool SubRule<ConstBoolean>::evaluate() const
  * toString methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 std::string SubRule<SubPropertyType>::toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
@@ -728,7 +728,7 @@ std::string SubRule<ConstBoolean>::toString(unsigned short priorityParent) const
  * getSon methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 const SubPropertyType &SubRule<SubPropertyType>::getSon() const
 {
     return *(m_son.get());
@@ -758,7 +758,7 @@ const ConstBoolean& SubRule<ConstBoolean>::getSon() const
  * operator[] methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 const ptr<ASubRule>& SubRule<SubPropertyType>::operator[](const size_t& index) const
 {
     return (*m_son)[index];
@@ -778,7 +778,7 @@ const ptr<ASubRule>& SubRule<Not<ASubRule>>::operator[](const size_t&) const
  * arity methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 size_t SubRule<SubPropertyType>::arity() const
 {
     return m_son->arity();
@@ -1142,7 +1142,7 @@ ptr<ASubTheorem> SubRule<ConstBoolean>::applyFirstPriv(const std::string&, DbVar
  * ---------------------------------------------------------------
  */
 
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 bool SubRule<SubPropertyType>::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
@@ -1213,7 +1213,7 @@ bool SubRule<ConstBoolean>::isEqual(const ASubTheorem &prop) const
  * SubRule::operator==(ASubRule) methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 bool SubRule<SubPropertyType>::isEqual(const ASubRule &prop) const
 {
     auto propCast=dynamic_cast<const SubRule*>(&prop);
@@ -1284,7 +1284,7 @@ bool SubRule<ConstBoolean>::isEqual(const ASubRule &prop) const
  * SubTheorem::operator==(ASubRule) methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 bool SubTheorem<SubPropertyType>::isEqual(const ASubRule& prop) const
 {
     auto propCast=dynamic_cast<const SubRule<SubPropertyType>*>(&prop);
@@ -1355,7 +1355,7 @@ bool SubTheorem<ConstBoolean>::isEqual(const ASubRule& prop) const
  * SubRule::operator==(SubRule) methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 bool SubRule<SubPropertyType>::operator==(const SubRule &prop) const
 {
     return *m_son==prop.getSon();
@@ -1366,7 +1366,7 @@ bool SubRule<SubPropertyType>::operator==(const SubRule &prop) const
  * SubRule::operator==(SubTheorem) methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 bool SubRule<SubPropertyType>::operator==(const SubTheorem<SubPropertyType> &prop) const
 {
     return *m_son==prop.getSon();
@@ -1377,7 +1377,7 @@ bool SubRule<SubPropertyType>::operator==(const SubTheorem<SubPropertyType> &pro
  * SubTheorem::operator==(SubRule) methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 bool SubTheorem<SubPropertyType>::operator==(const SubRule<SubPropertyType>& prop) const
 {
     return *m_son==(prop.getSon());

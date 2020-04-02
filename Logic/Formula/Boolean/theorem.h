@@ -5,7 +5,7 @@
 
 namespace N_Logic{
 
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 class Theorem;
 
 ptr<ASubTheorem> createTheorem(const std::string &name, const std::string &content);

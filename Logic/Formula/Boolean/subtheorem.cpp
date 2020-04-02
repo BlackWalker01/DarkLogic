@@ -672,7 +672,7 @@ SubTheorem<ConstBoolean>::SubTheorem(const SubRule<ConstBoolean>& prop):
  * operator[] methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 const ptr<ASubTheorem> &SubTheorem<SubPropertyType>::operator[](const size_t& index) const
 {
     return (*m_son)[index];
@@ -693,7 +693,7 @@ const ptr<ASubTheorem> &SubTheorem<Not<ASubTheorem>>::operator[](const size_t&) 
  * arity methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 size_t SubTheorem<SubPropertyType>::arity() const
 {
     return m_son->arity();
@@ -723,7 +723,7 @@ size_t SubTheorem<ConstBoolean>::arity() const
  * evaluate methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 bool SubTheorem<SubPropertyType>::evaluate() const
 {
     return m_son->evaluate();
@@ -767,7 +767,7 @@ bool SubTheorem<ConstBoolean>::canBeDemonstrated() const
  * operator== methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 bool SubTheorem<SubPropertyType>::isEqual(const ASubTheorem &prop) const
 {
     auto propCast=dynamic_cast<const SubTheorem*>(&prop);
@@ -871,7 +871,7 @@ isEqual(const ASubRule &prop) const
  * toString methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 std::string SubTheorem<SubPropertyType>::toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
@@ -901,7 +901,7 @@ std::string SubTheorem<ConstBoolean>::toString(unsigned short priorityParent) co
  * copyTheorem methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 ptr<ASubTheorem> SubTheorem<SubPropertyType>::copyTheorem() const
 {
     return std::make_shared<const Theorem<SubPropertyType>>(m_name,(*m_son)[0],(*m_son)[1]);
@@ -936,7 +936,7 @@ ptr<ASubTheorem> SubTheorem<ConstBoolean>::copyTheorem() const
  * ruleApply methods
  * ---------------------------------------------------------------
  */
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 ptr<IISubTheoremFormula> SubTheorem<SubPropertyType>::ruleApply(const IISubRuleFormula &rule,
                                                                 std::vector<size_t> &indexes, const size_t &actionKey) const
 {
@@ -995,7 +995,7 @@ ptr<IISubTheoremFormula> SubTheorem<ConstBoolean>::ruleApply(const IISubRuleForm
     throw std::runtime_error("SubTheorem ConstBoolean cannot call ruleApply method");
 }
 
-template<typename SubPropertyType>
+template<SubTheoremProperty SubPropertyType>
 bool SubTheorem<SubPropertyType>::operator==(const SubTheorem &prop) const
 {
     return *m_son==(prop->getSon());

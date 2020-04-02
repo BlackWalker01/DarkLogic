@@ -9,7 +9,7 @@
 
 namespace N_Logic
 {
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 class SubRule: public ASubPureRule
 {
 public:

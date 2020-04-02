@@ -23,7 +23,7 @@ VALUE_TYPE AbstractFormula<bool>::valueType() const
 }
 
 template<>
-VALUE_TYPE AbstractFormula<size_t>::valueType() const
+VALUE_TYPE AbstractFormula<UInt>::valueType() const
 {
     return NATURAL_INT_TYPE;
 }

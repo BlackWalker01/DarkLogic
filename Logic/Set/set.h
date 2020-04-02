@@ -9,7 +9,7 @@ namespace N_Logic {
 
 class DbRule;
 
-template<typename SubPropertyType>
+template<SubRuleProperty SubPropertyType>
 class Rule;
 
 template<typename SetType_>
@@ -23,7 +23,7 @@ public:
 
     static std::string name();
     static bool belongsTo();
-    template<typename SubPropertyType>
+    template<SubRuleProperty SubPropertyType>
     void insert(const ptr<Rule<SubPropertyType>>& rule);
 
     constexpr bool operator==(const Set&) const
@@ -37,7 +37,7 @@ private:
 };
 
 template<typename T>
-concept SetDerived = std::is_base_of_v<N_Logic::Set<T>, T> ;
+concept SetDerived = std::is_base_of_v<N_Logic::Set<T>, T> && Type<typename T::Type>;
 
 
 template<typename SetType_>

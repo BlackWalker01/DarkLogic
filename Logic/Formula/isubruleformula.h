@@ -11,7 +11,15 @@ namespace N_Logic
 class DbVarProp;
 class Action;
 
-template<typename ATheoremType_>
+class ASubTheorem;
+
+template<typename ValueType>
+class ASubArithmeticTheorem;
+
+template<typename T>
+concept SubTheoremType = std::is_same_v<T, ASubTheorem> || std::is_same_v<T, ASubArithmeticTheorem<typename T::ValueType>>;
+
+template<SubTheoremType ATheoremType_>
 class ISubRuleFormula: public IISubRuleFormula
 {
 public:
@@ -34,25 +42,25 @@ public:
 };
 
 
-template<typename ATheoremType>
+template<SubTheoremType ATheoremType>
 std::pair<ptr<ATheoremType>,bool> ISubRuleFormula<ATheoremType>::apply(const size_t &/*actionKey*/, const ptr<ATheoremType> &/*thName*/) const
 {
     throw std::runtime_error("Cannot apply subrule formula");
 }
 
-template<typename ATheoremType>
+template<SubTheoremType ATheoremType>
 void ISubRuleFormula<ATheoremType>::unapply() const
 {
     throw std::runtime_error("Cannot unapply subrule formula");
 }
 
-template<typename ATheoremType>
+template<SubTheoremType ATheoremType>
 std::vector<size_t> ISubRuleFormula<ATheoremType>::getActions(const ptr<ATheoremType> &, size_t &) const
 {
     throw std::runtime_error("Cannot get possible actions from a subrule formula");
 }
 
-template<typename ATheoremType>
+template<SubTheoremType ATheoremType>
 std::vector<Action> ISubRuleFormula<ATheoremType>::getHumanActions() const
 {
     throw std::runtime_error("Cannot get possible human actions from a subrule formula");
