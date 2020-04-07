@@ -84,8 +84,44 @@ bool Node::isRoot() const
 
 unsigned short Node::makeSimu()
 {
-	//make simulation
-	m_value = makeSimu(m_threadId, m_actionId, m_depth);
+	//play move
+	N_Logic::Logic::apply(m_threadId, m_actionId);
+
+	//check if node is terminal
+	if (N_Logic::Logic::isAlreadyPlayed(m_threadId) || !N_Logic::Logic::canBeDemonstrated(m_threadId))
+	{
+		m_value = USHRT_MAX;
+	}
+	else if (N_Logic::Logic::isDemonstrated(m_threadId))
+	{
+		//std::cout << "[DEBUG] found demonstration!" << std::endl;
+		m_value = 0;
+	}
+	else if (m_depth >= MAX_DEPTH)
+	{
+		m_value = VAL_INIT;
+		//std::cout << "[DEBUG ]Reach limit" << std::endl;
+	}
+	else
+	{
+		if (!s_ai->mustStop(m_threadId))
+		{
+			//get actions
+			std::vector<size_t> actions = N_Logic::Logic::getActions(m_threadId);
+
+			//play random action
+			auto newAction = actions[rand() % actions.size()];
+			m_sons[newAction] = std::make_unique<Node>(newAction, m_threadId, m_depth + 1);
+			m_value = m_sons[newAction]->makeSimu();
+			if (m_value < VAL_INIT)
+			{
+				m_value++;
+			}
+		}
+	}
+
+	//unplay crt move
+	N_Logic::Logic::unapply(m_threadId);
 
 	//increment nb simulation
 	m_nbSimu++;
