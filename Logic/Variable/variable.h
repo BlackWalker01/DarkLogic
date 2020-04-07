@@ -3,11 +3,12 @@
 #include "term.h"
 
 namespace N_Logic {
-template<SetDerived SetType>
+template<SetDerived SetType_>
 class Variable: public AbstractTerm
 {
 public:
-    typedef typename SetType::Type ValueType;
+    using SetType = SetType_;
+    using ValueType = typename SetType::Type;
 
     Variable(const std::string& name_);
     Variable(const Variable& var) = delete;

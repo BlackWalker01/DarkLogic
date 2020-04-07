@@ -2,32 +2,13 @@
 #include "Operator/alloperator.h"
 #include "Variable/dbvar.h"
 #include "Variable/allvariable.h"
+#include "Formula/Arithmetic/VariableFormula/variableruleformula.h"
 
 using namespace N_Logic;
 
-
-ASubRule::ASubRule(const std::string &name_, const IProposition::PropType type_):
-    IProposition(name_,type_), ISubRuleFormula<ASubTheorem>()
+std::string N_Logic::ASubRule::name() const
 {
-
-}
-
-ASubRule::ASubRule(const std::string &name_, const DbVar &dbVar, const IProposition::PropType type_):
-    IProposition(name_,dbVar,type_), ISubRuleFormula<ASubTheorem>()
-{
-
-}
-
-ASubRule::ASubRule(const std::string &name_, const DbVar &dbVar, const DbVar &dbVar2, const IProposition::PropType type_):
-    IProposition(name_,dbVar,dbVar2,type_), ISubRuleFormula<ASubTheorem>()
-{
-
-}
-
-ASubRule::ASubRule(const std::string &name_, const std::vector<DbVar> &dbVars, const IProposition::PropType type_):
-    IProposition(name_,dbVars,type_), ISubRuleFormula<ASubTheorem>()
-{
-
+    throw std::runtime_error("SubRule cannot call name method");
 }
 
 ptr<IISubTheoremFormula> ASubRule::applyAnnexe(const size_t &, const ptr<IISubTheoremFormula> &, std::vector<Arity> &) const

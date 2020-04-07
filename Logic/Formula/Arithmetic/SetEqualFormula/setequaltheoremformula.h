@@ -17,37 +17,45 @@ public:
     typedef SetEqual< SubLeftFormula> SubOperatorType;
     typedef typename SubOperatorType::ValueType ValueType;
 
-    SubArithmeticTheorem(const std::string& name_, const ptr<SubLeftFormula>& leftFormula,
+    SubArithmeticTheorem(const ptr<SubLeftFormula>& leftFormula,
                          const ptr<SubRightFormula>& rightFormula);
 
     size_t arity() const override final;
     ValueType evaluate() const override final;
+    constexpr ArithType type() const override final;
 
     const SubOperatorType& getSon() const;
     const ptr<IISubTheoremFormula>& operator[](const size_t& k) const override final;
     std::string toString(unsigned short priorityParent=1000) const override final;
+    const DbVar* getExtVars() const override final;
     const std::vector<std::vector<Arity>>& computeAllPaths() override final;
     TheoremFormulaType getFormulaType() const override final;
 
     bool isEqual(const ASubArithmeticRule<ValueType>& prop) const override final;
     bool isEqual(const ASubArithmeticTheorem<ValueType>& prop) const override final;
     bool operator==(const SubArithmeticTheorem& prop) const;
-    bool operator==(const SubArithmeticRule<SubOperatorType>& prop) const;
+    bool operator==(const SubArithmeticRule<ToRuleOpe<SubOperatorType>>& prop) const;
 
     ~SubArithmeticTheorem() override = default;
 private:
     const std::unique_ptr<const SubOperatorType> m_son;
+    const DbVar m_extVars;
 };
 
 template<typename VariableType>
 SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>> >::
-SubArithmeticTheorem(const std::string &name_,
-                     const ptr<SubArithmeticTheorem<VariableType>>& leftFormula,
+SubArithmeticTheorem(const ptr<SubArithmeticTheorem<VariableType>>& leftFormula,
                      const ptr<ASubArithmeticTheorem<typename VariableType::ValueType>>& rightFormula):
-    ASubArithmeticTheorem<void>(name_,leftFormula->getExtVars(),rightFormula->getExtVars(),PLUS_FORMULA),
-m_son(std::make_unique<SetEqual<SubArithmeticTheorem<VariableType>>>(leftFormula,rightFormula))
+m_son(std::make_unique<SetEqual<SubArithmeticTheorem<VariableType>>>(leftFormula,rightFormula)),
+m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
 {
 
+}
+
+template<typename VariableType>
+constexpr ArithType SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>> >::type() const
+{
+    return SET_FORMULA;
 }
 
 template<typename VariableType>
@@ -75,6 +83,12 @@ std::string SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>> >:
 toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
+}
+
+template<typename VariableType>
+const DbVar* SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>> >::getExtVars() const
+{
+    return &m_extVars;
 }
 
 template<typename VariableType>
@@ -117,7 +131,7 @@ operator==(const SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType
 
 template<typename VariableType>
 bool SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>> >::
-operator==(const SubArithmeticRule<SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>> >::SubOperatorType> &prop) const
+operator==(const SubArithmeticRule<ToRuleOpe<SetEqual<SubArithmeticTheorem<VariableType>>> > &prop) const
 {
     return *m_son==(prop.getSon());
 }

@@ -18,7 +18,8 @@ struct AndToStr
 template<Proposition SubPropertyType>
 struct AndFun
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = SubPropertyType;
 
     AndFun() = default;
     AndFun(const ptr<SubPropertyType>& prop1, const ptr<SubPropertyType>& prop2);
@@ -57,7 +58,7 @@ struct AndFun
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
 
     ~AndFun() = default;
-private:
+
     std::tuple<const ptr<SubPropertyType>,const ptr<SubPropertyType>> m_sonProps;
 };
 
@@ -69,6 +70,9 @@ template<Proposition SubPropertyType>
 class And : public Operator<AndFun<SubPropertyType>>
 {
 public:
+    using RuleOpe = And<typename Operator<AndFun<SubPropertyType>>::SubRuleFormulaType>;
+    using TheoremOpe = And<typename Operator<AndFun<SubPropertyType>>::SubTheoremFormulaType>;
+
     And() = default;
     And(const ptr<SubPropertyType> &prop1, const ptr<SubPropertyType> &prop2);
 

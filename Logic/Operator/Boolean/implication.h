@@ -17,7 +17,8 @@ struct ImplToStr
 template<Proposition SubPropertyType>
 struct ImplFun
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = SubPropertyType;
 
     ImplFun() = default;
     ImplFun(const ptr<SubPropertyType>& prop1, const ptr<SubPropertyType>& prop2);
@@ -56,7 +57,7 @@ struct ImplFun
     const ptr<const SubPropertyType>& operator[](const size_t &k) const;
 
     ~ImplFun() = default;
-private:
+
     std::tuple<const ptr<const SubPropertyType>,const ptr<const SubPropertyType>> m_sonProps;
 };
 
@@ -68,6 +69,9 @@ template<Proposition SubPropertyType>
 class Implication : public Operator<ImplFun<SubPropertyType>>
 {
 public:
+    using RuleOpe = Implication<typename Operator<ImplFun<SubPropertyType>>::SubRuleFormulaType>;
+    using TheoremOpe = Implication<typename Operator<ImplFun<SubPropertyType>>::SubTheoremFormulaType>;
+
     Implication() = default;
     Implication(const ptr<SubPropertyType> &prop1, const ptr<SubPropertyType> &prop2);
 

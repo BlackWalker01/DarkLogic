@@ -10,7 +10,7 @@ class Theorem<Boolean>: public SubTheorem<Boolean>
 public:
     typedef Boolean SubPropertyType;
 
-    Theorem(const std::string& name_, const std::shared_ptr<Boolean>& son);
+    Theorem(const std::shared_ptr<Boolean>& son);
 
     ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule,
                                        std::vector<size_t>& indexes, const size_t& actionKey) const override final;

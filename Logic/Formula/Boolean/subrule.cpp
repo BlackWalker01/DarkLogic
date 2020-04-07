@@ -83,7 +83,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                             throw std::runtime_error("Expected SubRule in hypothesis operator");
                         }
                     }
-                    return std::make_shared<const SubRule<Hyp<ASubRule>>>(name+"HYP",subPropCasts);
+                    return std::make_shared<const SubRule<Hyp<ASubRule>>>(subPropCasts);
                 }
                 default:
                 {
@@ -109,7 +109,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                 case BOOL_TYPE:
                                 {
                                     auto subOpeCast=std::dynamic_pointer_cast<const ASubRule>(subOpe);
-                                    return std::make_shared<const SubRule<Not<ASubRule>>>(name,subOpeCast);
+                                    return std::make_shared<const SubRule<Not<ASubRule>>>(subOpeCast);
                                 }
                                 default:
                                 {
@@ -195,7 +195,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                             auto leftOpeCast=std::dynamic_pointer_cast<const ASubRule>(leftOpe);
                                             auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
                                             return std::make_shared<const SubRule<And<ASubRule>>>
-                                            (name,leftOpeCast,rightOpeCast);
+                                            (leftOpeCast,rightOpeCast);
                                         }
                                         default:
                                         {
@@ -224,7 +224,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                             auto leftOpeCast=std::dynamic_pointer_cast<const ASubRule>(leftOpe);
                                             auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
                                             return std::make_shared<const SubRule<Equivalent<ASubRule>>>
-                                            (name,leftOpeCast,rightOpeCast);
+                                            (leftOpeCast,rightOpeCast);
                                         }
                                         default:
                                         {
@@ -253,7 +253,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                             auto leftOpeCast=std::dynamic_pointer_cast<const ASubRule>(leftOpe);
                                             auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
                                             return std::make_shared<const SubRule<Implication<ASubRule >>>
-                                            (name,leftOpeCast,rightOpeCast);
+                                            (leftOpeCast,rightOpeCast);
                                         }
                                         default:
                                         {
@@ -282,7 +282,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                             auto leftOpeCast=std::dynamic_pointer_cast<const ASubRule>(leftOpe);
                                             auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
                                             return std::make_shared<const SubRule<Or<ASubRule >>>
-                                            (name,leftOpeCast,rightOpeCast);
+                                            (leftOpeCast,rightOpeCast);
                                         }
                                         default:
                                         {
@@ -321,7 +321,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                         {
                                             auto leftOpeCast=std::dynamic_pointer_cast<const SubArithmeticRule<NaturalInteger>>(leftOpe);
                                             auto rightOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<size_t>>(rightOpe);
-                                            return std::make_shared<const SubArithmeticRule<SetEqual<SubArithmeticRule<NaturalInteger> >>>(name,
+                                            return std::make_shared<const SubArithmeticRule<SetEqual<SubArithmeticRule<NaturalInteger> >>>(
                                                                                                                 leftOpeCast,rightOpeCast);
                                         }
                                         default:
@@ -351,7 +351,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                             auto leftOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<size_t>>(leftOpe);
                                             auto rightOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<size_t>>(rightOpe);
                                             return std::make_shared<const SubRule<Equal<ASubArithmeticRule<size_t>, ASubArithmeticRule<size_t> >>>
-                                                                    (name,leftOpeCast,rightOpeCast);
+                                                                    (leftOpeCast,rightOpeCast);
                                         }
                                         default:
                                         {
@@ -418,7 +418,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                             auto leftOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<size_t>>(leftOpe);
                                             auto rightOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<NaturalIntegerSet>>(rightOpe);
                                             return std::make_shared<const SubRule<BelongsTo<ASubArithmeticRule<size_t>, ASubArithmeticRule<NaturalIntegerSet> >>>
-                                                    (name,leftOpeCast,rightOpeCast);
+                                                    (leftOpeCast,rightOpeCast);
                                         }
                                         default:
                                         {
@@ -447,7 +447,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                             auto leftOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<void>>(leftOpe);
                                             auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
                                             return std::make_shared<const SubRule<Let<ASubArithmeticRule<void>,ASubRule>>>
-                                                                                            (name,leftOpeCast,rightOpeCast);
+                                                                                            (leftOpeCast,rightOpeCast);
                                         }
                                         default:
                                         {
@@ -464,7 +464,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                             auto leftOpeCast=std::dynamic_pointer_cast<const ASubRule>(leftOpe);
                                             auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
                                             return std::make_shared<const SubRule<Let<ASubRule,ASubRule>>>
-                                                                                (name,leftOpeCast,rightOpeCast);
+                                                                                (leftOpeCast,rightOpeCast);
                                         }
                                         default:
                                         {
@@ -493,7 +493,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                             auto leftOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<size_t>>(leftOpe);
                                             auto rightOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<size_t>>(rightOpe);
                                             return std::make_shared<const SubArithmeticRule<Plus<ASubArithmeticRule<size_t>,
-                                                    ASubArithmeticRule<size_t> >>>(name,leftOpeCast,rightOpeCast);
+                                                    ASubArithmeticRule<size_t> >>>(leftOpeCast,rightOpeCast);
                                         }
                                         default:
                                         {
@@ -532,22 +532,22 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
             {
                 case VALUE_TYPE::BOOL_TYPE:
                 {
-                    return std::make_shared<const SubRule<ConstBoolean>>(name,
+                    return std::make_shared<const SubRule<ConstBoolean>>(
                                             std::dynamic_pointer_cast<ConstBoolean>(var)->evaluate());
                 }
                 case VALUE_TYPE::NATURAL_INT_TYPE:
                 {
-                    return std::make_shared<const ConstSubArithmeticRule<ConstNaturalInteger>>(name,
-                                            std::dynamic_pointer_cast<ConstNaturalInteger>(var)->evaluate());
+                    return std::make_shared<const ConstSubArithmeticRule<ConstNaturalInteger>>(
+                        std::dynamic_pointer_cast<ConstNaturalInteger>(var)->evaluate());
                 }
                 case VALUE_TYPE::NATURAL_INTEGERSET_TYPE:
                 {
-                    return std::make_shared<const ConstSubArithmeticTheorem<ConstSet<NaturalIntegerSet>>>(name,
+                    return std::make_shared<const ConstSubArithmeticTheorem<ConstSet<NaturalIntegerSet>>>(
                                                 std::dynamic_pointer_cast<ConstSet<NaturalIntegerSet>>(var)->evaluate());
                 }
                 case VALUE_TYPE::BOOLEANSET_TYPE:
                 {
-                    return std::make_shared<const ConstSubArithmeticTheorem<ConstSet<BooleanSet>>>(name,
+                    return std::make_shared<const ConstSubArithmeticTheorem<ConstSet<BooleanSet>>>(
                                                 std::dynamic_pointer_cast<ConstSet<BooleanSet>>(var)->evaluate());
                 }
                 default:
@@ -562,23 +562,23 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
             {
                 case VALUE_TYPE::BOOL_TYPE:
                 {
-                    return std::make_shared<const SubRule<Boolean>>(name,
+                    return std::make_shared<const SubRule<Boolean>>(
                                             std::dynamic_pointer_cast<Boolean>(var));
                 }
                 case VALUE_TYPE::NATURAL_INT_TYPE:
                 {
-                    return std::make_shared<const SubArithmeticRule<NaturalInteger>>(name,
+                    return std::make_shared<const SubArithmeticRule<NaturalInteger>>(
                                         std::dynamic_pointer_cast<NaturalInteger>(var));
                 }
 
                 case VALUE_TYPE::NATURAL_INTEGERSET_TYPE:
                 {
-                    return std::make_shared<const SubArithmeticRule<VarSet<NaturalIntegerSet>>>(name,
+                    return std::make_shared<const SubArithmeticRule<VarSet<NaturalIntegerSet>>>(
                                                 std::dynamic_pointer_cast<VarSet<NaturalIntegerSet>>(var));
                 }
                 case VALUE_TYPE::BOOLEANSET_TYPE:
                 {
-                    return std::make_shared<const SubArithmeticRule<VarSet<BooleanSet>>>(name,
+                    return std::make_shared<const SubArithmeticRule<VarSet<BooleanSet>>>(
                                                 std::dynamic_pointer_cast<VarSet<BooleanSet>>(var));
                 }
                 default:
@@ -602,64 +602,90 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
  */
 
 template<>
-SubRule<And<ASubRule>>::SubRule(const std::string& name_, const ptr<ASubRule>& leftSubProp,
+SubRule<And<ASubRule>>::SubRule(const ptr<ASubRule>& leftSubProp,
                                          const ptr<ASubRule>& rightSubProp):
-    ASubPureRule(name_,leftSubProp->getExtVars(),rightSubProp->getExtVars(),AND_PROP),
-    m_son(std::make_unique<And<ASubRule>>(leftSubProp,rightSubProp))
+    m_son(std::make_unique<And<ASubRule>>(leftSubProp,rightSubProp)),
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars())
 {
 
 }
 
 template<>
-SubRule<Equivalent<ASubRule>>::SubRule(const std::string& name_, const ptr<ASubRule>& leftSubProp,
+SubRule<Equivalent<ASubRule>>::SubRule(const ptr<ASubRule>& leftSubProp,
                                                 const ptr<ASubRule>& rightSubProp):
-    ASubPureRule(name_,leftSubProp->getExtVars(),rightSubProp->getExtVars(),EQUIV_PROP),
-    m_son(std::make_unique<Equivalent<ASubRule>>(leftSubProp,rightSubProp))
+    m_son(std::make_unique<Equivalent<ASubRule>>(leftSubProp,rightSubProp)),
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars())
 {
 
 }
 
-SubRule<Hyp<ASubRule>>::SubRule(const std::string& name_, const std::vector<ptr<ASubRule>>& subProps):
-    ASubPureRule(name_,getDbVarFromRules(subProps),HYP_PROP), m_son(std::make_unique<Hyp<ASubRule>>(subProps))
+SubRule<Hyp<ASubRule>>::SubRule(const std::vector<ptr<ASubRule>>& subProps):
+    m_son(std::make_unique<Hyp<ASubRule>>(subProps)), m_extVars(getDbVarFromRules(subProps))
 {
 
 }
 
 template<>
-SubRule<Implication<ASubRule>>::SubRule(const std::string& name_, const ptr<ASubRule>& leftSubProp,
+SubRule<Implication<ASubRule>>::SubRule(const ptr<ASubRule>& leftSubProp,
                                                  const ptr<ASubRule>& rightSubProp):
-    ASubPureRule(name_,leftSubProp->getExtVars(),rightSubProp->getExtVars(),IMPL_PROP),
-    m_son(std::make_unique<Implication<ASubRule>>(leftSubProp,rightSubProp))
+    m_son(std::make_unique<Implication<ASubRule>>(leftSubProp,rightSubProp)),
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars())
 {
 
 }
 
-SubRule<Not<ASubRule>>::SubRule(const std::string& name_, const ptr<ASubRule>& subProp):
-    ASubPureRule(name_,subProp->getExtVars(),NOT_PROP), m_son(std::make_unique<Not<ASubRule>>(subProp))
+SubRule<Not<ASubRule>>::SubRule(const ptr<ASubRule>& subProp):
+    m_son(std::make_unique<Not<ASubRule>>(subProp)),
+    m_extVars(subProp->getExtVars())
 {
 
 }
 
 template<>
-SubRule<Or<ASubRule>>::SubRule(const std::string& name_, const ptr<ASubRule> &leftSubProp, const ptr<ASubRule> &rightSubProp):
-    ASubPureRule(name_,leftSubProp->getExtVars(),rightSubProp->getExtVars(),OR_PROP),
-    m_son(std::make_unique<Or<ASubRule>>(leftSubProp,rightSubProp))
+SubRule<Or<ASubRule>>::SubRule(const ptr<ASubRule> &leftSubProp, const ptr<ASubRule> &rightSubProp):
+    m_son(std::make_unique<Or<ASubRule>>(leftSubProp,rightSubProp)),
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars())
 {
 
 }
 
-SubRule<Boolean>::SubRule(const std::string& name_, const std::shared_ptr<Boolean>& son):
-    ASubRule(name_,DbVar(son),VAR_PROP), m_son(son)
+SubRule<Boolean>::SubRule(const std::shared_ptr<Boolean>& son):
+    m_son(son), m_extVars(son)
 {
 
 }
 
-SubRule<ConstBoolean>::SubRule(const std::string& name_, const bool& val):
-    ASubRule(name_,CONST_PROP), m_son(std::make_unique<ConstBoolean>(val))
+SubRule<ConstBoolean>::SubRule(const bool& val):
+    m_son(std::make_unique<ConstBoolean>(val))
 {
 
 }
 
+/**---------------------------------------------------------------
+ * Type methods
+ * ---------------------------------------------------------------
+ */
+
+constexpr IProposition::PropType SubRule<Hyp<ASubRule>>::type() const
+{
+    return HYP_PROP;
+}
+
+constexpr IProposition::PropType SubRule<Not<ASubRule>>::type() const
+{
+    return NOT_PROP;
+}
+
+
+constexpr IProposition::PropType SubRule<Boolean>::type() const
+{
+    return VAR_PROP;
+}
+
+constexpr IProposition::PropType SubRule<ConstBoolean>::type() const
+{
+    return CONST_PROP;
+}
 
 /**---------------------------------------------------------------
  * Evaluate methods
@@ -721,6 +747,31 @@ std::string SubRule<Boolean>::toString(unsigned short priorityParent) const
 std::string SubRule<ConstBoolean>::toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
+}
+
+/**---------------------------------------------------------------
+ * getExtVars methods
+ * ---------------------------------------------------------------
+ */
+
+const DbVar* SubRule<Hyp<ASubRule>>::getExtVars() const
+{
+    return &m_extVars;
+}
+
+const DbVar* SubRule<Not<ASubRule>>::getExtVars() const
+{
+    return &m_extVars;
+}
+
+const DbVar* SubRule<Boolean>::getExtVars() const
+{
+    return &m_extVars;
+}
+
+const DbVar* SubRule<ConstBoolean>::getExtVars() const
+{
+    return nullptr;
 }
 
 
@@ -982,27 +1033,27 @@ bool SubRule<ConstBoolean>::identifyPriv(const ptr<ASubTheorem> &prop, DbVarProp
  * ---------------------------------------------------------------
  */
 template<>
-ptr<ASubTheorem> SubRule<And<ASubRule>>::applyPriv(const std::string& thName, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<And<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
 {
-    return std::make_shared<const SubTheorem<And<ASubTheorem>>>(thName,(*m_son)[0]->applyPriv(thName+"&&L",dbVarProp),
-            (*m_son)[1]->applyPriv(thName+"&&R",dbVarProp));
+    return std::make_shared<const SubTheorem<And<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
+            (*m_son)[1]->applyPriv(dbVarProp));
 }
 
 template<>
-ptr<ASubTheorem> SubRule<Equivalent<ASubRule>>::applyPriv(const std::string& thName, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Equivalent<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
 {
-    return std::make_shared<const SubTheorem<Equivalent<ASubTheorem>>>(thName,(*m_son)[0]->applyPriv(thName+"<=>L",dbVarProp),
-                                                           (*m_son)[1]->applyPriv(thName+"<=>R",dbVarProp));
+    return std::make_shared<const SubTheorem<Equivalent<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
+                                                           (*m_son)[1]->applyPriv(dbVarProp));
 }
 
 template<>
-ptr<ASubTheorem> SubRule<Implication<ASubRule>>::applyPriv(const std::string& thName, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Implication<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
 {
-    return std::make_shared<const SubTheorem<Implication<ASubTheorem>>>(thName,(*m_son)[0]->applyPriv(thName+"=>L",dbVarProp),
-            (*m_son)[1]->applyPriv(thName+"=>R",dbVarProp));
+    return std::make_shared<const SubTheorem<Implication<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
+            (*m_son)[1]->applyPriv(dbVarProp));
 }
 
-ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyPriv(const std::string& thName, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
 {
     std::vector<ptr<ASubTheorem>> ret;
     //Handle all variable in Hyp operator before implication
@@ -1019,39 +1070,39 @@ ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyPriv(const std::string& thName, Db
         }
         else
         {
-            ret.push_back((*m_son)[k]->applyPriv(thName+"HYP"+sizeToString(k),dbVarProp));
+            ret.push_back((*m_son)[k]->applyPriv(dbVarProp));
         }
     }
 
     if(ret.size()>0)
     {
-        ret.push_back((*m_son)[m_son->arity()-1]->applyPriv(thName+"HypImpl",dbVarProp));
-        return std::make_shared<const SubTheorem<Hyp<ASubTheorem>>>(thName+"Hyp",ret);
+        ret.push_back((*m_son)[m_son->arity()-1]->applyPriv(dbVarProp));
+        return std::make_shared<const SubTheorem<Hyp<ASubTheorem>>>(ret);
     }
     else
     {
-        return (*m_son)[m_son->arity()-1]->applyPriv(thName+"HypImpl",dbVarProp);
+        return (*m_son)[m_son->arity()-1]->applyPriv(dbVarProp);
     }
 }
 
-ptr<ASubTheorem> SubRule<Not<ASubRule>>::applyPriv(const std::string& thName, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Not<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
 {
-    return std::make_shared<SubTheorem<Not<ASubTheorem>>>(thName,(*m_son)[0]->applyPriv(thName+"!",dbVarProp));
+    return std::make_shared<SubTheorem<Not<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp));
 }
 
 template<>
-ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyPriv(const std::string& thName, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
 {
-    return std::make_shared<const SubTheorem<Or<ASubTheorem>>>(thName,(*m_son)[0]->applyPriv(thName+"||L",dbVarProp),
-            (*m_son)[1]->applyPriv(thName+"||R",dbVarProp));
+    return std::make_shared<const SubTheorem<Or<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
+            (*m_son)[1]->applyPriv(dbVarProp));
 }
 
-ptr<ASubTheorem> SubRule<Boolean>::applyPriv(const std::string&, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Boolean>::applyPriv(DbVarProp& dbVarProp) const
 {
     return std::dynamic_pointer_cast<const ASubTheorem>(dbVarProp[m_son->name()]);
 }
 
-ptr<ASubTheorem> SubRule<ConstBoolean>::applyPriv(const std::string&, DbVarProp&) const
+ptr<ASubTheorem> SubRule<ConstBoolean>::applyPriv(DbVarProp&) const
 {
     return std::make_shared<const SubTheorem<ConstBoolean>>(*this);
 }
@@ -1062,27 +1113,27 @@ ptr<ASubTheorem> SubRule<ConstBoolean>::applyPriv(const std::string&, DbVarProp&
  * ---------------------------------------------------------------
  */
 template<>
-ptr<ASubTheorem> SubRule<And<ASubRule>>::applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<And<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const
 {
-    return std::make_shared<const Theorem<And<ASubTheorem>>>(thName,(*m_son)[0]->applyPriv(thName+"&&L",dbVarProp),
-            (*m_son)[1]->applyPriv(thName+"&&R",dbVarProp));
+    return std::make_shared<const Theorem<And<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
+            (*m_son)[1]->applyPriv(dbVarProp));
 }
 
 template<>
-ptr<ASubTheorem> SubRule<Equivalent<ASubRule>>::applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Equivalent<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const
 {
-    return std::make_shared<const Theorem<Equivalent<ASubTheorem>>>(thName,(*m_son)[0]->applyPriv(thName+"<=>L",dbVarProp),
-            (*m_son)[1]->applyPriv(thName+"<=>R",dbVarProp));
+    return std::make_shared<const Theorem<Equivalent<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
+            (*m_son)[1]->applyPriv(dbVarProp));
 }
 
 template<>
-ptr<ASubTheorem> SubRule<Implication<ASubRule>>::applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Implication<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const
 {
-    return std::make_shared<const Theorem<Implication<ASubTheorem>>>(thName,(*m_son)[0]->applyPriv(thName+"=>L",dbVarProp),
-            (*m_son)[1]->applyPriv(thName+"=>R",dbVarProp));
+    return std::make_shared<const Theorem<Implication<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
+            (*m_son)[1]->applyPriv(dbVarProp));
 }
 
-ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const
 {
     std::vector<ptr<ASubTheorem>> ret;
     //Handle all variable in Hyp operator before HYP variable
@@ -1099,39 +1150,39 @@ ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyFirstPriv(const std::string& thNam
         }
         else
         {
-            ret.push_back((*m_son)[k]->applyPriv(thName+"HYP"+sizeToString(k),dbVarProp));
+            ret.push_back((*m_son)[k]->applyPriv(dbVarProp));
         }
     }
 
     if(ret.size()>0)
     {
-        ret.push_back((*m_son)[m_son->arity()-1]->applyPriv(thName+"HypImpl",dbVarProp));
-        return std::make_shared<const Theorem<Hyp<ASubTheorem>>>(thName+"Hyp",ret);
+        ret.push_back((*m_son)[m_son->arity()-1]->applyPriv(dbVarProp));
+        return std::make_shared<const Theorem<Hyp<ASubTheorem>>>(ret);
     }
     else
     {
-        return (*m_son)[m_son->arity()-1]->applyFirstPriv(thName+"HypImpl",dbVarProp);
+        return (*m_son)[m_son->arity()-1]->applyFirstPriv(dbVarProp);
     }
 }
 
-ptr<ASubTheorem> SubRule<Not<ASubRule>>::applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Not<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const
 {
-    return std::make_shared<const Theorem<Not<ASubTheorem>>>(thName,(*m_son)[0]->applyPriv(thName+"!",dbVarProp));
+    return std::make_shared<const Theorem<Not<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp));
 }
 
 template<>
-ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const
 {
-    return std::make_shared<const Theorem<Or<ASubTheorem>>>(thName,(*m_son)[0]->applyPriv(thName+"||L",dbVarProp),
-            (*m_son)[1]->applyPriv(thName+"||R",dbVarProp));
+    return std::make_shared<const Theorem<Or<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
+            (*m_son)[1]->applyPriv(dbVarProp));
 }
 
-ptr<ASubTheorem> SubRule<Boolean>::applyFirstPriv(const std::string&, DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Boolean>::applyFirstPriv(DbVarProp& dbVarProp) const
 {
     return std::dynamic_pointer_cast<const ASubTheorem>(dbVarProp[m_son->name()])->copyTheorem();
 }
 
-ptr<ASubTheorem> SubRule<ConstBoolean>::applyFirstPriv(const std::string&, DbVarProp&) const
+ptr<ASubTheorem> SubRule<ConstBoolean>::applyFirstPriv(DbVarProp&) const
 {
     return std::make_shared<const Theorem<ConstBoolean>>(*this);
 }
@@ -1145,7 +1196,7 @@ ptr<ASubTheorem> SubRule<ConstBoolean>::applyFirstPriv(const std::string&, DbVar
 template<SubRuleProperty SubPropertyType>
 bool SubRule<SubPropertyType>::isEqual(const ASubTheorem &prop) const
 {
-    auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
+    auto propCast=dynamic_cast<const SubTheorem<ToTheoremOpe<SubPropertyType>>*>(&prop);
     if(propCast)
     {
         return *this->m_son==propCast->getSon();
@@ -1158,7 +1209,7 @@ bool SubRule<SubPropertyType>::isEqual(const ASubTheorem &prop) const
 
 bool SubRule<Hyp<ASubRule>>::isEqual(const ASubTheorem &prop) const
 {
-    auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
+    auto propCast=dynamic_cast<const SubTheorem<ToTheoremOpe<SubPropertyType>>*>(&prop);
     if(propCast)
     {
         return *this->m_son==propCast->getSon();
@@ -1171,7 +1222,7 @@ bool SubRule<Hyp<ASubRule>>::isEqual(const ASubTheorem &prop) const
 
 bool SubRule<Not<ASubRule>>::isEqual(const ASubTheorem &prop) const
 {
-    auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
+    auto propCast=dynamic_cast<const SubTheorem<ToTheoremOpe<SubPropertyType>>*>(&prop);
     if(propCast)
     {
         return *this->m_son==propCast->getSon();
@@ -1287,7 +1338,7 @@ bool SubRule<ConstBoolean>::isEqual(const ASubRule &prop) const
 template<SubTheoremProperty SubPropertyType>
 bool SubTheorem<SubPropertyType>::isEqual(const ASubRule& prop) const
 {
-    auto propCast=dynamic_cast<const SubRule<SubPropertyType>*>(&prop);
+    auto propCast=dynamic_cast<const SubRule<ToRuleOpe<SubPropertyType>>*>(&prop);
     if(propCast)
     {
         return *this->m_son==propCast->getSon();
@@ -1300,7 +1351,7 @@ bool SubTheorem<SubPropertyType>::isEqual(const ASubRule& prop) const
 
 bool SubTheorem<Hyp<ASubTheorem>>::isEqual(const ASubRule& prop) const
 {
-    auto propCast=dynamic_cast<const SubRule<SubPropertyType>*>(&prop);
+    auto propCast=dynamic_cast<const SubRule<ToRuleOpe<SubPropertyType>>*>(&prop);
     if(propCast)
     {
         return *this->m_son==propCast->getSon();
@@ -1313,7 +1364,7 @@ bool SubTheorem<Hyp<ASubTheorem>>::isEqual(const ASubRule& prop) const
 
 bool SubTheorem<Not<ASubTheorem>>::isEqual(const ASubRule& prop) const
 {
-    auto propCast=dynamic_cast<const SubRule<SubPropertyType>*>(&prop);
+    auto propCast=dynamic_cast<const SubRule<ToRuleOpe<SubPropertyType>>*>(&prop);
     if(propCast)
     {
         return *this->m_son==propCast->getSon();
@@ -1367,7 +1418,7 @@ bool SubRule<SubPropertyType>::operator==(const SubRule &prop) const
  * ---------------------------------------------------------------
  */
 template<SubRuleProperty SubPropertyType>
-bool SubRule<SubPropertyType>::operator==(const SubTheorem<SubPropertyType> &prop) const
+bool SubRule<SubPropertyType>::operator==(const SubTheorem<ToTheoremOpe<SubPropertyType>> &prop) const
 {
     return *m_son==prop.getSon();
 }
@@ -1378,7 +1429,7 @@ bool SubRule<SubPropertyType>::operator==(const SubTheorem<SubPropertyType> &pro
  * ---------------------------------------------------------------
  */
 template<SubTheoremProperty SubPropertyType>
-bool SubTheorem<SubPropertyType>::operator==(const SubRule<SubPropertyType>& prop) const
+bool SubTheorem<SubPropertyType>::operator==(const SubRule<ToRuleOpe<SubPropertyType>>& prop) const
 {
     return *m_son==(prop.getSon());
 }
@@ -1405,18 +1456,18 @@ identifyPriv(const ptr<ASubTheorem> &prop, DbVarProp &dbVarProp) const
 
 template<typename ValueType1, typename ValueType2>
 ptr<ASubTheorem> SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::
-applyPriv(const std::string &thName, DbVarProp &dbVarProp) const
+applyPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(thName,
-    get<0>(*m_son)->applyPriv(thName+"==L",dbVarProp),get<1>(*m_son)->applyPriv(thName+"==R",dbVarProp));
+    return std::make_shared<const SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
+    get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
 template<typename ValueType1, typename ValueType2>
 ptr<ASubTheorem> SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::
-applyFirstPriv(const std::string &thName, DbVarProp &dbVarProp) const
+applyFirstPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const Theorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(thName,
-    get<0>(*m_son)->applyPriv(thName+"==L",dbVarProp),get<1>(*m_son)->applyPriv(thName+"==R",dbVarProp));
+    return std::make_shared<const Theorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
+    get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
 
@@ -1440,18 +1491,18 @@ identifyPriv(const ptr<ASubTheorem> &prop, DbVarProp &dbVarProp) const
 
 template<typename SetType>
 ptr<ASubTheorem> SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>, ASubArithmeticRule<SetType> > >::
-applyPriv(const std::string &thName, DbVarProp &dbVarProp) const
+applyPriv(DbVarProp &dbVarProp) const
 {
     return std::make_shared<const SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>>>>
-            (thName,get<0>(*m_son)->applyPriv(thName+"==L",dbVarProp),get<1>(*m_son)->applyPriv(thName+"==R",dbVarProp));
+            (get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
 template<typename SetType>
 ptr<ASubTheorem> SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>> >::
-applyFirstPriv(const std::string &thName, DbVarProp &dbVarProp) const
+applyFirstPriv(DbVarProp &dbVarProp) const
 {
     return std::make_shared<const Theorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>>>>
-                                    (thName,get<0>(*m_son)->applyPriv(thName+"==L",dbVarProp),get<1>(*m_son)->applyPriv(thName+"==R",dbVarProp));
+                                    (get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
 /**----------------------------------------------------------------
@@ -1474,18 +1525,18 @@ identifyPriv(const ptr<ASubTheorem> &prop, DbVarProp &dbVarProp) const
 
 template<>
 ptr<ASubTheorem> SubRule<Let<ASubArithmeticRule<void>, ASubRule > >::
-applyPriv(const std::string &thName, DbVarProp &dbVarProp) const
+applyPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubTheorem<Let<ASubArithmeticTheorem<void>, ASubTheorem> >>(thName,
-    get<0>(*m_son)->applyPriv(thName+"==L",dbVarProp),get<1>(*m_son)->applyPriv(thName+"==R",dbVarProp));
+    return std::make_shared<const SubTheorem<Let<ASubArithmeticTheorem<void>, ASubTheorem> >>(
+    get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
 template<>
 ptr<ASubTheorem> SubRule<Let<ASubArithmeticRule<void>, ASubRule > >::
-applyFirstPriv(const std::string &thName, DbVarProp &dbVarProp) const
+applyFirstPriv( DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const Theorem<Let<ASubArithmeticTheorem<void>, ASubTheorem>>>(thName,
-    get<0>(*m_son)->applyPriv(thName+"==L",dbVarProp),get<1>(*m_son)->applyPriv(thName+"==R",dbVarProp));
+    return std::make_shared<const Theorem<Let<ASubArithmeticTheorem<void>, ASubTheorem>>>(
+    get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
 
@@ -1505,16 +1556,16 @@ identifyPriv(const ptr<ASubTheorem> &prop, DbVarProp &dbVarProp) const
 
 template<>
 ptr<ASubTheorem> SubRule<Let<ASubRule, ASubRule > >::
-applyPriv(const std::string &thName, DbVarProp &dbVarProp) const
+applyPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubTheorem<Let<ASubTheorem, ASubTheorem> >>(thName,
-    get<0>(*m_son)->applyPriv(thName+"==L",dbVarProp),get<1>(*m_son)->applyPriv(thName+"==R",dbVarProp));
+    return std::make_shared<const SubTheorem<Let<ASubTheorem, ASubTheorem> >>(
+    get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
 template<>
 ptr<ASubTheorem> SubRule<Let<ASubRule, ASubRule > >::
-applyFirstPriv(const std::string &thName, DbVarProp &dbVarProp) const
+applyFirstPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const Theorem<Let<ASubTheorem, ASubTheorem>>>(thName,
-    get<0>(*m_son)->applyPriv(thName+"==L",dbVarProp),get<1>(*m_son)->applyPriv(thName+"==R",dbVarProp));
+    return std::make_shared<const Theorem<Let<ASubTheorem, ASubTheorem>>>(
+    get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }

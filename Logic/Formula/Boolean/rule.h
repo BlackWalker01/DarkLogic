@@ -19,6 +19,8 @@ class Rule: public SubRule<SubPropertyType>
 public:
     Rule(const std::string& name_, const ptr<ASubRule>& leftSubProp, const ptr<ASubRule>& rightSubProp);
 
+    std::string  name() const override final;
+
     //getAction methods
     std::vector<size_t> getActions(const ptr<ASubTheorem>& prop, size_t& lastActionIndex) const
     override final;
@@ -39,20 +41,29 @@ private:
     bool identify(const ptr<ASubTheorem>& prop, const size_t& crtAction) const;
     void clearIdentifications() const;
 
-
+    const std::string m_name;
     DbVarProp m_basicIdentifications;
     const std::unique_ptr<std::unordered_map<size_t,std::shared_ptr<DbVarProp>>> m_actionToIdentifications;
     const std::unique_ptr<std::unordered_map<size_t,std::vector<Arity>>> m_crtActions;
 };
 
+template<SubRuleProperty SubPropertyType> 
+struct ToTheoremStruct<Rule<SubPropertyType>> { using Type = Theorem<SubPropertyType>; };
+
 template<SubRuleProperty SubPropertyType>
 Rule<SubPropertyType>::Rule(const std::string &name_, const ptr<ASubRule> &leftSubProp, const ptr<ASubRule> &rightSubProp):
-    SubRule<SubPropertyType> (name_,leftSubProp,rightSubProp),
-    m_basicIdentifications(this->nameVars()),
+    SubRule<SubPropertyType> (leftSubProp,rightSubProp), m_name(name_),
+    m_basicIdentifications(getExtVars()->nameVars()),
     m_actionToIdentifications(std::make_unique<std::unordered_map<size_t,std::shared_ptr<DbVarProp>>>()),
     m_crtActions(std::make_unique<std::unordered_map<size_t,std::vector<Arity>>>())
 {
 
+}
+
+template<SubRuleProperty SubPropertyType>
+inline std::string Rule<SubPropertyType>::name() const
+{
+    return m_name;
 }
 
 template<SubRuleProperty SubPropertyType>
@@ -114,7 +125,7 @@ std::pair<ptr<ASubTheorem>,bool> Rule<SubPropertyType>::apply(const size_t &acti
     std::vector<Arity> indexes=m_crtActions->at(actionKey);
     if(indexes.size()==0)
     {
-        return { (*(this->m_son))[0]->applyFirstPriv(theorem->name(),*(m_actionToIdentifications->at(actionKey))), isSymetric()};
+        return { (*(this->m_son))[0]->applyFirstPriv(*(m_actionToIdentifications->at(actionKey))), isSymetric()};
     }
     else
     {
@@ -129,7 +140,7 @@ ptr<IISubTheoremFormula> Rule<SubPropertyType>::applyAnnexe(const size_t &action
     auto theoremCast=std::dynamic_pointer_cast<const ASubTheorem>(theorem); //?? cast not only to ASubTheorem
     if(indexes.size()==0)
     {
-        return (*(this->m_son))[0]->applyPriv(theoremCast->name(),*(m_actionToIdentifications->at(actionKey)));
+        return (*(this->m_son))[0]->applyPriv(*(m_actionToIdentifications->at(actionKey)));
     }
     else
     {

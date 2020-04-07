@@ -25,10 +25,10 @@ struct LetFun;
 template<typename SubFormulaType, Proposition SubFormulaType2>
 class Let;
 
-template<typename SubPropertyType>
+template<SubRuleFormula SubPropertyType>
 class SubArithmeticRule;
 
-template<typename SubPropertyType>
+template<SubTheoremFormula SubPropertyType>
 class SubArithmeticTheorem;
 
 template<typename VariableType_>
@@ -44,7 +44,8 @@ struct LetStr
 template<typename SubRuleType>
 struct LetFun<SubRuleType,ASubRule>
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = ASubRule;
 
     LetFun() = default;
     LetFun(const ptr<SubRuleType>& var, const ptr<ASubRule>& prop);
@@ -102,6 +103,8 @@ class Let<SubRuleType,ASubRule> :
 {
 public:
     using FunType = LetFun<SubRuleType,ASubRule>;
+    using RuleOpe = Let<ToRule<SubRuleType>, ASubRule>;
+    using TheoremOpe = Let<ToTheorem<SubRuleType>, ASubTheorem>;
 
     Let() = default;
     Let(const ptr<SubRuleType>& var, const ptr<ASubRule>& prop);
@@ -121,7 +124,8 @@ get(const Let<SubRuleType,ASubRule>& fun);
 template<typename SubTheoremType>
 struct LetFun<SubTheoremType,ASubTheorem>
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = ASubTheorem;
 
     LetFun() = default;
     LetFun(const ptr<SubTheoremType>& var, const ptr<ASubTheorem>& prop);
@@ -178,6 +182,8 @@ class Let<SubTheoremType,ASubTheorem> :
 {
 public:
     using FunType = LetFun<SubTheoremType,ASubTheorem>;
+    using RuleOpe = Let<ToRule<SubTheoremType>, ASubRule>;
+    using TheoremOpe = Let<ToTheorem<SubTheoremType>, ASubTheorem>;
 
     Let() = default;
     Let(const ptr<SubTheoremType>& var, const ptr<ASubTheorem>& prop);

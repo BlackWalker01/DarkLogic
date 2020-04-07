@@ -15,12 +15,6 @@ struct ValueTypeComputer
     typedef ValueType1 ValueType;
 };
 
-template<typename ValueType>
-class ASubArithmeticRule;
-
-template<typename ValueType>
-class ASubArithmeticTheorem;
-
 struct PlusToStr
 {
     static const std::string s_symbol;
@@ -37,7 +31,8 @@ struct PlusFun;
 template<typename ValueType1, typename ValueType2>
 struct PlusFun<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2>>
 {
-    typedef typename ValueTypeComputer<ValueType1, ValueType2>::ValueType  ValueType;
+    using ValueType = typename ValueTypeComputer<ValueType1, ValueType2>::ValueType;
+    using SubFormulaType = ASubArithmeticRule<ValueType>;
 
     PlusFun() = default;
     PlusFun(const ptr<ASubArithmeticRule<ValueType1>>& prop1, const ptr<ASubArithmeticRule<ValueType2>>& prop2);
@@ -91,7 +86,8 @@ get(const PlusFun<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2>
 template<typename ValueType_>
 struct PlusFun<ASubArithmeticRule<ValueType_>, ASubArithmeticRule<ValueType_>>
 {
-    typedef ValueType_ ValueType;
+    using ValueType = ValueType_;
+    using SubFormulaType = ASubArithmeticRule<ValueType>;
 
     PlusFun() = default;
     PlusFun(const ptr<ASubArithmeticRule<ValueType>>& prop1, const ptr<ASubArithmeticRule<ValueType>>& prop2);
@@ -145,7 +141,8 @@ const ptr<ASubArithmeticRule<ValueType>>& get(const PlusFun<ASubArithmeticRule<V
 template<typename ValueType1, typename ValueType2>
 struct PlusFun<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2>>
 {
-    typedef typename ValueTypeComputer<ValueType1, ValueType2>::ValueType  ValueType;
+    using ValueType = typename ValueTypeComputer<ValueType1, ValueType2>::ValueType;
+    using SubFormulaType = ASubArithmeticTheorem<ValueType>;
 
     PlusFun() = default;
     PlusFun(const ptr<ASubArithmeticTheorem<ValueType1>>& prop1, const ptr<ASubArithmeticTheorem<ValueType2>>& prop2);
@@ -200,7 +197,8 @@ get(const PlusFun<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<Value
 template<typename ValueType_>
 struct PlusFun<ASubArithmeticTheorem<ValueType_>, ASubArithmeticTheorem<ValueType_>>
 {
-    typedef ValueType_ ValueType;
+    using ValueType = ValueType_;
+    using SubFormulaType = ASubArithmeticTheorem<ValueType>;
 
     PlusFun() = default;
     PlusFun(const ptr<ASubArithmeticTheorem<ValueType>>& prop1, const ptr<ASubArithmeticTheorem<ValueType>>& prop2);
@@ -270,6 +268,9 @@ class Plus : public Operator<PlusFun<SubFormulaType1,SubFormulaType2>>
 {
 public:
     using BracketType = typename PlusTypeComputer<SubFormulaType1,SubFormulaType2>::BracketType;
+    using RuleOpe = Plus<ToRule<SubFormulaType1>, ToRule<SubFormulaType2>>;
+    using TheoremOpe = Plus<ToTheorem<SubFormulaType1>, ToTheorem<SubFormulaType2>>;
+
     Plus() = default;
     Plus(const ptr<SubFormulaType1> &prop1, const ptr<SubFormulaType2> &prop2);
 

@@ -20,22 +20,24 @@ public:
     typedef typename
     ASubArithmeticRule<typename Plus< ASubArithmeticRule<ValueType1>,ASubArithmeticRule<ValueType2>>::ValueType>::ATheoremType ATheoremType;
 
-    SubArithmeticRule(const std::string& name_, const ptr<SubLeftFormula>& leftFormula, const ptr<SubRightFormula>& rightFormula);
+    SubArithmeticRule(const ptr<SubLeftFormula>& leftFormula, const ptr<SubRightFormula>& rightFormula);
 
     size_t arity() const override final;
     ValueType evaluate() const override final;
+    constexpr ArithType type() const override final;
 
     //internal methods
     bool identifyPriv(const ptr<ATheoremType>& prop, DbVarProp& dbVarProp) const override final;
-    ptr<ATheoremType> applyPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
-    ptr<ATheoremType> applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp) const override final;
 
     bool isEqual(const ASubArithmeticRule<ValueType>& prop) const override final;
     bool isEqual(const ASubArithmeticTheorem<ValueType>& prop) const override final;
     bool operator==(const SubArithmeticRule& prop) const;
-    bool operator==(const SubArithmeticTheorem<SubOperatorType>& prop) const;
+    bool operator==(const SubArithmeticTheorem<ToTheoremOpe<SubOperatorType>>& prop) const;
 
     std::string toString(unsigned short priorityParent=1000) const override final;
+    const DbVar* getExtVars() const override final;
 
     const SubOperatorType& getSon() const;
     const ptr<IISubRuleFormula>& operator[](const size_t& k) const override final;
@@ -44,15 +46,15 @@ public:
 
 protected:
     const std::unique_ptr<const SubOperatorType> m_son;
+    const DbVar m_extVars;
 };
 
 template<typename ValueType1, typename ValueType2>
 SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::
-SubArithmeticRule(const std::string& name_,
-                  const ptr<SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::SubLeftFormula> &leftFormula,
+SubArithmeticRule(const ptr<SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::SubLeftFormula> &leftFormula,
                   const ptr<SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::SubRightFormula> &rightFormula):
-    ASubArithmeticRule<typename Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> >::ValueType>(name_,PLUS_FORMULA),
-    m_son(std::make_unique<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2>> >(leftFormula,rightFormula))
+    m_son(std::make_unique<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2>> >(leftFormula,rightFormula)),
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
 {
 
 }
@@ -62,6 +64,12 @@ template<typename ValueType1, typename ValueType2>
 size_t SubArithmeticRule< Plus< ASubArithmeticRule<ValueType1>,ASubArithmeticRule<ValueType2> > >::arity() const
 {
     return m_son->arity();
+}
+
+template<typename ValueType1, typename ValueType2>
+inline constexpr ArithType SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2>>>::type() const
+{
+    return PLUS_FORMULA;
 }
 
 
@@ -105,7 +113,7 @@ operator==(const SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArit
 
 template<typename ValueType1, typename ValueType2>
 bool SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::operator==
-(const SubArithmeticTheorem<SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::SubOperatorType> &prop) const
+(const SubArithmeticTheorem<ToTheoremOpe<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2>> >> &prop) const
 {
     return *m_son==(prop.getSon());
 }
@@ -128,19 +136,19 @@ identifyPriv(const ptr<SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, AS
 template<typename ValueType1, typename ValueType2>
 ptr<typename SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::ATheoremType>
 SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::
-applyPriv(const std::string &thName, DbVarProp &dbVarProp) const
+applyPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(thName,
-    get<0>(*m_son)->applyPriv(thName+"+R",dbVarProp),get<1>(*m_son)->applyPriv(thName+"+L",dbVarProp));
+    return std::make_shared<const SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
+    get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
 template<typename ValueType1, typename ValueType2>
 ptr<typename SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::ATheoremType>
 SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::
-applyFirstPriv(const std::string &thName, DbVarProp &dbVarProp) const
+applyFirstPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(thName,
-    get<0>(*m_son)->applyPriv(thName+"+R",dbVarProp),get<1>(*m_son)->applyPriv(thName+"+L",dbVarProp));
+    return std::make_shared<const SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
+    get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
 template<typename ValueType1, typename ValueType2>
@@ -154,6 +162,12 @@ template<typename ValueType1, typename ValueType2>
 std::string SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
+}
+
+template<typename ValueType1, typename ValueType2>
+inline const DbVar* SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2>>>::getExtVars() const
+{
+    return &m_extVars;
 }
 
 template<typename ValueType1, typename ValueType2>

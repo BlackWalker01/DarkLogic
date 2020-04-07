@@ -6,7 +6,7 @@
 
 namespace N_Logic{
 
-template<typename ValueType>
+template<ArithmeticType ValueType>
 class ASubArithmeticTheorem;
 
 struct EqualToStr
@@ -25,7 +25,8 @@ struct EqualFun;
 template<typename ValueType1, typename ValueType2>
 struct EqualFun<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2>>
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = ASubRule;
 
     EqualFun() = default;
     EqualFun(const ptr<ASubArithmeticRule<ValueType1>>& prop1, const ptr<ASubArithmeticRule<ValueType2>>& prop2);
@@ -82,7 +83,8 @@ get(const EqualFun<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2
 template<typename SubValueType>
 struct EqualFun<ASubArithmeticRule<SubValueType>, ASubArithmeticRule<SubValueType>>
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = ASubRule;
 
     EqualFun() = default;
     EqualFun(const ptr<ASubArithmeticRule<SubValueType>>& prop1, const ptr<ASubArithmeticRule<SubValueType>>& prop2);
@@ -113,7 +115,6 @@ struct EqualFun<ASubArithmeticRule<SubValueType>, ASubArithmeticRule<SubValueTyp
     {
         return NbArgBefore::E_ONE;
     }
-    void add(ASubArithmeticRule<ValueType> &prop);
 
     std::string toString(unsigned short priorityParent=1000) const;
 
@@ -138,7 +139,8 @@ const ptr<ASubArithmeticRule<ValueType>>& get(const EqualFun<ASubArithmeticRule<
 template<typename ValueType1, typename ValueType2>
 struct EqualFun<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2>>
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = ASubTheorem;
 
     EqualFun() = default;
     EqualFun(const ptr<ASubArithmeticTheorem<ValueType1>>& prop1, const ptr<ASubArithmeticTheorem<ValueType2>>& prop2);
@@ -197,7 +199,8 @@ get(const EqualFun<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<Valu
 template<typename SubValueType>
 struct EqualFun<ASubArithmeticTheorem<SubValueType>, ASubArithmeticTheorem<SubValueType>>
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = ASubTheorem;
 
     EqualFun() = default;
     EqualFun(const ptr<ASubArithmeticTheorem<SubValueType>>& prop1,
@@ -272,6 +275,8 @@ class Equal : public Operator<EqualFun<SubFormulaType1,SubFormulaType2>>
 {
 public:
     typedef typename EqualTypeComputer<SubFormulaType1,SubFormulaType2>::BracketType BracketType;
+    using RuleOpe = Equal<ToRule<SubFormulaType1>, ToRule<SubFormulaType2>>;
+    using TheoremOpe = Equal<ToTheorem<SubFormulaType1>, ToTheorem<SubFormulaType2>>;
 
     Equal() = default;
     Equal(const ptr<SubFormulaType1> &prop1, const ptr<SubFormulaType2> &prop2);

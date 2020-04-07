@@ -12,10 +12,10 @@ struct SetEqualFun;
 template<typename SubFormulaType>
 class SetEqual;
 
-template<typename SubPropertyType>
+template<SubRuleFormula SubPropertyType>
 class SubArithmeticRule;
 
-template<typename SubPropertyType>
+template<SubTheoremFormula SubPropertyType>
 class SubArithmeticTheorem;
 
 struct SetEqualToStr
@@ -27,6 +27,8 @@ template<typename VariableType>
 struct SetEqualFun<SubArithmeticRule<VariableType>>
 {
     typedef void ValueType;
+    using ValueType = void;
+    using SubFormulaType = ASubArithmeticRule<ValueType>;
 
     SetEqualFun() = default;
     SetEqualFun(const ptr<SubArithmeticRule<VariableType>>& var,
@@ -84,6 +86,9 @@ class SetEqual<SubArithmeticRule<VariableType>> :
         public Operator<SetEqualFun<SubArithmeticRule<VariableType>>>
 {
 public:
+    using RuleOpe = SetEqual<SubArithmeticRule<VariableType>>;
+    using TheoremOpe = SetEqual<SubArithmeticTheorem<VariableType>>;
+
     SetEqual() = default;
     SetEqual(const ptr<SubArithmeticRule<VariableType>>& var, const ptr<ASubArithmeticRule<typename VariableType::ValueType>>& prop);
 
@@ -102,7 +107,8 @@ get(SetEqual<SubArithmeticRule<VariableType>>& fun);
 template<typename VariableType>
 struct SetEqualFun<SubArithmeticTheorem<VariableType>>
 {
-    typedef void ValueType;
+    using ValueType = void;
+    using SubFormulaType = ASubArithmeticTheorem<ValueType>;
 
     SetEqualFun() = default;
     SetEqualFun(const ptr<SubArithmeticTheorem<VariableType>>& var,
@@ -162,6 +168,9 @@ class SetEqual<SubArithmeticTheorem<VariableType>> :
         public Operator<SetEqualFun<SubArithmeticTheorem<VariableType>>>
 {
 public:
+    using RuleOpe = SetEqual<SubArithmeticRule<VariableType>>;
+    using TheoremOpe = SetEqual<SubArithmeticTheorem<VariableType>>;
+
     SetEqual() = default;
     SetEqual(const ptr<SubArithmeticTheorem<VariableType>>& var,
              const ptr<ASubArithmeticTheorem<typename VariableType::ValueType>>& prop);

@@ -5,10 +5,10 @@
 
 namespace N_Logic
 {
-template<typename SubOperatorType>
+template<SubRuleFormula SubOperatorType>
 class SubArithmeticRule;
 
-template<typename SubOperatorType>
+template<SubTheoremFormula SubOperatorType>
 class SubArithmeticTheorem;
 
 }

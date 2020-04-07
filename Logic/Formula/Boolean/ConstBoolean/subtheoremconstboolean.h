@@ -10,10 +10,11 @@ class SubTheorem<ConstBoolean>: public ASubTheorem
 public:
     typedef ConstBoolean SubPropertyType;
 
-    SubTheorem(const std::string& name, const bool& son);
+    SubTheorem(const bool& son);
     SubTheorem(const SubRule<ConstBoolean>& prop);
 
     bool evaluate() const override final;
+    constexpr PropType type() const override final;
     bool canBeDemonstrated() const override;
 
     bool isEqual(const ASubTheorem& prop) const override final;
@@ -22,6 +23,7 @@ public:
     bool operator==(const SubRule<SubPropertyType>& prop) const;
 
     std::string toString(unsigned short priorityParent=1000) const override final;
+    const DbVar* getExtVars() const override final;
 
     ptr<ASubTheorem> copyTheorem() const override final;
     const SubPropertyType& getSon() const;

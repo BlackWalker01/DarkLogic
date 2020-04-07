@@ -11,9 +11,10 @@ class SubRule<ConstBoolean>: public ASubRule
 public:
     typedef ConstBoolean SubPropertyType;
 
-    SubRule(const std::string& name, const bool& son);
+    SubRule(const bool& son);
 
     bool evaluate() const override final;
+    constexpr PropType type() const override final;
 
     bool isEqual(const ASubRule& prop) const override final;
     bool isEqual(const ASubTheorem& prop) const override final;
@@ -22,14 +23,15 @@ public:
 
 
     std::string toString(unsigned short priorityParent=1000) const override final;
+    const DbVar* getExtVars() const override final;
     const SubPropertyType& getSon() const;
 
     ~SubRule() override = default;
 
 protected:
     bool identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp& dbVarProp) const override final;
-    ptr<ASubTheorem> applyPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
-    ptr<ASubTheorem> applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
+    ptr<ASubTheorem> applyPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ASubTheorem> applyFirstPriv(DbVarProp& dbVarProp) const override final;
     size_t arity() const override final;
 
 protected:

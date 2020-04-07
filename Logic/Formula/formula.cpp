@@ -5,6 +5,7 @@
 #include "Set/booleanset.h"
 #include "Set/naturalintegerset.h"
 #include "Variable/allvariable.h"
+#include "Variable/dbvar.h"
 #include "Formula/Boolean/asubrule.h"
 #include "Formula/Boolean/asubtheorem.h"
 
@@ -269,9 +270,10 @@ bool DbVarContainer::contains(const std::string &name) const
     return db.find(name)!=db.end();
 }
 
-std::vector<DbVar> N_Logic::getDbVarFromRules(const std::vector<ptr<ASubRule> > &formulas)
+
+std::vector<const DbVar*> N_Logic::getDbVarFromRules(const std::vector<ptr<ASubRule> > &formulas)
 {
-    std::vector<DbVar> ret;
+    std::vector<const DbVar*> ret;
     for(size_t k=0;k<formulas.size();k++)
     {
         ret.push_back(formulas[k]->getExtVars());
@@ -279,9 +281,9 @@ std::vector<DbVar> N_Logic::getDbVarFromRules(const std::vector<ptr<ASubRule> > 
     return ret;
 }
 
-std::vector<DbVar> N_Logic::getDbVarFromTheorems(const std::vector<ptr<ASubTheorem> > &formulas)
+std::vector<const DbVar*> N_Logic::getDbVarFromTheorems(const std::vector<ptr<ASubTheorem> > &formulas)
 {
-    std::vector<DbVar> ret;
+    std::vector<const DbVar*> ret;
     for(size_t k=0;k<formulas.size();k++)
     {
         ret.push_back(formulas[k]->getExtVars());

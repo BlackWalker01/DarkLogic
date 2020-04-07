@@ -21,7 +21,8 @@ struct HypToStr
 template<Proposition SubPropertyType>
 struct HypFun
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = SubPropertyType;
 
     HypFun(const std::vector<ptr<SubPropertyType>>& props);
 
@@ -55,7 +56,7 @@ struct HypFun
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
 
     ~HypFun() = default;
-private:
+
     const std::vector<ptr<SubPropertyType>> m_sonProps;
 };
 
@@ -63,6 +64,9 @@ template<Proposition SubPropertyType>
 class Hyp: public Operator<HypFun<SubPropertyType>>
 {
 public:
+    using RuleOpe = Hyp<typename Operator<HypFun<SubPropertyType>>::SubRuleFormulaType>;
+    using TheoremOpe = Hyp<typename Operator<HypFun<SubPropertyType>>::SubTheoremFormulaType>;
+
     Hyp(const std::vector<ptr<SubPropertyType>>& props);
 
     template<Proposition SubPropertyType2>

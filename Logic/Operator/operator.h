@@ -18,7 +18,10 @@ class Operator: public IOperator
 public:
 
     using FunType=FunType_;
-    typedef typename FunType::ValueType ValueType;
+    using ValueType = typename FunType::ValueType;
+    using SubFormulaType = typename FunType::SubFormulaType;
+    using SubRuleFormulaType = ToRule<SubFormulaType>;
+    using SubTheoremFormulaType = ToTheorem<SubFormulaType>;
 
     Operator();
     template<typename HeadType, typename ...QueueType>

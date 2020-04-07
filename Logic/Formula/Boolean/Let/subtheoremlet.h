@@ -12,11 +12,12 @@ class SubTheorem<Let<SubTheoremType,ASubTheorem>>: public ASubImpureTheorem
 public:
     typedef Let<SubTheoremType,ASubTheorem> SubPropertyType;
 
-    SubTheorem(const std::string& name_, const ptr<SubTheoremType>& leftFormula,
+    SubTheorem(const ptr<SubTheoremType>& leftFormula,
                const ptr<ASubTheorem>& rightFormula);
     SubTheorem(const ptr<SubRule<ConstBoolean>>& prop);
 
     bool evaluate() const override final;
+    constexpr PropType type() const override final;
 
     bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubTheorem& prop) const;
@@ -29,6 +30,7 @@ public:
 
     ptr<ASubTheorem> copyTheorem() const override final;
     const SubPropertyType& getSon() const;
+    const DbVar* getExtVars() const override final;
     const ptr<IISubTheoremFormula>& operator[](const size_t& index) const override final;
 
     ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule,
@@ -40,6 +42,7 @@ protected:
     size_t arity() const override final;
 
     const std::unique_ptr<const SubPropertyType> m_son;
+    const DbVar m_extVars;
 };
 
 /*template<typename ValueType1, typename ValueType2>
@@ -50,9 +53,9 @@ SubTheorem<Let<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueTyp
 
 template<typename SubTheoremType>
 SubTheorem<Let<SubTheoremType, ASubTheorem> >::
-SubTheorem(const std::string &name_, const ptr<SubTheoremType>& leftFormula, const ptr<ASubTheorem>& rightFormula):
-    ASubImpureTheorem(name_,leftFormula->getExtVars(),rightFormula->getExtVars(),PropType::LET_PROP),
-    m_son(std::make_unique<Let<SubTheoremType, ASubTheorem>>(leftFormula,rightFormula))
+SubTheorem(const ptr<SubTheoremType>& leftFormula, const ptr<ASubTheorem>& rightFormula):
+    m_son(std::make_unique<Let<SubTheoremType, ASubTheorem>>(leftFormula,rightFormula)),
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
 {
 
 }
@@ -62,6 +65,12 @@ const typename SubTheorem<Let<SubTheoremType, ASubTheorem > >::SubPropertyType&
 SubTheorem<Let<SubTheoremType, ASubTheorem> >::getSon() const
 {
     return *m_son;
+}
+
+template<typename SubTheoremType>
+constexpr IProposition::PropType SubTheorem < Let<SubTheoremType, ASubTheorem>>::type() const
+{
+    return IProposition::LET_PROP;
 }
 
 template<typename SubTheoremType>
@@ -80,6 +89,12 @@ template<typename SubTheoremType>
 std::string SubTheorem<Let<SubTheoremType, ASubTheorem> >::toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
+}
+
+template<typename SubTheoremType>
+inline const DbVar* SubTheorem<Let<SubTheoremType, ASubTheorem>>::getExtVars() const
+{
+    return &m_extVars;
 }
 
 template<typename SubTheoremType>

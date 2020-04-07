@@ -8,36 +8,6 @@
 
 namespace N_Logic {
 
-enum Name
-{
-    NONE,
-    AND,
-    EQUIVALENT,
-    IMPLICATION,
-    NOT,
-    OR,
-    HYP,
-    EQUAL,
-    SETEQUAL,
-    LET,
-    BELONGSTO,
-    PLUS,
-};
-
-typedef size_t Arity;
-
-enum class Associativity
-{
-    RIGHT,
-    LEFT
-};
-
-enum NbArgBefore
-{
-    E_ZERO,
-    E_ONE
-};
-
 class IOperator
 {
 public:

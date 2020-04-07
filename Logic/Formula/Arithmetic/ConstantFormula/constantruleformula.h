@@ -6,10 +6,10 @@
 namespace N_Logic
 {
 
-template<typename VarType>
+template<ArithConstantType VarType>
 class ConstSubArithmeticTheorem;
 
-template<typename VarType>
+template<ArithConstantType VarType>
 class ConstSubArithmeticRule:
         public ASubArithmeticRule<typename VarType::ValueType>
 {
@@ -19,15 +19,16 @@ public:
     typedef typename
     ASubArithmeticRule<typename VarType::ValueType>::ATheoremType ATheoremType;
 
-    ConstSubArithmeticRule(const std::string& name_, const ValueType& var);
+    ConstSubArithmeticRule(const ValueType& var);
 
     size_t arity() const override final;
     ValueType evaluate() const override final;
+    constexpr ArithType type() const override final;
 
     //internal methods
     bool identifyPriv(const ptr<ATheoremType>& prop, DbVarProp& dbVarProp) const override final;
-    ptr<ATheoremType> applyPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
-    ptr<ATheoremType> applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp) const override final;
 
     const VarType& getSon() const;
 
@@ -37,6 +38,7 @@ public:
     bool operator==(const ConstSubArithmeticTheorem<SubOperatorType>& prop) const;
 
     std::string toString(unsigned short priorityParent=1000) const override final;
+    const DbVar* getExtVars() const override final;
 
     ~ConstSubArithmeticRule() override = default;
 
@@ -44,59 +46,67 @@ protected:
     const std::unique_ptr<const SubOperatorType> m_son;
 };
 
-template<typename VarType>
-ConstSubArithmeticRule<VarType>::ConstSubArithmeticRule(const std::string &name_, const ValueType &var):
-    ASubArithmeticRule<typename VarType::ValueType>(name_,ToArithType<ValueType>::convert()),
+
+template<ArithmeticType ValueType>
+struct ToTheoremStruct<ConstSubArithmeticRule<ValueType>> { using Type = ConstSubArithmeticTheorem<ValueType>; };
+
+template<ArithConstantType VarType>
+ConstSubArithmeticRule<VarType>::ConstSubArithmeticRule(const ValueType &var):
     m_son(std::make_unique<SubOperatorType>(var))
 {
-    static_assert (VarType::isConstantExpr(),"VarType must be Constant type in ConstSubArithmeticRule");
-    static_assert(!std::is_same_v<VarType,ConstBoolean >,"VarType cannot be Boolean, use SubRule<Boolean> instead");
+    
 }
 
-template<typename VarType>
+template<ArithConstantType VarType>
 size_t ConstSubArithmeticRule<VarType>::arity() const
 {
     return 0;
 }
 
-template<typename VarType>
+template<ArithConstantType VarType>
 typename ConstSubArithmeticRule<VarType>::ValueType ConstSubArithmeticRule<VarType>::evaluate() const
 {
     return m_son->evaluate();
 }
 
+template<ArithConstantType VarType>
+inline constexpr ArithType ConstSubArithmeticRule<VarType>::type() const
+{
+    return ToArithType<ValueType>::convert();
+}
 
-template<typename VarType>
+
+template<ArithConstantType VarType>
 bool ConstSubArithmeticRule<VarType>::
 identifyPriv(const ptr<typename ConstSubArithmeticRule<VarType>::ATheoremType> &prop, DbVarProp &/*dbVarProp*/) const
 {
    return (*this)==*prop;
 }
 
-template<typename VarType>
+template<ArithConstantType VarType>
 ptr<typename ConstSubArithmeticRule<VarType>::ATheoremType>
 ConstSubArithmeticRule<VarType>::
-applyPriv(const std::string &thName, DbVarProp &/*dbVarProp*/) const
+applyPriv(DbVarProp &/*dbVarProp*/) const
 {
-    return std::make_shared<const ConstSubArithmeticTheorem<VarType>>(thName,m_son->evaluate());
+    return std::make_shared<const ConstSubArithmeticTheorem<VarType>>(m_son->evaluate());
 }
 
 
-template<typename VarType>
+template<ArithConstantType VarType>
 ptr<typename ConstSubArithmeticRule<VarType>::ATheoremType>
-ConstSubArithmeticRule<VarType>::applyFirstPriv(const std::string &thName, DbVarProp &/*dbVarProp*/) const
+ConstSubArithmeticRule<VarType>::applyFirstPriv(DbVarProp &/*dbVarProp*/) const
 {
-    return std::make_shared<const ConstSubArithmeticTheorem<VarType>>(thName,m_son->evaluate());
+    return std::make_shared<const ConstSubArithmeticTheorem<VarType>>(m_son->evaluate());
 }
 
 
-template<typename VarType>
+template<ArithConstantType VarType>
 const VarType &ConstSubArithmeticRule<VarType>::getSon() const
 {
     return *(m_son.get());
 }
 
-template<typename VarType>
+template<ArithConstantType VarType>
 bool ConstSubArithmeticRule< VarType>::
 isEqual(const ASubArithmeticTheorem<ValueType>& prop) const
 {
@@ -112,7 +122,7 @@ isEqual(const ASubArithmeticTheorem<ValueType>& prop) const
     }
 }
 
-template<typename VarType>
+template<ArithConstantType VarType>
 bool ConstSubArithmeticRule< VarType>::
 isEqual(const ASubArithmeticRule<ValueType>& prop) const
 {
@@ -127,23 +137,28 @@ isEqual(const ASubArithmeticRule<ValueType>& prop) const
     }
 }
 
-template<typename VarType>
+template<ArithConstantType VarType>
 bool ConstSubArithmeticRule<VarType>::
 operator==(const ConstSubArithmeticRule<VarType> &prop) const
 {
     return *m_son==(prop.getSon());
 }
 
-template<typename VarType>
+template<ArithConstantType VarType>
 bool ConstSubArithmeticRule<VarType>::operator==(const ConstSubArithmeticTheorem<VarType> &prop) const
 {
     return *m_son==(prop.getSon());
 }
 
-template<typename VarType>
+template<ArithConstantType VarType>
 std::string ConstSubArithmeticRule<VarType>::toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
+}
+template<ArithConstantType VarType>
+inline const DbVar* ConstSubArithmeticRule<VarType>::getExtVars() const
+{
+    return nullptr;
 }
 }
 

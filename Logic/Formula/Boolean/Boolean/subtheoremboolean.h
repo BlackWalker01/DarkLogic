@@ -10,9 +10,10 @@ class SubTheorem<Boolean>: public ASubTheorem
 public:
     typedef Boolean SubPropertyType;
 
-    SubTheorem(const std::string& name, const std::shared_ptr<Boolean>& val);
+    SubTheorem(const std::shared_ptr<Boolean>& val);
 
     bool evaluate() const override final;
+    constexpr PropType type() const override final;
     bool canBeDemonstrated() const override;
 
     bool isEqual(const ASubTheorem& prop) const override final;
@@ -21,6 +22,7 @@ public:
     bool operator==(const SubRule<SubPropertyType>& prop) const;
 
     std::string toString(unsigned short priorityParent=1000) const override final;
+    const DbVar* getExtVars() const override final;
 
     ptr<ASubTheorem> copyTheorem() const override final;
     const SubPropertyType& getSon() const;
@@ -34,6 +36,7 @@ protected:
     size_t arity() const override final;
 
     const std::shared_ptr<SubPropertyType> m_son;
+    const DbVar m_extVars;
 };
 }
 #endif // SUBTHEOREMBOOLEAN_H

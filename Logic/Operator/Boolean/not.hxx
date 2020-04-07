@@ -55,7 +55,7 @@ constexpr unsigned short NotFun<SubPropertyType>::priority()
 template<Proposition SubPropertyType> template<Proposition SubPropertyType2>
 bool NotFun<SubPropertyType>::operator==(const NotFun<SubPropertyType2> &ope) const
 {
-    return m_sonProp==ope.m_sonProp;
+    return *m_sonProp==*(ope.m_sonProp);
 }
 
 template<Proposition SubPropertyType>

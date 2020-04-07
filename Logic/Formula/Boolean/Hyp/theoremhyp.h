@@ -10,7 +10,7 @@ class Theorem<Hyp<ASubTheorem>>: public SubTheorem<Hyp<ASubTheorem>>
 public:
     typedef Hyp<ASubTheorem> SubPropertyType;
 
-    Theorem(const std::string& name_, const std::vector<ptr<ASubTheorem>>& subProps);
+    Theorem(const std::vector<ptr<ASubTheorem>>& subProps);
 
 
     ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule,

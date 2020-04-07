@@ -12,9 +12,10 @@ class SubRule<Hyp<ASubRule>>: public ASubPureRule
 public:
     typedef Hyp<ASubRule> SubPropertyType;
 
-    SubRule(const std::string& name, const std::vector<ptr<ASubRule>>& subProps);
+    SubRule(const std::vector<ptr<ASubRule>>& subProps);
 
     bool evaluate() const override final;
+    constexpr PropType type() const override final;
 
     bool isEqual(const ASubRule& prop) const override final;
     bool isEqual(const ASubTheorem& prop) const override final;
@@ -25,17 +26,19 @@ public:
     size_t arity() const override final;
     std::string toString(unsigned short priorityParent=1000) const override final;
     const SubPropertyType& getSon() const;
+    const DbVar* getExtVars() const override final;
 
     ~SubRule() override = default;
 
 protected:
     bool identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp& dbVarProp) const override final;
-    ptr<ASubTheorem> applyPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
-    ptr<ASubTheorem> applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
+    ptr<ASubTheorem> applyPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ASubTheorem> applyFirstPriv(DbVarProp& dbVarProp) const override final;
     const ptr<ASubRule>& operator[](const size_t& index) const override final;    
 
 protected:
     const std::unique_ptr<const SubPropertyType> m_son;
+    const DbVar m_extVars;
 };
 }
 
