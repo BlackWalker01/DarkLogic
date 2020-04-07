@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <memory>
 #include <mutex>
-#define MAX_DEPTH 3
+#define MAX_DEPTH 100
 #define VAL_INIT std::numeric_limits<unsigned short>::max()-1
 
 class AI;
