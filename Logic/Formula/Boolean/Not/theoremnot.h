@@ -10,7 +10,7 @@ class Theorem<Not<ASubTheorem>>: public SubTheorem<Not<ASubTheorem>>
 public:
     typedef Not<ASubTheorem> SubPropertyType;
 
-    Theorem(const std::string& name_, const ptr<ASubTheorem>& subProp);
+    Theorem(const ptr<ASubTheorem>& subProp);
 
 
     ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule,

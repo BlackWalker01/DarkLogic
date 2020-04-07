@@ -10,7 +10,7 @@
 namespace N_Logic
 {
 
-template<typename SubFormulaType>
+template<SubRuleFormula SubFormulaType>
 class SubArithmeticRule;
 
 template<typename ValueType>

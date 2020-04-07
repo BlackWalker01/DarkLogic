@@ -17,7 +17,8 @@ struct EquivalentToStr
 template<Proposition SubPropertyType>
 struct EqFun
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = SubPropertyType;
 
     EqFun() = default;
     EqFun(const ptr<SubPropertyType>& prop1, const ptr<SubPropertyType>& prop2);
@@ -54,7 +55,7 @@ struct EqFun
     bool operator()() const;
 
     ~EqFun() = default;
-private:
+
     std::tuple<const ptr<SubPropertyType>,const ptr<SubPropertyType>> m_sonProps;
 };
 
@@ -66,6 +67,9 @@ template<Proposition SubPropertyType>
 class Equivalent : public Operator<EqFun<SubPropertyType>>
 {
 public:
+    using RuleOpe = Equivalent<typename Operator<EqFun<SubPropertyType>>::SubRuleFormulaType>;
+    using TheoremOpe = Equivalent<typename Operator<EqFun<SubPropertyType>>::SubTheoremFormulaType>;
+
     Equivalent() = default;
     Equivalent(const ptr<SubPropertyType>& prop1, const ptr<SubPropertyType>& prop2);
 

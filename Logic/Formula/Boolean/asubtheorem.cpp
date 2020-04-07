@@ -1,32 +1,9 @@
 #include "subtheorem.h"
 #include "Utils/utils.h"
 #include "Variable/allvariable.h"
+#include "Formula/Arithmetic/VariableFormula/variabletheoremformula.h"
 
 using namespace N_Logic;
-
-ASubTheorem::ASubTheorem(const std::string &name_, const IProposition::PropType type_):
-    IProposition(name_,type_)
-{
-
-}
-
-ASubTheorem::ASubTheorem(const std::string &name_, const DbVar &dbVar, const IProposition::PropType type_):
-    IProposition(name_,dbVar,type_)
-{
-
-}
-
-ASubTheorem::ASubTheorem(const std::string &name_, const DbVar &dbVar, const DbVar &dbVar2, const IProposition::PropType type_):
-    IProposition(name_,dbVar,dbVar2,type_)
-{
-
-}
-
-ASubTheorem::ASubTheorem(const std::string &name_, const std::vector<DbVar> &dbVars, const IProposition::PropType type_):
-    IProposition(name_,dbVars,type_)
-{
-
-}
 
 const std::vector<std::vector<Arity> > &ASubTheorem::getAllPaths() const
 {
@@ -40,7 +17,7 @@ const std::vector<std::vector<Arity> > &ASubTheorem::getAllPaths() const
 bool N_Logic::ASubTheorem::canBeDemonstrated() const
 {
     std::unique_ptr<bool> eval = nullptr;
-    return testCanBeDemonstrated(m_extVars.getVars(), eval);    
+    return testCanBeDemonstrated(getExtVars()->getVars(), eval);    
 }
 
 /**

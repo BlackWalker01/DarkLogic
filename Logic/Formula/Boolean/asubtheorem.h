@@ -11,10 +11,7 @@ class IISubRuleFormula;
 class ASubTheorem: public IProposition, public ISubTheoremFormula<ASubTheorem>
 {
 public:
-    ASubTheorem(const std::string& name_, const PropType type_);
-    ASubTheorem(const std::string& name_, const DbVar& dbVar, const PropType type_);
-    ASubTheorem(const std::string& name_, const DbVar& dbVar, const DbVar& dbVar2, const PropType type_);
-    ASubTheorem(const std::string& name_, const std::vector<DbVar>& dbVars, const PropType type_);
+    ASubTheorem() = default;
     ASubTheorem(const ASubTheorem &prop) = delete;
 
     virtual ptr<ASubTheorem> copyTheorem() const =0; //method used by a subRule to create a theorem from this subTheorem
@@ -39,8 +36,7 @@ protected:
     std::vector<std::vector<Arity>> m_allPaths;
 };
 
-template<Proposition SubPropertyType>
-class Hyp;
+template<> struct ToRuleStruct<ASubTheorem> { using Type = ASubRule; };
 
 ptr<ASubTheorem> create(const std::string &name, const std::string &content);
 ptr<IOperator> createTheoremOperator(const Name name, const Arity& arity=0);

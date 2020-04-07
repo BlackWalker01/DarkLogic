@@ -11,7 +11,6 @@ template<SetDerived SetType_>
 class ConstSet: public Constante<OmniSet<SetType_>>
 {
 public:
-    using SetType=SetType_;
     using ValueType=typename OmniSet<SetType_>::Type;
 
     ConstSet(const ValueType& val);

@@ -7,10 +7,7 @@ namespace N_Logic
 class ASubPureTheorem: public ASubTheorem
 {
 public:
-    ASubPureTheorem(const std::string& name_, const PropType type_);
-    ASubPureTheorem(const std::string& name_, const DbVar& dbVar, const PropType type_);
-    ASubPureTheorem(const std::string& name_, const DbVar& dbVar, const DbVar& dbVar2, const PropType type_);
-    ASubPureTheorem(const std::string& name_, const std::vector<DbVar>& dbVars, const PropType type_);
+    ASubPureTheorem() = default;
 
 
     virtual const ptr<ASubTheorem>& operator[](const size_t& index) const =0;

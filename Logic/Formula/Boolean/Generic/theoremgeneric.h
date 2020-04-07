@@ -8,7 +8,7 @@ template<SubTheoremProperty SubPropertyType>
 class Theorem: public SubTheorem<SubPropertyType>
 {
 public:
-    Theorem(const std::string& name_, const ptr<ASubTheorem>& leftSubProp, const ptr<ASubTheorem>& rightSubProp);
+    Theorem(const ptr<ASubTheorem>& leftSubProp, const ptr<ASubTheorem>& rightSubProp);
 
 
     ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<size_t>& indexes,
@@ -17,10 +17,12 @@ public:
     ~Theorem() override = default;
 };
 
+template<SubTheoremProperty SubPropertyType> struct ToRuleStruct<Theorem<SubPropertyType>> { using Type = Rule<SubPropertyType>; };
+
 
 template<SubTheoremProperty SubPropertyType>
-Theorem<SubPropertyType>::Theorem(const std::string &name_, const ptr<ASubTheorem> &leftSubProp, const ptr<ASubTheorem> &rightSubProp):
-    SubTheorem<SubPropertyType>(name_,leftSubProp,rightSubProp)
+Theorem<SubPropertyType>::Theorem(const ptr<ASubTheorem> &leftSubProp, const ptr<ASubTheorem> &rightSubProp):
+    SubTheorem<SubPropertyType>(leftSubProp,rightSubProp)
 {
 
 }

@@ -13,32 +13,60 @@ template<SubRuleProperty SubPropertyType>
 class SubRule: public ASubPureRule
 {
 public:
-    SubRule(const std::string& name, const ptr<ASubRule>& leftSubProp, const ptr<ASubRule>& rightSubProp);
+    SubRule(const ptr<ASubRule>& leftSubProp, const ptr<ASubRule>& rightSubProp);
 
     bool evaluate() const override final;
+    constexpr PropType type() const override final
+    {
+        if constexpr (std::is_same_v<SubPropertyType, And<ASubRule>>)
+        {
+            return AND_PROP;
+        }
+        else if constexpr (std::is_same_v<SubPropertyType, Equivalent<ASubRule>>)
+        {
+            return EQUIV_PROP;
+        }
+        else if constexpr (std::is_same_v<SubPropertyType, Implication<ASubRule>>)
+        {
+            return IMPL_PROP;
+        }
+        else if constexpr (std::is_same_v<SubPropertyType, Not<ASubRule>>)
+        {
+            return NOT_PROP;
+        }
+        else if constexpr (std::is_same_v<SubPropertyType, Or<ASubRule>>)
+        {
+            return OR_PROP;
+        }
+    }
 
     bool isEqual(const ASubRule& prop) const override final;
     bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubRule& prop) const;
-    bool operator==(const SubTheorem<SubPropertyType>& prop) const;
+    bool operator==(const SubTheorem<ToTheoremOpe<SubPropertyType>>& prop) const;
 
 
     std::string toString(unsigned short priorityParent=1000) const override final;
     const SubPropertyType& getSon() const;
+    const DbVar* getExtVars() const override final;
 
     ~SubRule() override = default;
 
 protected:
     bool identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp& dbVarProp) const override final;
-    ptr<ASubTheorem> applyPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
-    ptr<ASubTheorem> applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
+    ptr<ASubTheorem> applyPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ASubTheorem> applyFirstPriv(DbVarProp& dbVarProp) const override final;
 
     const ptr<ASubRule>& operator[](const size_t& index) const override final;
     size_t arity() const override final;
 
 protected:
     const std::unique_ptr<const SubPropertyType> m_son;
+    const DbVar m_extVars;
 };
+
+template<SubRuleProperty SubPropertyType> 
+struct ToTheoremStruct<SubRule<SubPropertyType>> { using Type = SubTheorem<SubPropertyType>; };
 
 /**
  * IdentifyPriv methods
@@ -60,32 +88,37 @@ bool SubRule<Or<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp
  * applyPriv methods
  */
 template<>
-ptr<ASubTheorem> SubRule<And<ASubRule>>::applyPriv(const std::string& thName, DbVarProp& dbVarProp) const;
+ptr<ASubTheorem> SubRule<And<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const;
 
 template<>
-ptr<ASubTheorem> SubRule<Equivalent<ASubRule>>::applyPriv(const std::string& thName, DbVarProp& dbVarProp) const;
+ptr<ASubTheorem> SubRule<Equivalent<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const;
 
 template<>
-ptr<ASubTheorem> SubRule<Implication<ASubRule>>::applyPriv(const std::string& thName, DbVarProp& dbVarProp) const;
+ptr<ASubTheorem> SubRule<Implication<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const;
 
 template<>
-ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyPriv(const std::string& thName, DbVarProp& dbVarProp) const;
+ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const;
 
 /**
  * applyFirstPriv methods
  */
 template<>
-ptr<ASubTheorem> SubRule<And<ASubRule>>::applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const;
+ptr<ASubTheorem> SubRule<And<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const;
 
 template<>
-ptr<ASubTheorem> SubRule<Equivalent<ASubRule>>::applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const;
+ptr<ASubTheorem> SubRule<Equivalent<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const;
 
 template<>
-ptr<ASubTheorem> SubRule<Implication<ASubRule>>::applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const;
+ptr<ASubTheorem> SubRule<Implication<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const;
 
 template<>
-ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const;
+ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const;
 
+template<SubRuleProperty SubPropertyType>
+const DbVar* SubRule<SubPropertyType>::getExtVars() const
+{
+    return &m_extVars;
+}
 }
 
 #endif // SUBRULEGENERIC_H

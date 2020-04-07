@@ -17,7 +17,8 @@ struct NotToStr
 template<Proposition SubPropertyType>
 struct NotFun
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = SubPropertyType;
 
     NotFun() = default;
     NotFun(const ptr<SubPropertyType>& prop1);
@@ -57,7 +58,7 @@ struct NotFun
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
 
     ~NotFun() = default;
-private:
+
     const ptr<SubPropertyType> m_sonProp;
 };
 
@@ -69,6 +70,9 @@ template<Proposition SubPropertyType>
 class Not : public Operator<NotFun<SubPropertyType>>
 {
 public:
+    using RuleOpe = Not<typename Operator<NotFun<SubPropertyType>>::SubRuleFormulaType>;
+    using TheoremOpe = Not<typename Operator<NotFun<SubPropertyType>>::SubTheoremFormulaType>;
+
     Not() = default;
     Not(const ptr<SubPropertyType> &prop1);
 

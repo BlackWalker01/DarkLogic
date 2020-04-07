@@ -12,10 +12,11 @@ class SubRule<Let<SubRuleType,ASubRule>>: public ASubImpureRule
 public:
     typedef Let<SubRuleType,ASubRule> SubPropertyType;
 
-    SubRule(const std::string& name_, const ptr<SubRuleType>& leftFormula,
+    SubRule(const ptr<SubRuleType>& leftFormula,
             const ptr<ASubRule>& rightFormula);
 
     bool evaluate() const override final;
+    constexpr PropType type() const override final;
 
     bool isEqual(const ASubRule& prop) const override final;
     bool isEqual(const ASubTheorem& prop) const override final;
@@ -25,6 +26,7 @@ public:
 
 
     std::string toString(unsigned short priorityParent=1000) const override final;
+    const DbVar* getExtVars() const override final;
 
     const SubPropertyType& getSon() const;
     const ptr<IISubRuleFormula>& operator[](const size_t& index) const override final;
@@ -33,20 +35,21 @@ public:
 
 protected:
     bool identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp& dbVarProp) const override final;
-    ptr<ASubTheorem> applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
-    ptr<ASubTheorem> applyPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
+    ptr<ASubTheorem> applyFirstPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ASubTheorem> applyPriv(DbVarProp& dbVarProp) const override final;
 
     size_t arity() const override final;
 
 protected:
     const std::unique_ptr<const SubPropertyType> m_son;
+    const DbVar m_extVars;
 };
 
 template<typename SubRuleType>
 SubRule<Let<SubRuleType, ASubRule > >::
-SubRule(const std::string &name_, const ptr<SubRuleType>& leftFormula, const ptr<ASubRule>& rightFormula):
-    ASubImpureRule(name_,leftFormula->getExtVars(),rightFormula->getExtVars(),PropType::LET_PROP),
-    m_son(std::make_unique<const Let<SubRuleType, ASubRule >>(leftFormula,rightFormula))
+SubRule(const ptr<SubRuleType>& leftFormula, const ptr<ASubRule>& rightFormula):
+    m_son(std::make_unique<const Let<SubRuleType, ASubRule >>(leftFormula,rightFormula)),
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
 {
 
 }
@@ -55,6 +58,12 @@ template<typename SubRuleType>
 bool SubRule<Let<SubRuleType, ASubRule> >::evaluate() const
 {
     return m_son->evaluate();
+}
+
+template<typename SubRuleType>
+constexpr IProposition::PropType SubRule < Let<SubRuleType, ASubRule>>::type() const
+{
+    return LET_PROP;
 }
 
 template<typename SubRuleType>
@@ -74,7 +83,7 @@ bool SubRule<Let<SubRuleType, ASubRule > >::isEqual(const ASubRule &prop) const
 template<typename SubRuleType>
 bool SubRule<Let<SubRuleType, ASubRule > >::isEqual(const ASubTheorem &prop) const
 {
-    auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
+    auto propCast=dynamic_cast<const SubTheorem<ToTheoremOpe<SubPropertyType>>*>(&prop);
     if(propCast)
     {
         return *this->m_son==propCast->getSon();
@@ -103,6 +112,12 @@ template<typename SubRuleType>
 std::string SubRule<Let<SubRuleType, ASubRule> >::toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
+}
+
+template<typename SubRuleType>
+inline const DbVar* SubRule<Let<SubRuleType, ASubRule>>::getExtVars() const
+{
+    return &m_extVars;
 }
 
 

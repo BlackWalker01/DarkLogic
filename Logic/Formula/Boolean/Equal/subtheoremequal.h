@@ -11,11 +11,12 @@ class SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>,ASubArithmeticTheorem<V
 public:
     typedef Equal<ASubArithmeticTheorem<ValueType1>,ASubArithmeticTheorem<ValueType2>> SubPropertyType;
 
-    SubTheorem(const std::string& name_, const ptr<ASubArithmeticTheorem<ValueType1>>& leftFormula,
+    SubTheorem(const ptr<ASubArithmeticTheorem<ValueType1>>& leftFormula,
                const ptr<ASubArithmeticTheorem<ValueType2>>& rightFormula);
     SubTheorem(const ptr<SubRule<ConstBoolean>>& prop);
 
     bool evaluate() const override final;
+    constexpr PropType type() const override final;
 
     bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubTheorem& prop) const;
@@ -27,6 +28,7 @@ public:
 
     ptr<ASubTheorem> copyTheorem() const override final;
     const SubPropertyType& getSon() const;
+    const DbVar* getExtVars() const override final;
     const ptr<IISubTheoremFormula>& operator[](const size_t& index) const override final;
 
     ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule,
@@ -37,15 +39,16 @@ public:
 protected:
     size_t arity() const override final;
     const std::unique_ptr<const SubPropertyType> m_son;
+    const DbVar m_extVars;
 };
 
 
 template<typename ValueType1, typename ValueType2>
 N_Logic::SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::
-SubTheorem(const std::string &name_, const ptr<ASubArithmeticTheorem<ValueType1>> &leftFormula,
+SubTheorem(const ptr<ASubArithmeticTheorem<ValueType1>> &leftFormula,
            const ptr<ASubArithmeticTheorem<ValueType2>> &rightFormula):
-    ASubImpureTheorem(name_,leftFormula->getExtVars(),rightFormula->getExtVars(),PropType::EQUAL_PROP),
-    m_son(std::make_unique<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>(leftFormula,rightFormula))
+    m_son(std::make_unique<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>(leftFormula,rightFormula)),
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
 {
     computeAllPaths();
 }
@@ -74,6 +77,18 @@ std::string N_Logic::SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubAri
 toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
+}
+
+template<typename ValueType1, typename ValueType2>
+const DbVar* N_Logic::SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::getExtVars() const
+{
+    return &m_extVars;
+}
+
+template<typename ValueType1, typename ValueType2>
+constexpr IProposition::PropType SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::type() const
+{
+    return EQUAL_PROP;
 }
 
 template<typename ValueType1, typename ValueType2>

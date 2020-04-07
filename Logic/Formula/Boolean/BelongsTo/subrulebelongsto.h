@@ -12,10 +12,11 @@ class SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeti
 public:
     typedef BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>> SubPropertyType;
 
-    SubRule(const std::string& name_, const ptr<ASubArithmeticRule<typename SetType::Type>>& leftFormula,
+    SubRule(const ptr<ASubArithmeticRule<typename SetType::Type>>& leftFormula,
             const ptr<ASubArithmeticRule<SetType>>& rightFormula);
 
     bool evaluate() const override final;
+    constexpr PropType type() const override final;
 
     bool isEqual(const ASubRule& prop) const override final;
     bool isEqual(const ASubTheorem& prop) const override final;
@@ -25,7 +26,7 @@ public:
 
 
     std::string toString(unsigned short priorityParent=1000) const override final;
-
+    const DbVar* getExtVars() const override final;
     const SubPropertyType& getSon() const;
     const ptr<IISubRuleFormula>& operator[](const size_t& index) const override final;
 
@@ -33,20 +34,21 @@ public:
 
 protected:
     bool identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp& dbVarProp) const override final;
-    ptr<ASubTheorem> applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
-    ptr<ASubTheorem> applyPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
+    ptr<ASubTheorem> applyFirstPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ASubTheorem> applyPriv(DbVarProp& dbVarProp) const override final;
     size_t arity() const override final;
 
 public:
     const std::unique_ptr<const SubPropertyType> m_son;
+    const DbVar m_extVars;
 };
 
 template<typename SetType>
 SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>> >::
-SubRule(const std::string &name_, const ptr<ASubArithmeticRule<typename SetType::Type>>& leftFormula,
+SubRule(const ptr<ASubArithmeticRule<typename SetType::Type>>& leftFormula,
         const ptr<ASubArithmeticRule<SetType>>& rightFormula):
-    ASubImpureRule(name_,leftFormula->getExtVars(),rightFormula->getExtVars(),PropType::BELONGSTO_PROP),
-    m_son(std::make_unique<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>>>(leftFormula,rightFormula))
+    m_son(std::make_unique<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>>>(leftFormula,rightFormula)),
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
 {
 
 }
@@ -55,6 +57,12 @@ template<typename SetType>
 bool SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>> >::evaluate() const
 {
     return m_son->evaluate();
+}
+
+template<typename SetType>
+inline constexpr IProposition::PropType SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>, ASubArithmeticRule<SetType>>>::type() const
+{
+    return BELONGSTO_PROP;
 }
 
 template<typename SetType>
@@ -76,7 +84,7 @@ template<typename SetType>
 bool SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>>  >::
 isEqual(const ASubTheorem &prop) const
 {
-    auto propCast=dynamic_cast<const SubTheorem<SubPropertyType>*>(&prop);
+    auto propCast=dynamic_cast<const SubTheorem<ToTheoremOpe<SubPropertyType>>*>(&prop);
     if(propCast)
     {
         return *this->m_son==(propCast->getSon());
@@ -106,6 +114,12 @@ template<typename SetType>
 std::string SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>> >::toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
+}
+
+template<typename SetType>
+const DbVar* SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>, ASubArithmeticRule<SetType>> >::getExtVars() const
+{
+    return &m_extVars;
 }
 
 

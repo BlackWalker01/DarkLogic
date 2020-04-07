@@ -17,16 +17,18 @@ public:
     typedef Plus< SubLeftFormula,SubRightFormula> SubOperatorType;
     typedef typename SubOperatorType::ValueType ValueType;
 
-    SubArithmeticTheorem(const std::string& name_, const ptr<SubLeftFormula>& leftFormula,
+    SubArithmeticTheorem(const ptr<SubLeftFormula>& leftFormula,
                          const ptr<SubRightFormula>& rightFormula);
 
     size_t arity() const override final;
     ValueType evaluate() const override final;
+    constexpr ArithType type() const override final;
 
     const SubOperatorType& getSon() const;
     const ptr<IISubTheoremFormula>& operator[](const size_t& k) const override final;
     IISubTheoremFormula::TheoremFormulaType getFormulaType() const override final;
     std::string toString(unsigned short priorityParent=1000) const override final;
+    const DbVar* getExtVars() const override final;
     const std::vector<std::vector<Arity>>& computeAllPaths() override final;
 
     bool isEqual(const ASubArithmeticRule<ValueType>& prop) const override final;
@@ -37,15 +39,15 @@ public:
     ~SubArithmeticTheorem() override = default;
 private:
     const std::unique_ptr<const SubOperatorType> m_son;
+    const DbVar m_extVars;
 };
 
 template<typename ValueType1, typename ValueType2>
 SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::
-SubArithmeticTheorem(const std::string &name_,
-                     const ptr<ASubArithmeticTheorem<ValueType1>>& leftFormula,
+SubArithmeticTheorem(const ptr<ASubArithmeticTheorem<ValueType1>>& leftFormula,
                      const ptr<ASubArithmeticTheorem<ValueType2>>& rightFormula):
-    ASubArithmeticTheorem<typename Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >::ValueType>(name_,PLUS_FORMULA),
-m_son(std::make_unique<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2>> >(leftFormula,rightFormula))
+    m_son(std::make_unique<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2>> >(leftFormula,rightFormula)),
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
 {
 
 }
@@ -54,6 +56,12 @@ template<typename ValueType1, typename ValueType2>
 size_t SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::arity() const
 {
     return m_son->arity();
+}
+
+template<typename ValueType1, typename ValueType2>
+inline constexpr ArithType SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2>>>::type() const
+{
+    return PLUS_FORMULA;
 }
 
 template<typename ValueType1, typename ValueType2>
@@ -75,6 +83,12 @@ std::string SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubAri
 toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
+}
+
+template<typename ValueType1, typename ValueType2>
+const DbVar* SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::getExtVars() const
+{
+    return &m_extVars;
 }
 
 template<typename ValueType1, typename ValueType2>

@@ -4,7 +4,7 @@
 
 namespace N_Logic
 {
-template<typename VarType>
+template<SubTheoremFormula VarType>
 class SubArithmeticTheorem:
         public ASubArithmeticTheorem<typename VarType::ValueType>
 {
@@ -12,13 +12,15 @@ public:
     typedef VarType SubOperatorType;
     typedef typename SubOperatorType::ValueType ValueType;
 
-    SubArithmeticTheorem(const std::string& name_, const std::shared_ptr<VarType>& var);
+    SubArithmeticTheorem(const std::shared_ptr<VarType>& var);
 
     size_t arity() const override final;
     ValueType evaluate() const override final;
+    constexpr ArithType type() const override final;
 
     const SubOperatorType& getSon() const;
     std::string toString(unsigned short priorityParent=1000) const override final;
+    const DbVar* getExtVars() const override final;
     const std::vector<std::vector<Arity>>& computeAllPaths() override final;
 
     void operator=(const ValueType& val) const;
@@ -31,40 +33,55 @@ public:
     ~SubArithmeticTheorem() override = default;
 
     const std::shared_ptr<SubOperatorType> m_son;
+    const DbVar m_extVars;
 };
 
-template<typename VarType>
-SubArithmeticTheorem<VarType>::SubArithmeticTheorem(const std::string &name_, const std::shared_ptr<VarType> &var):
-    ASubArithmeticTheorem<typename VarType::ValueType> (name_,ToArithType<ValueType>::convert()), m_son(var)
+template<ArithmeticType ValueType> struct ToRuleStruct<SubArithmeticTheorem<ValueType>> { using Type = SubArithmeticRule<ValueType>; };
+
+template<SubTheoremFormula VarType>
+SubArithmeticTheorem<VarType>::SubArithmeticTheorem(const std::shared_ptr<VarType> &var):
+    m_son(var), m_extVars(var)
 {
-    static_assert (!VarType::isConstantExpr(),"VarType must be Variable type in ConstSubArithmeticRule");
+    
 }
 
-template<typename VarType>
+template<SubTheoremFormula VarType>
+constexpr ArithType SubArithmeticTheorem<VarType>::type() const
+{
+    return ToArithType<ValueType>::convert();
+}
+
+template<SubTheoremFormula VarType>
 size_t SubArithmeticTheorem<VarType>::arity() const
 {
     return 0;
 }
 
-template<typename VarType>
+template<SubTheoremFormula VarType>
 typename SubArithmeticTheorem<VarType>::ValueType SubArithmeticTheorem<VarType>::evaluate() const
 {
     return m_son->evaluate();
 }
 
-template<typename VarType>
+template<SubTheoremFormula VarType>
 const typename SubArithmeticTheorem<VarType>::SubOperatorType &SubArithmeticTheorem<VarType>::getSon() const
 {
     return *(m_son.get());
 }
 
-template<typename VarType>
+template<SubTheoremFormula VarType>
 std::string SubArithmeticTheorem<VarType>::toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
 }
 
-template<typename VarType>
+template<SubTheoremFormula VarType>
+const DbVar* SubArithmeticTheorem<VarType>::getExtVars() const
+{
+    return &m_extVars;
+}
+
+template<SubTheoremFormula VarType>
 const std::vector<std::vector<Arity> > &SubArithmeticTheorem<VarType>::computeAllPaths()
 {
     if(!this->m_allPaths.size())
@@ -74,13 +91,13 @@ const std::vector<std::vector<Arity> > &SubArithmeticTheorem<VarType>::computeAl
     return this->m_allPaths;
 }
 
-template<typename VarType>
+template<SubTheoremFormula VarType>
 void SubArithmeticTheorem<VarType>::operator=(const ValueType &val) const
 {
     *m_son=val;
 }
 
-template<typename VarType>
+template<SubTheoremFormula VarType>
 bool SubArithmeticTheorem<VarType>::isEqual(const ASubArithmeticRule<SubArithmeticTheorem::ValueType> &prop) const
 {
     auto propCast=
@@ -95,7 +112,7 @@ bool SubArithmeticTheorem<VarType>::isEqual(const ASubArithmeticRule<SubArithmet
     }
 }
 
-template<typename VarType>
+template<SubTheoremFormula VarType>
 bool SubArithmeticTheorem<VarType>::isEqual(const ASubArithmeticTheorem<SubArithmeticTheorem::ValueType> &prop) const
 {
     auto propCast=
@@ -110,13 +127,13 @@ bool SubArithmeticTheorem<VarType>::isEqual(const ASubArithmeticTheorem<SubArith
     }
 }
 
-template<typename VarType>
+template<SubTheoremFormula VarType>
 bool SubArithmeticTheorem<VarType>::operator==(const SubArithmeticTheorem &prop) const
 {
     return *m_son==(prop.getSon());
 }
 
-template<typename VarType>
+template<SubTheoremFormula VarType>
 bool SubArithmeticTheorem<VarType>::operator==(const SubArithmeticRule<SubArithmeticTheorem::SubOperatorType> &prop) const
 {
     return *m_son==(prop.getSon());

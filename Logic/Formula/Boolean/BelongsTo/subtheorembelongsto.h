@@ -11,12 +11,13 @@ class SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubAri
 public:
     typedef BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>> SubPropertyType;
 
-    SubTheorem(const std::string& name_, const ptr<ASubArithmeticTheorem<typename SetType::Type>>& leftFormula,
+    SubTheorem(const ptr<ASubArithmeticTheorem<typename SetType::Type>>& leftFormula,
                const ptr<ASubArithmeticTheorem<SetType>>& rightFormula);
     SubTheorem(const std::string& name, const std::vector<ASubTheorem*>& subProps);
     SubTheorem(const SubRule<ConstBoolean>& prop);
 
     bool evaluate() const override final;
+    constexpr PropType type() const override final;
 
     bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubTheorem& prop) const;
@@ -24,6 +25,7 @@ public:
     bool operator==(const SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>>>& prop) const;
 
     std::string toString(unsigned short priorityParent=1000) const override final;
+    const DbVar* getExtVars() const override final;
     const std::vector<std::vector<Arity> > &computeAllPaths() override final;
 
     ptr<ASubTheorem> copyTheorem() const override final;
@@ -36,6 +38,7 @@ public:
 protected:
     size_t arity() const override final;
     std::unique_ptr<SubPropertyType> m_son;
+    const DbVar m_extVars;
 };
 
 /*template<typename ValueType1, typename ValueType2>
@@ -46,10 +49,10 @@ SubTheorem<BelongsTo<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<Va
 
 template<typename SetType>
 N_Logic::SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>> >::
-SubTheorem(const std::string &name_, const ptr<ASubArithmeticTheorem<typename SetType::Type> > &leftFormula,
+SubTheorem(const ptr<ASubArithmeticTheorem<typename SetType::Type> > &leftFormula,
            const ptr<ASubArithmeticTheorem<SetType> > &rightFormula):
-    ASubImpureTheorem(name_,leftFormula->getExtVars(),rightFormula->getExtVars(),PropType::BELONGSTO_PROP),
-    m_son(std::make_unique<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>>>(leftFormula,rightFormula))
+    m_son(std::make_unique<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>>>(leftFormula,rightFormula)),
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
 {
     computeAllPaths();
 }
@@ -76,9 +79,21 @@ bool SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArit
 }
 
 template<typename SetType>
+inline constexpr IProposition::PropType SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>, ASubArithmeticTheorem<SetType>>>::type() const
+{
+    return BELONGSTO_PROP;
+}
+
+template<typename SetType>
 std::string N_Logic::SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>> >::toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
+}
+
+template<typename SetType>
+const DbVar* N_Logic::SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>, ASubArithmeticTheorem<SetType>> >::getExtVars() const
+{
+    return &m_extVars;
 }
 
 template<typename SetType>

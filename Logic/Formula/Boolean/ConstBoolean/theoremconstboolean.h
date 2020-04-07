@@ -10,7 +10,7 @@ class Theorem<ConstBoolean>: public SubTheorem<ConstBoolean>
 public:
     typedef ConstBoolean SubPropertyType;
 
-    Theorem(const std::string& name_, const bool& son);
+    Theorem(const bool& son);
     Theorem(const SubRule<ConstBoolean>& prop);
 
 

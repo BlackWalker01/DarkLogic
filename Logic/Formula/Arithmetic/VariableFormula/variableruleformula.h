@@ -5,7 +5,7 @@
 
 namespace N_Logic
 {
-template<typename VarType>
+template<SubRuleFormula VarType>
 class SubArithmeticRule:
         public ASubArithmeticRule<typename VarType::ValueType>
 {
@@ -15,15 +15,16 @@ public:
     typedef typename
     ASubArithmeticRule<typename VarType::ValueType>::ATheoremType ATheoremType;
 
-    SubArithmeticRule(const std::string& name_, const std::shared_ptr<VarType>& var);
+    SubArithmeticRule(const std::shared_ptr<VarType>& var);
 
     size_t arity() const override final;
     ValueType evaluate() const override final;
+    constexpr ArithType type() const override final;
 
     //internal methods
     bool identifyPriv(const ptr<ATheoremType>& prop, DbVarProp& dbVarProp) const override final;
-    ptr<ATheoremType> applyPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
-    ptr<ATheoremType> applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp) const override final;
 
     const VarType& getSon() const;
 
@@ -35,35 +36,44 @@ public:
     bool operator==(const SubArithmeticTheorem<SubOperatorType>& prop) const;
 
     std::string toString(unsigned short priorityParent=1000) const override final;
+    const DbVar* getExtVars() const override final;
 
     ~SubArithmeticRule() override = default;
 
     const std::shared_ptr<SubOperatorType> m_son;
+    const DbVar m_extVars;
 };
 
-template<typename VarType>
-SubArithmeticRule<VarType>::SubArithmeticRule(const std::string &name_, const std::shared_ptr<VarType> &var):
-    ASubArithmeticRule<typename VarType::ValueType>(name_,ToArithType<ValueType>::convert()),
-    m_son(var)
+template<ArithmeticType ValueType> 
+struct ToTheoremStruct<SubArithmeticRule<ValueType>> { using Type = SubArithmeticTheorem<ValueType>; };
+
+template<SubRuleFormula VarType>
+SubArithmeticRule<VarType>::SubArithmeticRule(const std::shared_ptr<VarType> &var):
+    m_son(var), m_extVars(var)
 {
-    static_assert (!VarType::isConstantExpr(),"VarType must be Variable type in ConstSubArithmeticRule");
-    static_assert(!std::is_same_v<VarType,Boolean >,"VarType cannot be Boolean, use SubRule<Boolean> instead");
+    
 }
 
-template<typename VarType>
+template<SubRuleFormula VarType>
+constexpr ArithType SubArithmeticRule<VarType>::type() const
+{
+    return ToArithType<ValueType>::convert();
+}
+
+template<SubRuleFormula VarType>
 size_t SubArithmeticRule<VarType>::arity() const
 {
     return 0;
 }
 
-template<typename VarType>
+template<SubRuleFormula VarType>
 typename SubArithmeticRule<VarType>::ValueType SubArithmeticRule<VarType>::evaluate() const
 {
     return m_son->evaluate();
 }
 
 
-template<typename VarType>
+template<SubRuleFormula VarType>
 bool SubArithmeticRule<VarType>::
 identifyPriv(const ptr<typename SubArithmeticRule<VarType>::ATheoremType> &prop, DbVarProp &dbVarProp) const
 {
@@ -88,36 +98,36 @@ identifyPriv(const ptr<typename SubArithmeticRule<VarType>::ATheoremType> &prop,
     }
 }
 
-template<typename VarType>
+template<SubRuleFormula VarType>
 ptr<typename SubArithmeticRule<VarType>::ATheoremType>
 SubArithmeticRule<VarType>::
-applyPriv(const std::string &/*thName*/, DbVarProp &dbVarProp) const
+applyPriv(DbVarProp &dbVarProp) const
 {
     return std::dynamic_pointer_cast<const ATheoremType>(dbVarProp[m_son->name()]);
 }
 
 
-template<typename VarType>
+template<SubRuleFormula VarType>
 ptr<typename SubArithmeticRule<VarType>::ATheoremType>
-SubArithmeticRule<VarType>::applyFirstPriv(const std::string &/*thName*/, DbVarProp &dbVarProp) const
+SubArithmeticRule<VarType>::applyFirstPriv(DbVarProp &dbVarProp) const
 {
     return std::dynamic_pointer_cast<const ATheoremType>(dbVarProp[m_son->name()]);
 }
 
 
-template<typename VarType>
+template<SubRuleFormula VarType>
 const VarType &SubArithmeticRule<VarType>::getSon() const
 {
     return *(m_son.get());
 }
 
-template<typename VarType>
+template<SubRuleFormula VarType>
 void SubArithmeticRule<VarType>::operator=(const ValueType &val) const
 {
     *m_son=val;
 }
 
-template<typename VarType>
+template<SubRuleFormula VarType>
 bool SubArithmeticRule< VarType>::
 isEqual(const ASubArithmeticTheorem<ValueType>& prop) const
 {
@@ -132,7 +142,7 @@ isEqual(const ASubArithmeticTheorem<ValueType>& prop) const
     }
 }
 
-template<typename VarType>
+template<SubRuleFormula VarType>
 bool SubArithmeticRule< VarType>::
 isEqual(const ASubArithmeticRule<ValueType>& prop) const
 {
@@ -147,23 +157,29 @@ isEqual(const ASubArithmeticRule<ValueType>& prop) const
     }
 }
 
-template<typename VarType>
+template<SubRuleFormula VarType>
 bool SubArithmeticRule<VarType>::
 operator==(const SubArithmeticRule<VarType> &prop) const
 {
     return *m_son==(prop.getSon());
 }
 
-template<typename VarType>
+template<SubRuleFormula VarType>
 bool SubArithmeticRule<VarType>::operator==(const SubArithmeticTheorem<VarType> &prop) const
 {
     return *m_son==(prop.getSon());
 }
 
-template<typename VarType>
+template<SubRuleFormula VarType>
 std::string SubArithmeticRule<VarType>::toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
+}
+
+template<SubRuleFormula VarType>
+const DbVar* SubArithmeticRule<VarType>::getExtVars() const
+{
+    return &m_extVars;
 }
 }
 

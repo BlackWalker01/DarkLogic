@@ -19,16 +19,17 @@ public:
     typedef void ValueType;
     typedef ASubArithmeticTheorem<void> ATheoremType;
 
-    SubArithmeticRule(const std::string& name_, const ptr<SubLeftFormula>& leftFormula,
+    SubArithmeticRule(const ptr<SubLeftFormula>& leftFormula,
                       const ptr<SubRightFormula>& rightFormula);
 
     size_t arity() const override final;
     ValueType evaluate() const override final;
+    constexpr ArithType type() const override final;
 
     //internal methods
     bool identifyPriv(const ptr<ATheoremType>& prop, DbVarProp& dbVarProp) const override final;
-    ptr<ATheoremType> applyPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
-    ptr<ATheoremType> applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp) const override final;
 
     bool isEqual(const ASubArithmeticRule<ValueType>& prop) const override final;
     bool isEqual(const ASubArithmeticTheorem<ValueType>& prop) const override final;
@@ -36,6 +37,7 @@ public:
     bool operator==(const SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType_>>>& prop) const;
 
     std::string toString(unsigned short priorityParent=1000) const override final;
+    const DbVar* getExtVars() const override final;
 
     const SubOperatorType& getSon() const;
     const ptr<IISubRuleFormula>& operator[](const size_t& k) const override final;
@@ -44,16 +46,23 @@ public:
 
 protected:
     const std::unique_ptr<const SubOperatorType> m_son;
+    const DbVar m_extVars;
 };
 
 template<typename VariableType>
 SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::
-SubArithmeticRule(const std::string& name_, const ptr<SubArithmeticRule<VariableType>> &leftFormula,
+SubArithmeticRule(const ptr<SubArithmeticRule<VariableType>> &leftFormula,
                   const ptr<ASubArithmeticRule<typename VariableType::ValueType>> &rightFormula):
-    ASubArithmeticRule<void>(name_,leftFormula->getExtVars(),rightFormula->getExtVars(),PLUS_FORMULA),
-    m_son(std::make_unique<SetEqual<SubArithmeticRule<VariableType>>>(leftFormula,rightFormula))
+    m_son(std::make_unique<SetEqual<SubArithmeticRule<VariableType>>>(leftFormula,rightFormula)),
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
 {
 
+}
+
+template<typename VariableType>
+constexpr ArithType SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::type() const
+{
+    return SET_FORMULA;
 }
 
 
@@ -125,20 +134,20 @@ identifyPriv(const ptr<SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType
 template<typename VariableType>
 ptr<typename SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>>>::ATheoremType>
 SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::
-applyPriv(const std::string &thName, DbVarProp &dbVarProp) const
+applyPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>>>>(thName,
-    std::dynamic_pointer_cast<const SubArithmeticTheorem<VariableType>>(get<0>(*m_son)->applyPriv(thName+"+R",dbVarProp)),
-                                                get<1>(*m_son)->applyPriv(thName+"+L",dbVarProp));
+    return std::make_shared<const SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>>>>(
+    std::dynamic_pointer_cast<const SubArithmeticTheorem<VariableType>>(get<0>(*m_son)->applyPriv(dbVarProp)),
+                                                get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
 template<typename VariableType>
 ptr<typename SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::ATheoremType>
-SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::applyFirstPriv(const std::string &thName, DbVarProp &dbVarProp) const
+SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::applyFirstPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>>>>(thName,
-    std::dynamic_pointer_cast<const SubArithmeticTheorem<VariableType>>(get<0>(*m_son)->applyPriv(thName+"+R",dbVarProp)),
-                                                                get<1>(*m_son)->applyPriv(thName+"+L",dbVarProp));
+    return std::make_shared<const SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>>>>(
+    std::dynamic_pointer_cast<const SubArithmeticTheorem<VariableType>>(get<0>(*m_son)->applyPriv(dbVarProp)),
+                                                                get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
 template<typename VariableType>
@@ -152,6 +161,12 @@ template<typename VariableType>
 std::string SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::toString(unsigned short priorityParent) const
 {
     return m_son->toString(priorityParent);
+}
+
+template<typename VariableType>
+const DbVar* SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::getExtVars() const
+{
+    return &m_extVars;
 }
 
 template<typename VariableType>

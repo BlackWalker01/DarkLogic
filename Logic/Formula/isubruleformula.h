@@ -13,9 +13,6 @@ class Action;
 
 class ASubTheorem;
 
-template<typename ValueType>
-class ASubArithmeticTheorem;
-
 template<typename T>
 concept SubTheoremType = std::is_same_v<T, ASubTheorem> || std::is_same_v<T, ASubArithmeticTheorem<typename T::ValueType>>;
 
@@ -35,8 +32,8 @@ public:
 
     //internal methods
     virtual bool identifyPriv(const ptr<ATheoremType>& prop, DbVarProp& dbVarProp) const=0;
-    virtual ptr<ATheoremType> applyFirstPriv(const std::string& thName, DbVarProp& dbVarProp) const=0;
-    virtual ptr<ATheoremType> applyPriv(const std::string& thName, DbVarProp& dbVarProp) const=0;
+    virtual ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp) const=0;
+    virtual ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp) const=0;
 
     virtual ~ISubRuleFormula() = default;
 };

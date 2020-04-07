@@ -12,10 +12,10 @@ struct BelongsToFun;
 template<typename SubFormulaType, typename SubFormulaType2>
 class BelongsTo;
 
-template<typename SubPropertyType>
+template<SubRuleFormula SubPropertyType>
 class SubArithmeticRule;
 
-template<typename SubPropertyType>
+template<SubTheoremFormula SubPropertyType>
 class SubArithmeticTheorem;
 
 struct BelongsToStr
@@ -27,7 +27,8 @@ struct BelongsToStr
 template<typename SetType>
 struct BelongsToFun<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>>
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = ASubArithmeticRule<SetType>;
 
     BelongsToFun() = default;
     BelongsToFun(const ptr<ASubArithmeticRule<typename SetType::Type>>& var,
@@ -87,6 +88,9 @@ class BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<Se
         public Operator<BelongsToFun<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>>>
 {
 public:
+    using RuleOpe = BelongsTo<ASubArithmeticRule<typename SetType::Type>, ASubArithmeticRule<SetType>>;
+    using TheoremOpe = BelongsTo<ASubArithmeticTheorem<typename SetType::Type>, ASubArithmeticTheorem<SetType>>;
+
     BelongsTo() = default;
     BelongsTo(const ptr<ASubArithmeticRule<typename SetType::Type>>& var,
               const ptr<ASubArithmeticRule<SetType>>& prop);
@@ -106,7 +110,8 @@ get(const BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRul
 template<typename SetType>
 struct BelongsToFun<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>>
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = ASubArithmeticTheorem<SetType>;
 
     BelongsToFun() = default;
     BelongsToFun(const ptr<ASubArithmeticTheorem<typename SetType::Type>>& var,
@@ -166,6 +171,9 @@ class BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheo
         public Operator<BelongsToFun<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>>>
 {
 public:
+    using RuleOpe = BelongsTo<ASubArithmeticRule<typename SetType::Type>, ASubArithmeticRule<SetType>>;
+    using TheoremOpe = BelongsTo<ASubArithmeticTheorem<typename SetType::Type>, ASubArithmeticTheorem<SetType>>;
+
     BelongsTo() = default;
     BelongsTo(const ptr<ASubArithmeticTheorem<typename SetType::Type>>& var,
               const ptr<ASubArithmeticTheorem<SetType>>& prop);

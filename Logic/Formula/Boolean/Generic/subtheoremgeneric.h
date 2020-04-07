@@ -9,20 +9,44 @@ template<SubTheoremProperty SubPropertyType>
 class SubTheorem: public ASubPureTheorem
 {
 public:
-    SubTheorem(const std::string& name, const ptr<ASubTheorem>& leftSubProp, const ptr<ASubTheorem>& rightSubProp);    
+    SubTheorem(const ptr<ASubTheorem>& leftSubProp, const ptr<ASubTheorem>& rightSubProp);    
 
     bool evaluate() const override final;
+    constexpr PropType type() const override final
+    {
+        if constexpr (std::is_same_v<SubPropertyType, And<ASubTheorem>>)
+        {
+            return AND_PROP;
+        }
+        else if constexpr (std::is_same_v<SubPropertyType, Equivalent<ASubTheorem>>)
+        {
+            return EQUIV_PROP;
+        }
+        else if constexpr (std::is_same_v<SubPropertyType, Implication<ASubTheorem>>)
+        {
+            return IMPL_PROP;
+        }
+        else if constexpr (std::is_same_v<SubPropertyType, Not<ASubTheorem>>)
+        {
+            return NOT_PROP;
+        }
+        else if constexpr (std::is_same_v<SubPropertyType, Or<ASubTheorem>>)
+        {
+            return OR_PROP;
+        }
+    }
 
     bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubTheorem& prop) const;
     bool isEqual(const ASubRule& prop) const override final;
-    bool operator==(const SubRule<SubPropertyType>& prop) const;
+    bool operator==(const SubRule<ToRuleOpe<SubPropertyType>>& prop) const;
 
     std::string toString(unsigned short priorityParent=1000) const override final;
 
     size_t arity() const override final;
     ptr<ASubTheorem> copyTheorem() const override final;
     const SubPropertyType& getSon() const;
+    const DbVar* getExtVars() const override final;
     ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<size_t>& indexes, const size_t& actionKey) const override;
 
     ~SubTheorem() override = default;
@@ -33,12 +57,19 @@ protected:
     const ptr<ASubTheorem>& operator[](const size_t& index) const override final;
 
     const std::unique_ptr<const SubPropertyType> m_son;
+    const DbVar m_extVars;
 };
 
 template<SubTheoremProperty SubPropertyType>
 const SubPropertyType &SubTheorem<SubPropertyType>::getSon() const
 {
     return *(m_son.get());
+}
+
+template<SubTheoremProperty SubPropertyType>
+const DbVar* SubTheorem<SubPropertyType>::getExtVars() const
+{
+    return &m_extVars;
 }
 
 template<SubTheoremProperty SubPropertyType>
@@ -68,6 +99,12 @@ const std::vector<std::vector<Arity> >& SubTheorem<SubPropertyType>::computeAllP
     }
     return m_allPaths;
 }
+
+/**
+ * type methods
+ */
+
+template<SubTheoremProperty SubPropertyType> struct ToRuleStruct<SubTheorem<SubPropertyType>> { using Type = SubRule<SubPropertyType>; };
 
 }
 #endif // SUBTHEOREMGENERIC_H

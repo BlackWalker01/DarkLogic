@@ -11,9 +11,10 @@ class SubTheorem<Hyp<ASubTheorem>>: public ASubPureTheorem
 public:
     typedef Hyp<ASubTheorem> SubPropertyType;
 
-    SubTheorem(const std::string& name, const std::vector<ptr<ASubTheorem>>& subProps);
+    SubTheorem(const std::vector<ptr<ASubTheorem>>& subProps);
 
     bool evaluate() const override final;
+    constexpr PropType type() const override final;
 
     bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubTheorem& prop) const;
@@ -22,6 +23,7 @@ public:
 
     size_t arity() const override final;
     std::string toString(unsigned short priorityParent=1000) const override final;
+    const DbVar* getExtVars() const override final;
 
     ptr<ASubTheorem> copyTheorem() const override final;
     const SubPropertyType& getSon() const;
@@ -30,11 +32,10 @@ public:
     ~SubTheorem() override = default;
 protected:
     const std::vector<std::vector<Arity> > &computeAllPaths() override final;
-
-protected:
     const ptr<ASubTheorem>& operator[](const size_t& index) const override final;    
 
     const std::unique_ptr<const SubPropertyType> m_son;
+    const DbVar m_extVars;
 };
 }
 

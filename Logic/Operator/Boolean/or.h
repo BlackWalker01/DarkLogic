@@ -17,7 +17,8 @@ struct OrToStr
 template<Proposition SubPropertyType>
 struct OrFun
 {
-    typedef bool ValueType;
+    using ValueType = bool;
+    using SubFormulaType = SubPropertyType;
 
     OrFun() = default;
     OrFun(const ptr<SubPropertyType>& prop1, const ptr<SubPropertyType>& prop2);
@@ -56,7 +57,7 @@ struct OrFun
     const ptr<SubPropertyType>& operator[](const size_t &k) const;
 
     ~OrFun() = default;
-private:
+
     std::tuple<const ptr<SubPropertyType>,const ptr<SubPropertyType>> m_sonProps;
 };
 
@@ -68,6 +69,9 @@ template<Proposition SubPropertyType>
 class Or : public Operator<OrFun<SubPropertyType>>
 {
 public:
+    using RuleOpe = Or<typename Operator<OrFun<SubPropertyType>>::SubRuleFormulaType>;
+    using TheoremOpe = Or<typename Operator<OrFun<SubPropertyType>>::SubTheoremFormulaType>;
+
     Or() = default;
     Or(const ptr<SubPropertyType> &prop1, const ptr<SubPropertyType> &prop2);
 
