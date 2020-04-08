@@ -9,10 +9,12 @@
 
 namespace N_Logic
 {
-template<SubRuleProperty SubPropertyType>
+template<SubRuleProperty SubPropertyType_>
 class SubRule: public ASubPureRule
 {
 public:
+    using SubPropertyType = SubPropertyType_;
+
     SubRule(const ptr<ASubRule>& leftSubProp, const ptr<ASubRule>& rightSubProp);
 
     bool evaluate() const override final;

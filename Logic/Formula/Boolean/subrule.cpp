@@ -661,31 +661,6 @@ SubRule<ConstBoolean>::SubRule(const bool& val):
 
 }
 
-/**---------------------------------------------------------------
- * Type methods
- * ---------------------------------------------------------------
- */
-
-constexpr IProposition::PropType SubRule<Hyp<ASubRule>>::type() const
-{
-    return HYP_PROP;
-}
-
-constexpr IProposition::PropType SubRule<Not<ASubRule>>::type() const
-{
-    return NOT_PROP;
-}
-
-
-constexpr IProposition::PropType SubRule<Boolean>::type() const
-{
-    return VAR_PROP;
-}
-
-constexpr IProposition::PropType SubRule<ConstBoolean>::type() const
-{
-    return CONST_PROP;
-}
 
 /**---------------------------------------------------------------
  * Evaluate methods

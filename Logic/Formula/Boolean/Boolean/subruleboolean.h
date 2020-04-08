@@ -14,7 +14,10 @@ public:
     SubRule(const std::shared_ptr<Boolean>& val);
 
     bool evaluate() const override final;
-    constexpr PropType type() const override final;
+    constexpr PropType type() const override final
+    {
+        return PropType::VAR_PROP;
+    }
 
     bool isEqual(const ASubRule& prop) const override final;
     bool isEqual(const ASubTheorem& prop) const override final;

@@ -15,7 +15,10 @@ public:
     SubTheorem(const ptr<ASubTheorem>& subProp);
 
     bool evaluate() const override final;
-    constexpr PropType type() const override final;
+    constexpr PropType type() const override final
+    {
+        return PropType::NOT_PROP;
+    }
 
     bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubTheorem& prop) const;

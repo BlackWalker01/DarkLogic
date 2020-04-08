@@ -1,16 +1,21 @@
 #ifndef DBRULE_H
 #define DBRULE_H
 #include <unordered_map>
-#include "rule.h"
+#include "Utils/utils.h"
 
 namespace N_Logic {
+
+template<SubRuleProperty SubPropertyType>
+class Rule;
+class Action;
+
 class DbRule
 {
 public:
     DbRule();
 
-    template<typename OpeType>
-    void insert(const ptr<Rule<OpeType>>& rule);
+    template<RuleType ruleType>
+    void insert(const ptr<ruleType>& rule);
 
 
     std::pair<ptr<ASubTheorem>,bool> apply(const size_t& actionKey, const ptr<ASubTheorem> &theorem);
@@ -27,10 +32,10 @@ private:
     std::unordered_map<size_t,ptr<ASubRule>> m_actionKeyToRule;
 };
 
-template<typename OpeType>
-void DbRule::insert(const ptr<Rule<OpeType> > &rule)
+template<RuleType ruleType>
+void DbRule::insert(const ptr<ruleType >& rule)
 {
-    if constexpr (std::is_same_v<OpeType, Equivalent<ASubRule>>)
+    if constexpr (std::is_same_v<typename ruleType::SubPropertyType, Equivalent<ASubRule>>)
     {
         m_db.push_back(rule);
         m_db.push_back(rule->getReciprocal());
@@ -38,7 +43,7 @@ void DbRule::insert(const ptr<Rule<OpeType> > &rule)
     else
     {
         m_db.push_back(rule);
-    }    
+    }
 }
 }
 #endif // DBRULE_H

@@ -7,10 +7,10 @@ namespace N_Logic {
 class NaturalIntegerSet: public Set<NaturalIntegerSet>
 {
 public:
-    NaturalIntegerSet();
+    NaturalIntegerSet() = default;
     using Type=UInt;
 
-    ~NaturalIntegerSet();
+    ~NaturalIntegerSet() = default;
 };
 }
 #endif // NATURALINTEGERSET_H

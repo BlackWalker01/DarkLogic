@@ -144,7 +144,6 @@ add_library(Logic SHARED
     Set/allset.h
     Set/naturalintegerset.h
     Set/omniset.h
-    Set/set_impl.h
     Variable/Boolean/boolean.h
     Variable/Boolean/boolean.hxx
     Variable/NaturalInteger/constnaturalinteger.h
