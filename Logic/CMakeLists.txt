@@ -47,6 +47,7 @@ add_library(Logic SHARED
     Variable/term.cpp
     Logger/log.cpp
     Utils/action.cpp
+    Variable/variableexception.cpp
 
     logic_global.h
     logic.h
@@ -161,7 +162,9 @@ add_library(Logic SHARED
     Variable/variable.hxx
     Logger/log.h
     Utils/action.h
-)
+    Utils/exception.h
+    Variable/variableexception.h
+  )
 
 target_compile_definitions(Logic PRIVATE LOGIC_LIBRARY)
 add_compile_definitions(_SILENCE_CLANG_CONCEPTS_MESSAGE)

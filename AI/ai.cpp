@@ -18,6 +18,7 @@ std::shared_ptr<const Action> AI::play()
 	std::chrono::high_resolution_clock::time_point start, end;
 	start = std::chrono::high_resolution_clock::now();
 	Node* newNode = m_crtNode->getDemoMode();
+	std::unique_ptr<size_t> nbNode = nullptr;
 	
 	//if AI has not found demonstration yet
 	if (!newNode)
@@ -45,8 +46,10 @@ std::shared_ptr<const Action> AI::play()
 		}
 		m_hasEvents = false;
 
-		newNode = m_crtNode->getBestNode();
+		nbNode = std::make_unique<size_t>(m_crtNode->nbNode());
+		newNode = m_crtNode->getBestNode();		
 		std::cout << "[DEBUG] Nb simulations " << m_masterThread->getTotalRootNbSimu() << std::endl;
+		std::cout<< "[DEBUG] Nb explored node " << *nbNode << std::endl;
 	}
 	else
 	{
@@ -60,6 +63,11 @@ std::shared_ptr<const Action> AI::play()
 	double elapsed_seconds = std::chrono::duration<double>(end - start).count();
 	std::cout << "[DEBUG] AI play action " << m_crtNode->actionId() <<" with value "<<m_crtNode->value()
 		<<" in "<<elapsed_seconds<<" seconds"<< std::endl;
+	if (nbNode)
+	{
+		std::cout << "[DEBUG] AI exploration speed: " << (*nbNode) / elapsed_seconds << " nodes/s" << std::endl;
+	}
+		
 	return std::make_shared<const Action>(Fun::PUSH_ACTION, m_crtNode->actionId());
 }
 

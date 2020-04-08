@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <memory>
 #include <mutex>
-#define MAX_DEPTH 100
+#define MAX_DEPTH 50
 #define VAL_INIT std::numeric_limits<unsigned short>::max()-1
 
 class AI;
@@ -40,6 +40,7 @@ public:
 	void setRoot();
 	unsigned int getRootNbSimu() const;
 	void incrRootNbSimu();
+	size_t nbNode() const;
 private:
 
 	inline void _decrDepth();

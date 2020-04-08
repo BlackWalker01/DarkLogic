@@ -248,7 +248,7 @@ bool N_Logic::Logic::_isDemonstrated()
             return m_isLastRuleSymetric;
         }       
     }
-    catch (std::runtime_error&)
+    catch (const VariableException&)
     {
         return false;
     }
@@ -277,7 +277,7 @@ bool N_Logic::Logic::_canBeDemonstrated()
         }
         return true;
     }
-    catch (std::runtime_error&)
+    catch (const VariableException&)
     {
         return m_theorem->canBeDemonstrated();
     }    
@@ -304,7 +304,7 @@ bool N_Logic::Logic::_isEvaluated()
             m_theorem->evaluate();
             return true;
         }
-        catch (std::runtime_error&)
+        catch (const VariableException&)
         {
             return false;
         }
