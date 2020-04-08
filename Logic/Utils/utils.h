@@ -100,7 +100,7 @@ namespace  N_Logic
     template<ArithmeticType ValueType>
     class ASubArithmeticRule;
     template<ArithmeticType ValueType>
-    class ASubArithmeticTheorem;
+    class ASubArithmeticTheorem;    
 
     template<typename T>
     concept RuleArithFormula = std::is_base_of_v<ASubArithmeticRule<typename T::ValueType>, T>;
@@ -115,7 +115,7 @@ namespace  N_Logic
     template<Formula Fml>
     struct ToRuleStruct{using Type = Fml; };    
     template<Formula Fml>
-    using ToRule = typename ToRuleStruct<Fml>::Type; 
+    using ToRule = typename ToRuleStruct<Fml>::Type;    
 
     //Theorem Formula
     template<typename T>
@@ -204,6 +204,12 @@ namespace  N_Logic
     concept SubRuleFormula = (RuleOperator<T> && ArithOpeType<T>) || ArithVariableType<T> || ArithConstantType<T>;
     template<typename T>
     concept SubTheoremFormula = (TheoremOperator<T> && ArithOpeType<T>) || ArithVariableType<T> || ArithConstantType<T>;
+
+    //pre-define Rule
+    template<SubRuleProperty SubPropertyType>
+    class Rule;
+    template<typename T>
+    concept RuleType = RuleProposition<T> && std::is_base_of_v<Rule<typename T::SubPropertyType>, T>;
 }
 
 /**

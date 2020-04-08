@@ -53,7 +53,7 @@ struct ToTheoremStruct<Rule<SubPropertyType>> { using Type = Theorem<SubProperty
 template<SubRuleProperty SubPropertyType>
 Rule<SubPropertyType>::Rule(const std::string &name_, const ptr<ASubRule> &leftSubProp, const ptr<ASubRule> &rightSubProp):
     SubRule<SubPropertyType> (leftSubProp,rightSubProp), m_name(name_),
-    m_basicIdentifications(getExtVars()->nameVars()),
+    m_basicIdentifications(this->getExtVars()->nameVars()),
     m_actionToIdentifications(std::make_unique<std::unordered_map<size_t,std::shared_ptr<DbVarProp>>>()),
     m_crtActions(std::make_unique<std::unordered_map<size_t,std::vector<Arity>>>())
 {

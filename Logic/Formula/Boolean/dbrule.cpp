@@ -2,6 +2,7 @@
 #include "dbrule.h"
 #include "theorem.h"
 #include "Logger/log.h"
+#include "rule.h"
 using namespace N_Logic;
 
 DbRule::DbRule():

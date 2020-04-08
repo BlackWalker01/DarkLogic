@@ -35,14 +35,6 @@ const std::unordered_map<std::string,std::string> IOperator::s_stringsToSkip=
 
 const std::unordered_map<std::string,std::string> IOperator::s_stringsMightSkip=initStringMightSkip();
 
-//Set initialization
-template<> const std::string Set<BooleanSet>::s_name="BB";
-//template<> const std::unique_ptr<AxiomSet<BooleanSet>> Set<BooleanSet>::s_axiomSet=nullptr;
-template<> const std::unique_ptr<DbRule> Set<BooleanSet>::s_rules=std::make_unique<DbRule>();
-template<> const std::string Set<NaturalIntegerSet>::s_name="NN";
-//template<> const std::unique_ptr<AxiomSet<NaturalIntegerSet>> Set<NaturalIntegerSet>::s_axiomSet=nullptr;
-template<> const std::unique_ptr<DbRule> Set<NaturalIntegerSet>::s_rules=std::make_unique<DbRule>();
-
 
 const std::unordered_map<std::string,ConstantEnum> AbstractTerm::s_constantHash={
     {"false",FALSE_TYPE},

@@ -716,31 +716,6 @@ size_t SubTheorem<ConstBoolean>::arity() const
 }
 
 /**---------------------------------------------------------------
- * Type methods
- * ---------------------------------------------------------------
- */
-
-inline constexpr IProposition::PropType SubTheorem<Hyp<ASubTheorem>>::type() const
-{
-    return HYP_PROP;
-}
-
-inline constexpr IProposition::PropType SubTheorem<Not<ASubTheorem>>::type() const
-{
-    return NOT_PROP;
-}
-
-inline constexpr IProposition::PropType SubTheorem<Boolean>::type() const
-{
-    return VAR_PROP;
-}
-
-inline constexpr IProposition::PropType SubTheorem<ConstBoolean>::type() const
-{
-    return CONST_PROP;
-}
-
-/**---------------------------------------------------------------
  * getExtVars methods
  * ---------------------------------------------------------------
  */

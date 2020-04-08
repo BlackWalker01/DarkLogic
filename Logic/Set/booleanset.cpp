@@ -1,8 +1,17 @@
 #include "booleanset.h"
 #include "Formula/Boolean/rule.h"
-#include "set_impl.h"
+#include "set.h"
 
 using namespace N_Logic;
+
+//template<> const std::unique_ptr<AxiomSet<BooleanSet>> Set<BooleanSet>::s_axiomSet=nullptr;
+template<> const std::unique_ptr<DbRule> Set<BooleanSet>::s_rules = std::make_unique<DbRule>();
+
+template<> template<RuleType ruleType>
+void Set<BooleanSet>::insert(const ptr<ruleType >& rule)
+{
+    s_rules->insert(rule);
+}
 
 void BooleanSet::init()
 {

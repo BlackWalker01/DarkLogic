@@ -13,7 +13,10 @@ public:
     SubTheorem(const std::shared_ptr<Boolean>& val);
 
     bool evaluate() const override final;
-    constexpr PropType type() const override final;
+    constexpr PropType type() const override final
+    {
+        return PropType::VAR_PROP;
+    }
     bool canBeDemonstrated() const override;
 
     bool isEqual(const ASubTheorem& prop) const override final;

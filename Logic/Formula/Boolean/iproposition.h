@@ -1,7 +1,6 @@
 #ifndef IPROPERTY_H
 #define IPROPERTY_H
 #include "Formula/formula.h"
-#include "Set/booleanset.h"
 
 namespace N_Logic {
 
@@ -13,6 +12,7 @@ typedef size_t Arity;
 class ASubRule;
 class ASubTheorem;
 class AbstractTerm;
+class BooleanSet;
 
 class IProposition: public AbstractFormula<bool>
 {

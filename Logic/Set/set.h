@@ -4,6 +4,7 @@
 #include <memory>
 #include <concepts>
 #include "Utils/utils.h"
+#include "Formula/Boolean/dbrule.h"
 
 namespace N_Logic {
 
@@ -23,8 +24,8 @@ public:
 
     static std::string name();
     static bool belongsTo();
-    template<SubRuleProperty SubPropertyType>
-    void insert(const ptr<Rule<SubPropertyType>>& rule);
+    template<RuleType ruleType>
+    void insert(const ptr<ruleType>& rule);
 
     constexpr bool operator==(const Set&) const
     {
@@ -43,12 +44,6 @@ template<typename SetType_>
 Set<SetType_>::Set()
 {
 
-}
-
-template<typename SetType_>
-std::string Set<SetType_>::name()
-{
-    return s_name;
 }
 
 template<typename SetType_>
