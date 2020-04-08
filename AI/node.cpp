@@ -359,6 +359,16 @@ void Node::incrRootNbSimu()
 	m_nbSimu++;
 }
 
+size_t Node::nbNode() const
+{
+	size_t ret = 1;
+	for (const auto& son : m_sons)
+	{
+		ret += son.second->nbNode();
+	}
+	return ret;
+}
+
 void Node::_decrDepth()
 {
 

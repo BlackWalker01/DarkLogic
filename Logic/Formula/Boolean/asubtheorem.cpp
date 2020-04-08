@@ -42,7 +42,7 @@ bool N_Logic::ASubTheorem::testCanBeDemonstrated(const std::vector<ptr<AbstractT
         }    
     }
     //else simulate with all possible values for variables
-    catch (std::runtime_error&)
+    catch (const VariableException&)
     {
         bool ret = true;
         for (size_t k = 0; k < vars.size(); k++)

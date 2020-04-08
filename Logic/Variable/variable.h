@@ -1,6 +1,7 @@
 #ifndef VARIABLE_H
 #define VARIABLE_H
 #include "term.h"
+#include "variableexception.h"
 
 namespace N_Logic {
 template<SetDerived SetType_>
@@ -76,7 +77,7 @@ bool Variable<SetType>::operator==(const ValueType& val) const
     {
         return **m_val==val;
     }
-    throw std::runtime_error("Variable "+this->m_name+" not initialized");
+    throw VariableException(this->m_name);
 }
 
 template<SetDerived SetType>
@@ -86,7 +87,7 @@ constexpr typename Variable<SetType>::ValueType Variable<SetType>::evaluate() co
     {
         return **m_val;
     }
-    throw std::runtime_error("Variable "+this->m_name+" not initialized");
+    throw VariableException(this->m_name);
 }
 
 template<SetDerived SetType>
