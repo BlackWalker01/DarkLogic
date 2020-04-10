@@ -5,6 +5,7 @@
 #include "masteraithread.h"
 #include <chrono>
 #include <condition_variable>
+#include <iostream>
 
 AI::AI(const size_t& maxInstanceIdx) : Player("AI"), m_masterThread(std::make_shared<MasterAIThread>(maxInstanceIdx,*this)), 
 	m_crtNode(std::make_unique<Node>(*this)), m_hasEvents(false), m_lock(m_mutex)

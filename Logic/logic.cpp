@@ -143,6 +143,19 @@ bool N_Logic::Logic::isOver(const size_t& instanceIdx)
     return s_instances[instanceIdx]->_isOver();
 }
 
+void N_Logic::Logic::clearAll()
+{
+    for (auto& instance : s_instances)
+    {
+        instance->_clear();
+    }
+}
+
+void N_Logic::Logic::clear(const size_t& instanceIdx)
+{
+    s_instances[instanceIdx]->_clear();
+}
+
 bool Logic::isDemonstrated(const size_t& instanceIdx)
 {
     return s_instances[instanceIdx]->_isDemonstrated();
@@ -225,6 +238,14 @@ void Logic::insert(const ptr<Rule<OpeType> > &rule)
 bool N_Logic::Logic::_isOver()
 {
     return _isDemonstrated() || !_canBeDemonstrated() || _isAlreadyPlayed();
+}
+
+void N_Logic::Logic::_clear()
+{
+    m_theorem = nullptr;
+    m_antecedents.clear();
+    m_nbAppliedRule = 0;
+    m_isLastRuleSymetric = true;
 }
 
 bool N_Logic::Logic::_isDemonstrated()

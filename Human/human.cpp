@@ -3,6 +3,7 @@
 #include "MainBlackLogic/action.h"
 #include "MainBlackLogic/EnumFun.h"
 #include <sstream>
+#include <iostream>
 
 const std::unordered_map<std::string, Fun> Human::s_funHash =
 { {"getaction",GET_ACTION},
