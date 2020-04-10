@@ -4,6 +4,8 @@
 #include "logic_global.h"
 #include "Operator/operator.h"
 #include "Formula/Boolean/dbrule.h"
+#include "Utils/utils.h"
+#include "Utils/action.h"
 
 namespace N_Logic {
 
@@ -18,6 +20,8 @@ public:
     static void init(const size_t& nbInstances);
 
     static bool isOver(const size_t& instanceIdx);
+    static void clearAll();
+    static void clear(const size_t& instanceIdx);
 
     //property access methods.
     static bool isDemonstrated(const size_t& instanceIdx);
@@ -53,6 +57,7 @@ private:
 
     //Private methods   
     bool _isOver();
+    void _clear();
     template<typename OpeType>
     void insert(const ptr<Rule<OpeType>>& rule);
 

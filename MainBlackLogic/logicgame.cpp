@@ -4,6 +4,7 @@
 #include "AI/ai.h"
 #include "action.h"
 #include <thread>
+#include <iostream>
 
 LogicGame::LogicGame():
     m_mode(NoMode), m_player(nullptr)
@@ -13,12 +14,15 @@ LogicGame::LogicGame():
 
 void LogicGame::start()
 {
-    //create player and init logic
-    askPlayer();   
-    createTheorem();
+    while (true)
+    {
+        //create player and init logic
+        askPlayer();
+        createTheorem();
 
-    //Start game
-    game();
+        //Start game
+        game();
+    }    
 }
 
 void LogicGame::createTheorem()
@@ -282,6 +286,7 @@ void LogicGame::game()
                 "It can be true or false according to the values of its variables" << std::endl;
         }
     }
-      
     
+    //clear Logic state
+    N_Logic::Logic::clearAll();
 }
