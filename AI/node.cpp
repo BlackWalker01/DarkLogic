@@ -4,6 +4,7 @@
 #include "ai.h"
 #include <ctime>
 #include <random>
+#include <iostream>
 
 AI* Node::s_ai = nullptr;
 double Node::s_cste = sqrt(2);
@@ -129,50 +130,6 @@ unsigned short Node::makeSimu()
 	return m_value;
 }
 
-unsigned short Node::makeSimu(const size_t& threadIdx, const size_t& action, const unsigned short depth)
-{
-	unsigned int val = VAL_INIT;
-
-	//play move
-	N_Logic::Logic::apply(threadIdx, action);
-
-	//check if node is terminal
-	if (N_Logic::Logic::isAlreadyPlayed(threadIdx) || !N_Logic::Logic::canBeDemonstrated(threadIdx))
-	{
-		val = USHRT_MAX;
-	}
-	else if (N_Logic::Logic::isDemonstrated(threadIdx))
-	{
-		//std::cout << "[DEBUG] found demonstration!" << std::endl;
-		val = 0;
-	}
-	else if (depth >= MAX_DEPTH)
-	{
-		val = VAL_INIT;
-		//std::cout << "[DEBUG ]Reach limit" << std::endl;
-	}
-	else
-	{
-		if (!s_ai->mustStop(threadIdx))
-		{	
-			//get actions
-			std::vector<size_t> actions = N_Logic::Logic::getActions(threadIdx);
-
-			//play random action
-			auto newAction = actions[rand() % actions.size()];
-			val = makeSimu(threadIdx, newAction,depth+1);
-			if (val < VAL_INIT)
-			{
-				val++;
-			}			
-		}
-	}
-
-	//unplay crt move
-	N_Logic::Logic::unapply(threadIdx);
-
-	return val;
-}
 
 unsigned short Node::explore(const std::vector<size_t>& actions)
 {	
@@ -289,6 +246,120 @@ unsigned short Node::explore()
 
 	//unplay crt move
 	N_Logic::Logic::unapply(m_threadId);	
+
+	return m_value;
+}
+
+unsigned short Node::exploreDeep(const std::vector<size_t>& actions)
+{
+	unsigned short maxDepth = 1;
+	unsigned char threadId = m_sons[actions[0]]->threadId();
+	while (!s_ai->mustStop(threadId))
+	{
+		for (const auto& action : actions)
+		{
+			auto node = m_sons[action].get();
+			unsigned short retValue = USHRT_MAX;
+			if (node->value() < USHRT_MAX)
+			{
+				node->exploreDeep(maxDepth);
+			}
+
+			if ((m_value > retValue + 1))
+			{
+				m_value = retValue + 1;
+			}
+
+			//if must stop exploration, stop it
+			if (s_ai->mustStop(threadId))
+			{
+				break;
+			}
+		}
+		maxDepth++;
+	}
+	return m_value;
+}
+
+unsigned short Node::exploreDeep(const unsigned short maxDepth)
+{
+	//play crt move
+	N_Logic::Logic::apply(m_threadId, m_actionId);
+
+	//no need to go deeper
+	if (m_depth == maxDepth)
+	{
+		//check if it is a node which leads to loss
+		if (N_Logic::Logic::isAlreadyPlayed(m_threadId) || !N_Logic::Logic::canBeDemonstrated(m_threadId))
+		{
+			m_value = USHRT_MAX;
+		}
+		//check if it is a node which leads to win
+		else if (N_Logic::Logic::isDemonstrated(m_threadId))
+		{
+			m_value = 0;
+			
+			//stop reflexion because AI found a demonstration
+			s_ai->stopThread(m_threadId);
+		}
+	}
+	else if(!s_ai->mustStop(m_threadId))
+	{
+		//get actions
+		std::vector<size_t> actions = N_Logic::Logic::getActions(m_threadId);
+
+		//add all subnodes if they have not been created yet
+		if (m_depth == maxDepth - 1)
+		{
+			for (const auto& action : actions)
+			{
+				m_sons[action] = std::make_unique<Node>(action, m_threadId, m_depth + 1);
+			}			
+		}
+
+		//explore subNodes
+		bool hasOnlyLosses = true;
+		for (const auto& action : actions)
+		{
+			//explore node associated with action
+			auto node = m_sons[action].get();
+			unsigned short retValue = USHRT_MAX;
+			if (node->value() < USHRT_MAX)
+			{
+				retValue = node->exploreDeep(maxDepth);
+			}
+
+			//update m_value
+			if (retValue == USHRT_MAX)
+			{
+				if (hasOnlyLosses)
+				{
+					m_value = USHRT_MAX;
+				}
+			}
+			else
+			{
+				hasOnlyLosses = false;
+				if (retValue==VAL_INIT && m_value == USHRT_MAX)
+				{
+					m_value = VAL_INIT;
+				}
+				else if ((m_value > retValue + 1))
+				{
+					m_value = retValue + 1;
+				}
+			}
+
+			//if must stop exploration, stop it
+			if (s_ai->mustStop(m_threadId))
+			{
+				break;
+			}
+		}
+	}
+
+	//unplay crt move
+	N_Logic::Logic::unapply(m_threadId);
 
 	return m_value;
 }

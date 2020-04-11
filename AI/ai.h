@@ -10,10 +10,16 @@ public:
 	friend class AIThread;
 	friend class MasterAIThread;
 	friend class Node;
+	enum AIMode
+	{
+		MCTS,
+		DEEP
+	};
 
-	AI(const size_t& maxInstanceIdx);
+	AI(const AIMode type_, const size_t& maxInstanceIdx);
 
-	std::shared_ptr<const Action> play() override;	
+	std::shared_ptr<const Action> play() override;
+	AIMode type() const;
 
 	~AI() = default;
 
@@ -23,13 +29,16 @@ private:
 	void explore(const std::vector<size_t>& actions);
 	bool mustStop(const unsigned char threadIdx) const;
 	void stopThread(const unsigned char threadIdx) const;
-	std::shared_ptr<MasterAIThread> getMaster() const;
+	std::shared_ptr<MasterAIThread> getMaster() const;	
 
 	size_t getRootNbSimu(const size_t& instanceIdx) const;
 	void incrRootNbSimu(const size_t& instanceIdx);
 
 	void _pushEvent(Event::EventEnum type_);
 
+
+	//Attributes
+	const AIMode m_type;
 	const std::shared_ptr<MasterAIThread> m_masterThread;
 	std::unique_ptr<Node> m_crtNode;
 	

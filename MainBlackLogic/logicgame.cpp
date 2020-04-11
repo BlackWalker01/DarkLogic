@@ -151,7 +151,7 @@ void LogicGame::askPlayer()
     bool ok = false;
     while (!ok)
     {
-        std::cout << "Choose the mode (Human/AI)" << std::endl;
+        std::cout << "Choose the mode (Human/AI/AIDeep)" << std::endl;
         std::string mode = "";
         std::getline(std::cin, mode);
         if (mode=="Human" || mode=="human"||mode=="HUMAN")
@@ -161,7 +161,6 @@ void LogicGame::askPlayer()
             //Init Logic
             N_Logic::Logic::init(1);
             m_player = std::make_unique<Human>();
-
             ok = true;
         }
         else if (mode=="ai"|| mode=="AI" || mode=="Ai")
@@ -169,12 +168,19 @@ void LogicGame::askPlayer()
             std::cout << "AI Mode" << std::endl;
             m_mode = AIMode;
             //Init Logic
-            //auto nbInstance = std::thread::hardware_concurrency()+1;
-            //auto nbInstance = 2; //single thread for AI
-            auto nbInstance = 3; //opti for th moment
+            auto nbInstance = (std::thread::hardware_concurrency() / 2) + 1; //opti for th moment
             N_Logic::Logic::init(nbInstance);
-            m_player = std::make_unique<AI>(nbInstance);
-
+            m_player = std::make_unique<AI>(AI::MCTS,nbInstance);
+            ok = true;
+        }
+        else if (mode == "aideep" || mode == "AIDEEP" || mode == "AiDeep" || mode == "AIDeep")
+        {
+            std::cout << "AIDeep Mode" << std::endl;
+            m_mode = AIMode;
+            //Init Logic
+            auto nbInstance = (std::thread::hardware_concurrency() / 2) + 1; //opti for th moment
+            N_Logic::Logic::init(nbInstance);
+            m_player = std::make_unique<AI>(AI::DEEP, nbInstance);
             ok = true;
         }
         else
