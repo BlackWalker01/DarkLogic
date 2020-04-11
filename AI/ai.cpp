@@ -7,7 +7,8 @@
 #include <condition_variable>
 #include <iostream>
 
-AI::AI(const size_t& maxInstanceIdx) : Player("AI"), m_masterThread(std::make_shared<MasterAIThread>(maxInstanceIdx,*this)), 
+AI::AI(const AIMode type_,const size_t& maxInstanceIdx) : Player("AI"), m_type(type_),
+m_masterThread(std::make_shared<MasterAIThread>(maxInstanceIdx,*this)), 
 	m_crtNode(std::make_unique<Node>(*this)), m_hasEvents(false), m_lock(m_mutex)
 {
 	m_masterThread->init();
@@ -28,7 +29,7 @@ std::shared_ptr<const Action> AI::play()
 		std::cv_status status = std::cv_status::no_timeout;
 		while (!m_hasEvents && (status!=std::cv_status::timeout))
 		{
-			status = m_condition_var.wait_until(m_lock, start + std::chrono::seconds(2)); //time is multiplicated per 2 or 3 in Win64			
+			status = m_condition_var.wait_until(m_lock, start + std::chrono::seconds(5));			
 		}
 		if (status == std::cv_status::timeout)
 		{
@@ -48,8 +49,11 @@ std::shared_ptr<const Action> AI::play()
 		m_hasEvents = false;
 
 		nbNode = std::make_unique<size_t>(m_crtNode->nbNode());
-		newNode = m_crtNode->getBestNode();		
-		std::cout << "[DEBUG] Nb simulations " << m_masterThread->getTotalRootNbSimu() << std::endl;
+		newNode = m_crtNode->getBestNode();
+		if (m_type == MCTS)
+		{
+			std::cout << "[DEBUG] Nb simulations " << m_masterThread->getTotalRootNbSimu() << std::endl;
+		}		
 		std::cout<< "[DEBUG] Nb explored node " << *nbNode << std::endl;
 	}
 	else
@@ -84,7 +88,15 @@ void AI::stopFromMasterThread()
 
 void AI::explore(const std::vector<size_t>& actions)
 {
-	m_crtNode->explore(actions);
+	if (m_type == MCTS)
+	{
+		m_crtNode->explore(actions);
+	}
+	else
+	{
+		m_crtNode->exploreDeep(actions);
+	}
+	
 }
 
 bool AI::mustStop(const unsigned char threadIdx) const
@@ -100,6 +112,11 @@ void AI::stopThread(const unsigned char threadIdx) const
 std::shared_ptr<MasterAIThread> AI::getMaster() const
 {
 	return m_masterThread;
+}
+
+AI::AIMode AI::type() const
+{
+	return m_type;
 }
 
 size_t AI::getRootNbSimu(const size_t& instanceIdx) const

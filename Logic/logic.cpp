@@ -76,11 +76,12 @@ Logic::Logic(): m_theorem(nullptr), m_nbAppliedRule(0), m_isLastRuleSymetric(tru
     insert(andI);
     auto andE = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&E", "({HYP}p&&q)<=>(({HYP}p)&&({HYP}q))"));
     insert(andE);
-
     auto andEl = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("&&Eg", "({HYP}p&&q)=>({HYP}p)")); //complicated to use!
     insert(andEl);
     auto andEr = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("&&Ed", "({HYP}p&&q)=>({HYP}q)")); //complicated to use!
     insert(andEr);
+    auto andCom = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&Com", "({HYP}p&&q)<=>({HYP}q&&p)"));
+    insert(andCom);
 
     //OR Rules
     auto orI = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("||I", "(({HYP}p)||({HYP}q))<=>({HYP}p||q)"));
@@ -92,18 +93,22 @@ Logic::Logic(): m_theorem(nullptr), m_nbAppliedRule(0), m_isLastRuleSymetric(tru
     auto orE = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||E", 
         "(({HYP}p||q)&&({p,HYP}r)&&({q,HYP}r))=>(({HYP}r)")); //complicated to use!
     insert(orE);
+    auto orCom = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("||Com", "({HYP}p||q)<=>({HYP}q||p)"));
+    insert(orCom);
 
     //IMPLICATION Rules
     auto implI = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("=>I", "({p,HYP}q)<=>({HYP}p=>q)"));
     insert(implI);
     auto implE = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("=>E", 
         "(({HYP}p)&&({HYP}p=>q))=>({HYP}q)")); //complicated to use!
-    insert(implE);
+    insert(implE);    
 
     //EQUIVALENT Rules
     auto eqI = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("<=>I", 
         "({HYP}p=>q) && ({HYP}q=>p) <=>({HYP}p<=>q)"));
     insert(eqI);
+    auto eqCom = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&Com", "({HYP}p&&q)<=>({HYP}q&&p)"));
+    insert(eqCom);
 
 
     //FALSE Rules

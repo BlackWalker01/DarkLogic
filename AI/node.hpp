@@ -17,10 +17,15 @@ public:
 	Node(const size_t& actionId_, const unsigned char& threadId_, const unsigned short& depth_);
 
 	//explore subNodes
-	unsigned short explore(const std::vector<size_t>& actions); //explore one subNode among actions and return its value. called only by AIThread
-	unsigned short explore(); //explore one subNode and return its value
+	/*
+	 * explore one subNode among actions and return its value. called only by AIThread
+	 */
+	unsigned short explore(const std::vector<size_t>& actions);	
+	unsigned short exploreDeep(const std::vector<size_t>& actions); //explore all subNodes among actions
+	
+
+	//make simulation on a node until depth = MAX_DEPTH
 	unsigned short makeSimu();
-	static unsigned short makeSimu(const size_t& threadIdx, const size_t& action, const unsigned short depth);
 	
 	size_t actionId() const;
 	unsigned char threadId() const;
@@ -42,7 +47,8 @@ public:
 	void incrRootNbSimu();
 	size_t nbNode() const;
 private:
-
+	unsigned short explore(); //explore one subNode and return its value
+	unsigned short exploreDeep(const unsigned short maxDepth); //explore subNodes of current node until maxDepth
 	inline void _decrDepth();
 
 	size_t m_actionId;
