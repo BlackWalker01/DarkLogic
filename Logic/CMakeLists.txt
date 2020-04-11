@@ -101,6 +101,7 @@ add_library(Logic SHARED
     Formula/Boolean/axiom.h
     Formula/Boolean/axiomset.h
     Formula/Boolean/iproposition.h
+    Formula/Boolean/allrule.h
     Formula/iisubruleformula.h
     Formula/iisubtheoremformula.h
     Formula/isubruleformula.h

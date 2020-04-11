@@ -1,6 +1,6 @@
 #ifndef RULE_H
 #define RULE_H
-#include "Generic/subrulegeneric.h"
+#include "allrule.h"
 #include "Formula/Arithmetic/inontermarithmetic.h"
 #include "Utils/action.h"
 
@@ -34,6 +34,7 @@ public:
     //reciprocity methods
     bool isSymetric() const override;
     ptr<Rule> getReciprocal() const;
+    ptr<Rule> getTrueEquivalent() const;
 
     ~Rule() override = default;
 
@@ -164,6 +165,15 @@ template<SubRuleProperty SubPropertyType>
 inline ptr<Rule<SubPropertyType>> Rule<SubPropertyType>::getReciprocal() const
 {
     return std::make_shared<const Rule<SubPropertyType>>(name()+"_Recip",(*this)[1],(*this)[0]);
+}
+
+template<SubRuleProperty SubPropertyType>
+inline ptr<Rule<SubPropertyType>> Rule<SubPropertyType>::getTrueEquivalent() const
+{
+    return std::make_shared<const Rule<SubPropertyType>>(name() + "_True",
+        std::make_shared<const SubRule<ConstBoolean>>(true),
+        std::make_shared<const SubRule<SubPropertyType>>((*this)[0],(*this)[1]) 
+        );
 }
 
 /**

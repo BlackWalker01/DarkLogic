@@ -3,6 +3,8 @@
 #include "theorem.h"
 #include "Logger/log.h"
 #include "rule.h"
+#include "Utils/action.h"
+
 using namespace N_Logic;
 
 DbRule::DbRule():
@@ -62,6 +64,22 @@ std::vector<Action> DbRule::getHumanActions() const
         ret.insert(ret.end(),actions.begin(),actions.end());
     }
     return ret;
+}
+
+std::shared_ptr<Action> N_Logic::DbRule::getHumanAction(const size_t& actionKey)
+{
+    for (const auto& rule : m_db)
+    {
+        std::vector<Action> actions = rule->getHumanActions();
+        for (auto& action : actions)
+        {
+            if (action.id() == actionKey)
+            {
+                return std::make_shared<Action>(action);
+            }
+        }
+    }
+    return nullptr;
 }
 
 bool DbRule::isLastRuleSymetric(const size_t& actionKey) const

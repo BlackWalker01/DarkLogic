@@ -3,6 +3,8 @@
 #include "logic.h"
 #include "logic.h"
 #include "logic.h"
+#include "logic.h"
+#include "logic.h"
 #include "Formula/Boolean/theorem.h"
 #include "Formula/Boolean/rule.h"
 #include "Formula/Boolean/axiom.h"
@@ -131,6 +133,7 @@ Logic::Logic(): m_theorem(nullptr), m_nbAppliedRule(0), m_isLastRuleSymetric(tru
 
 void Logic::init(const size_t& nbInstances)
 {
+    s_instances.clear();
     for (size_t k = 0; k < nbInstances; k++)
     {
         s_instances.push_back(std::make_unique<Logic>());
@@ -198,10 +201,28 @@ bool Logic::makeTheorem(const std::string& name, const std::string& cont)
     return true;
 }
 
+bool N_Logic::Logic::learnRule()
+{
+    if (isDemonstrated(0))
+    {
+        for (auto& instance : s_instances)
+        {
+            instance->_learnRule();
+        }
+        return true;
+    }
+    return false;
+}
+
 
 void Logic::printTheorem(const size_t& instanceIdx)
 {
     s_instances[instanceIdx]->_printTheorem();
+}
+
+std::string N_Logic::Logic::theoremName()
+{
+    return s_instances[0]->m_theoremName;
 }
 
 std::vector<size_t> Logic::getActions(const size_t& instanceIdx)
@@ -209,9 +230,14 @@ std::vector<size_t> Logic::getActions(const size_t& instanceIdx)
     return s_instances[instanceIdx]->_getActions();
 }
 
-std::vector<Action> Logic::getHumanActions(const size_t& instanceIdx)
+std::vector<Action> N_Logic::Logic::getDemonstration()
 {
-    return s_instances[instanceIdx]->_getHumanActions();
+    return s_instances[0]->_getDemonstration();
+}
+
+std::vector<Action> Logic::getHumanActions()
+{
+    return s_instances[0]->_getHumanActions();
 }
 
 void Logic::apply(const size_t& instanceIdx, const size_t &actionKey)
@@ -269,9 +295,9 @@ bool N_Logic::Logic::_isDemonstrated()
 
 bool N_Logic::Logic::_isAlreadyPlayed()
 {
-    for (const auto& pairTheorem : m_antecedents)
+    for (const auto& antecedent : m_antecedents)
     {
-        auto theorem = pairTheorem.first;
+        auto theorem = antecedent.theorem;
         if ((*theorem) == (*m_theorem))
         {
             return true;
@@ -334,6 +360,7 @@ bool N_Logic::Logic::_makeTheorem(const std::string& name, const std::string& co
 {
     try
     {
+        m_theoremName = name;
         m_theorem = createTheorem(name, cont);
 
         //Compute actions
@@ -346,6 +373,11 @@ bool N_Logic::Logic::_makeTheorem(const std::string& name, const std::string& co
         Log::Error(e.what());
     }
     return false;
+}
+
+void N_Logic::Logic::_learnRule()
+{
+    
 }
 
 void N_Logic::Logic::_printTheorem()
@@ -364,10 +396,32 @@ std::vector<Action> N_Logic::Logic::_getHumanActions()
     return m_rules.getHumanActions();
 }
 
+std::vector<Action> N_Logic::Logic::_getDemonstration()
+{
+    std::vector<Action> ret;
+    if (_isDemonstrated())
+    {
+        std::vector<Antecedent> antecedents = m_antecedents;
+        //go back to first theorem
+        for (size_t k = 0; k < antecedents.size(); k++)
+        {
+            _unapply();
+        }
+
+        for (size_t k = 0; k < antecedents.size(); k++)
+        {
+            Antecedent antecedent = antecedents[k];
+            ret.push_back(*(m_rules.getHumanAction(antecedent.nextAction)));
+            _apply(antecedent.nextAction);
+        }
+    }   
+    return ret;
+}
+
 void N_Logic::Logic::_apply(const size_t& actionKey)
 {
     auto antecedent = m_theorem;
-    m_antecedents.push_back({ antecedent, m_isLastRuleSymetric });
+    m_antecedents.push_back(Antecedent(actionKey, antecedent, m_isLastRuleSymetric ));
     auto couple= m_rules.apply(actionKey, m_theorem);
     m_theorem = couple.first;
     m_isLastRuleSymetric = m_isLastRuleSymetric && couple.second;
@@ -376,8 +430,8 @@ void N_Logic::Logic::_apply(const size_t& actionKey)
 
 void N_Logic::Logic::_unapply()
 {    
-    auto antecedent = m_antecedents.back().first;
-    m_isLastRuleSymetric = m_antecedents.back().second;
+    auto antecedent = m_antecedents.back().theorem;
+    m_isLastRuleSymetric = m_antecedents.back().isSymmetric;
     m_rules.unapply(antecedent, m_nbAppliedRule);
     m_theorem = antecedent;
     m_antecedents.pop_back();
