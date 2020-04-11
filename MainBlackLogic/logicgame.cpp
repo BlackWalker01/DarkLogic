@@ -14,10 +14,11 @@ LogicGame::LogicGame():
 
 void LogicGame::start()
 {
+    //create player and init logic
+    askPlayer();
+
     while (true)
-    {
-        //create player and init logic
-        askPlayer();
+    {        
         createTheorem();
 
         //Start game
@@ -91,7 +92,7 @@ void LogicGame::createTheorem()
 
 void LogicGame::printActions()
 {
-    auto actions=N_Logic::Logic::getHumanActions(0);
+    auto actions=N_Logic::Logic::getHumanActions();
     for(const auto& action: actions)
     {
         std::cout<<action.toString()<<std::endl;
@@ -104,19 +105,22 @@ bool LogicGame::pushAction(const std::string &action)
     std::stringstream ss;
     ss<<action;
     ss>>id;
-    std::vector<size_t> actions=N_Logic::Logic::getActions(0);
+    std::vector<N_Logic::Action> actions=N_Logic::Logic::getHumanActions();
     bool foundAction=false;
-    for(const auto& actionId: actions)
+    std::string ruleName = "";
+    for(const auto& action: actions)
     {
-        if(id==actionId)
+        if(id==action.id())
         {
             foundAction=true;
+            ruleName = action.ruleName();
             break;
         }
     }
     if(foundAction)
     {
         N_Logic::Logic::apply(0,id);
+        std::cout << m_player->name() << " use " << ruleName << std::endl;
         std::cout<<"Current theorem is"<<std::endl;
         N_Logic::Logic::printTheorem(0);
     }

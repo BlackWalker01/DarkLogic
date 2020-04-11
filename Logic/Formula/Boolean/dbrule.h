@@ -22,6 +22,7 @@ public:
     void unapply(const ptr<ASubTheorem> &prop, size_t &nbActions);
     std::vector<size_t> getActions(const ptr<ASubTheorem> &prop, size_t& nbActions);
     std::vector<Action> getHumanActions() const;
+    std::shared_ptr<Action> getHumanAction(const size_t& actionKey);
     bool isLastRuleSymetric(const size_t& actionKey) const;
 
     ~DbRule() = default;
@@ -44,6 +45,7 @@ void DbRule::insert(const ptr<ruleType >& rule)
     {
         m_db.push_back(rule);
     }
+    m_db.push_back(rule->getTrueEquivalent());
 }
 }
 #endif // DBRULE_H

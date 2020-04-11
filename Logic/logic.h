@@ -32,11 +32,14 @@ public:
     static bool appliedRuleSymetric(const size_t& instanceIdx);
 
     static bool makeTheorem(const std::string &name, const std::string &cont);
+    static bool learnRule();
     static void printTheorem(const size_t& instanceIdx);
 
     //operator access methods
+    static std::string theoremName();
     static std::vector<size_t> getActions(const size_t& instanceIdx);
-    static std::vector<Action> getHumanActions(const size_t& instanceIdx);
+    static std::vector<Action> getHumanActions();
+    static std::vector<Action> getDemonstration();
 
     //demonstration methods
     static void apply(const size_t& instanceIdx, const size_t& actionKey);
@@ -46,14 +49,16 @@ public:
     ~Logic() = default;
 
 private:
-    //Attributes
-    ptr<ASubTheorem> m_theorem;
-    std::vector<std::pair<ptr<ASubTheorem>,bool>> m_antecedents;
-    DbRule m_rules;
-    size_t m_nbAppliedRule;
-    bool m_isLastRuleSymetric;
+    struct Antecedent
+    {
+        Antecedent(const size_t& nextAction_, const ptr<ASubTheorem>& theorem_, bool isSymmetric_):
+            nextAction(nextAction_), theorem(theorem_), isSymmetric(isSymmetric_)
+        {}
 
-    static std::vector<std::unique_ptr<Logic>> s_instances;
+        size_t nextAction;
+        ptr<ASubTheorem> theorem;
+        bool isSymmetric;
+    };    
 
     //Private methods   
     bool _isOver();
@@ -70,16 +75,28 @@ private:
     bool _appliedRuleSymetric();
 
     bool _makeTheorem(const std::string& name, const std::string& cont);
+    void _learnRule();
     void _printTheorem();
 
     //operator access methods
     std::vector<size_t> _getActions();
     std::vector<Action> _getHumanActions();
+    std::vector<Action> _getDemonstration();
 
     //demonstration methods
     void _apply(const size_t& actionKey);
     void _unapply();
     bool _hasAlreadyPlayed();
+
+    //Attributes
+    std::string m_theoremName;
+    ptr<ASubTheorem> m_theorem;
+    std::vector<Antecedent> m_antecedents;
+    DbRule m_rules;
+    size_t m_nbAppliedRule;
+    bool m_isLastRuleSymetric;
+
+    static std::vector<std::unique_ptr<Logic>> s_instances;
 };
 }
 #endif // LOGIC_H
