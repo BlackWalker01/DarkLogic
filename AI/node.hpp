@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <memory>
 #include <mutex>
+#include <sstream>
 #define MAX_DEPTH 50
 #define VAL_INIT std::numeric_limits<unsigned short>::max()-1
 
@@ -50,6 +51,7 @@ private:
 	unsigned short explore(); //explore one subNode and return its value
 	unsigned short exploreDeep(const unsigned short maxDepth); //explore subNodes of current node until maxDepth
 	inline void _decrDepth();
+	unsigned short minDepth() const;
 
 	size_t m_actionId;
 	unsigned char m_threadId;
@@ -60,4 +62,14 @@ private:
 	static AI* s_ai;
 	static double s_cste;
 };
+
+template<typename T>
+std::string numberToString(const T& x)
+{
+	std::stringstream ss;
+	ss << x;
+	std::string ret;
+	ss >> ret;
+	return ret;
+}
 #endif // !NODE_H

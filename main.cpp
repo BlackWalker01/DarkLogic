@@ -3,6 +3,7 @@
 int main()
 {
     LogicGame game;
-    game.start();
+    //game.start();
+    game.test();
     return 0;
 }

@@ -35,6 +35,7 @@ public:
     ~SubTheorem() override = default;
 protected:
     const std::vector<std::vector<Arity> > &computeAllPaths() override final;
+    const std::vector<std::vector<Arity>>& computeImplPaths() override final;
 
 protected:
     const ptr<ASubTheorem>& operator[](const size_t& index) const override final;

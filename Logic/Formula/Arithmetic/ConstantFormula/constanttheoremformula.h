@@ -22,6 +22,7 @@ public:
     std::string toString(unsigned short priorityParent=1000) const override final;
     const DbVar* getExtVars() const override final;
     const std::vector<std::vector<Arity>>& computeAllPaths() override final;
+    const std::vector<std::vector<Arity>>& computeImplPaths() override final;
 
     bool isEqual(const ASubArithmeticRule<ValueType>& prop) const override final;
     bool isEqual(const ASubArithmeticTheorem<ValueType>& prop) const override final;
@@ -40,8 +41,8 @@ template<ArithConstantType VarType>
 ConstSubArithmeticTheorem<VarType>::ConstSubArithmeticTheorem(const ValueType &var):
     m_son(std::make_unique<SubOperatorType>(var))
 {
-    static_assert (VarType::isConstantExpr(),"VarType must be Constant type in ConstSubArithmeticRule");
     computeAllPaths();
+    computeImplPaths();
 }
 
 template<ArithConstantType VarType>
@@ -89,6 +90,16 @@ const std::vector<std::vector<Arity> > &ConstSubArithmeticTheorem<VarType>::comp
         this->m_allPaths.push_back({});
     }
     return this->m_allPaths;
+}
+
+template<ArithConstantType VarType>
+inline const std::vector<std::vector<Arity>>& ConstSubArithmeticTheorem<VarType>::computeImplPaths()
+{
+    if (!this->m_implPaths.size())
+    {
+        this->m_implPaths.push_back({});
+    }
+    return this->m_implPaths;
 }
 
 template<ArithConstantType VarType>

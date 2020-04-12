@@ -25,6 +25,7 @@ public:
 
     std::string toString(unsigned short priorityParent=1000) const override final;
     const std::vector<std::vector<Arity> > &computeAllPaths() override final;
+    const std::vector<std::vector<Arity>>& computeImplPaths() override final;
 
     ptr<ASubTheorem> copyTheorem() const override final;
     const SubPropertyType& getSon() const;
@@ -51,6 +52,7 @@ SubTheorem(const ptr<ASubArithmeticTheorem<ValueType1>> &leftFormula,
     m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
 {
     computeAllPaths();
+    computeImplPaths();
 }
 
 template<typename ValueType1, typename ValueType2>
@@ -182,6 +184,37 @@ N_Logic::SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheor
     }
     return m_allPaths;
 }
+
+
+template<typename ValueType1, typename ValueType2>
+const std::vector<std::vector<Arity> >&
+N_Logic::SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::computeImplPaths()
+{
+    if (!m_implPaths.size())
+    {
+        m_implPaths.push_back({});
+
+        //left subProperty
+        std::vector<std::vector<Arity>> leftPath = get<0>(*m_son)->getAllPaths();
+        for (size_t k = 0; k < leftPath.size(); k++)
+        {
+            std::vector<Arity> crtPath = leftPath[k];
+            crtPath.insert(crtPath.begin(), 0);
+            m_implPaths.push_back(crtPath);
+        }
+
+        //right subProperty
+        std::vector<std::vector<Arity>> rightPath = get<1>(*m_son)->getAllPaths();
+        for (size_t k = 0; k < rightPath.size(); k++)
+        {
+            std::vector<Arity> crtPath = rightPath[k];
+            crtPath.insert(crtPath.begin(), 1);
+            m_implPaths.push_back(crtPath);
+        }
+    }
+    return m_implPaths;
+}
+
 
 template<typename ValueType1, typename ValueType2>
 const ptr<IISubTheoremFormula> &N_Logic::SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::

@@ -252,10 +252,13 @@ unsigned short Node::explore()
 
 unsigned short Node::exploreDeep(const std::vector<size_t>& actions)
 {
-	unsigned short maxDepth = 1;
+	unsigned short maxDepth = minDepth();
+	std::cout << "Starting search at MaxDepth="+ numberToString(maxDepth) << std::endl;
 	unsigned char threadId = m_sons[actions[0]]->threadId();
+	std::chrono::high_resolution_clock::time_point start, end;
+	start = std::chrono::high_resolution_clock::now();
 	while (!s_ai->mustStop(threadId))
-	{
+	{		
 		for (const auto& action : actions)
 		{
 			auto node = m_sons[action].get();
@@ -276,6 +279,10 @@ unsigned short Node::exploreDeep(const std::vector<size_t>& actions)
 				break;
 			}
 		}
+		end= std::chrono::high_resolution_clock::now();
+		double elapsed_seconds = std::chrono::duration<double>(end - start).count();
+		std::cout << "[DEBUG] thread id: " +numberToString(static_cast<unsigned int>(threadId))+" has finished depth '"+ numberToString(maxDepth) <<
+			"' in "+ numberToString(elapsed_seconds)+ " seconds" <<std::endl;
 		maxDepth++;
 	}
 	return m_value;
@@ -447,5 +454,30 @@ void Node::_decrDepth()
 	for (auto& son : m_sons)
 	{
 		son.second->_decrDepth();
+	}
+}
+
+unsigned short Node::minDepth() const
+{
+	if (m_sons.size())
+	{
+		unsigned short ret = USHRT_MAX;
+		for (auto& son : m_sons)
+		{
+			if (son.second->value() < USHRT_MAX)
+			{
+				unsigned short crtDepth = son.second->minDepth();
+				if (crtDepth + 1 < ret)
+				{
+					ret = crtDepth + 1;
+				}
+			}
+			
+		}
+		return ret;
+	}
+	else
+	{
+		return 0;
 	}
 }

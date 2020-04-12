@@ -10,6 +10,11 @@ const std::vector<std::vector<Arity> > &ASubTheorem::getAllPaths() const
     return m_allPaths;
 }
 
+const std::vector<std::vector<Arity>>& N_Logic::ASubTheorem::getImplPaths() const
+{
+    return m_implPaths;
+}
+
 /**
  * Default implementation of canBeDemonstrated method
  * return true if for all values of its variables, the theorem is evaluate to true (or false) 

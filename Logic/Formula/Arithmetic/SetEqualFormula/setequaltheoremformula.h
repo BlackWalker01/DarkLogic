@@ -29,6 +29,7 @@ public:
     std::string toString(unsigned short priorityParent=1000) const override final;
     const DbVar* getExtVars() const override final;
     const std::vector<std::vector<Arity>>& computeAllPaths() override final;
+    const std::vector<std::vector<Arity>>& computeImplPaths() override final;
     TheoremFormulaType getFormulaType() const override final;
 
     bool isEqual(const ASubArithmeticRule<ValueType>& prop) const override final;
@@ -49,7 +50,8 @@ SubArithmeticTheorem(const ptr<SubArithmeticTheorem<VariableType>>& leftFormula,
 m_son(std::make_unique<SetEqual<SubArithmeticTheorem<VariableType>>>(leftFormula,rightFormula)),
 m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
 {
-
+    computeAllPaths();
+    computeImplPaths();
 }
 
 template<typename VariableType>
@@ -164,6 +166,36 @@ SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>> >::computeAllP
         }
     }
     return this->m_allPaths;
+}
+
+
+template<typename VariableType>
+const std::vector<std::vector<Arity> >&
+SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>> >::computeImplPaths()
+{
+    if (!this->m_implPaths.size())
+    {
+        this->m_implPaths.push_back({});
+
+        //left subProperty
+        std::vector<std::vector<Arity>> leftPath = get<0>(*m_son)->getImplPaths();
+        for (size_t k = 0; k < leftPath.size(); k++)
+        {
+            std::vector<Arity> crtPath = leftPath[k];
+            crtPath.insert(crtPath.begin(), 0);
+            this->m_implPaths.push_back(crtPath);
+        }
+
+        //right subProperty
+        std::vector<std::vector<Arity>> rightPath = get<1>(*m_son)->getImplPaths();
+        for (size_t k = 0; k < rightPath.size(); k++)
+        {
+            std::vector<Arity> crtPath = rightPath[k];
+            crtPath.insert(crtPath.begin(), 1);
+            this->m_implPaths.push_back(crtPath);
+        }
+    }
+    return this->m_implPaths;
 }
 
 template<typename VariableType_>
