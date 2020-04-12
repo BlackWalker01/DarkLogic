@@ -26,6 +26,99 @@ void LogicGame::start()
     }    
 }
 
+void LogicGame::test()
+{
+    //Init AI
+    askPlayer();
+    /*std::cout << "Test AIDeep Mode" << std::endl;
+    m_mode = AIMode;
+    auto nbInstance = (std::thread::hardware_concurrency()) + 1; //opti for th moment
+    N_Logic::Logic::init(nbInstance);
+    m_player = std::make_unique<AI>(AI::DEEP, nbInstance);*/
+
+    //Start tests
+    makeTheorem("identity", "a<=>a");
+    game();
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    
+    makeTheorem("double-!", "a<=>!!a");
+    game();
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    
+    makeTheorem("pierce law", "((a=>b)=>a)=>a");
+    game();
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    
+    makeTheorem("3rd party exclusion", "p||!p");
+    game();
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    
+    makeTheorem("non-contradiction", "!(a&&!a)");
+    game();
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+   
+    makeTheorem("De Morgan ||", "(!(a||b))<=>(!a&&!b)");
+    game();
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    
+    makeTheorem("De Morgan &&", "(!(a&&b))<=>(!a||!b)");
+    game();
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    
+    makeTheorem("contraposition", "(a=>b)=>(!b=>!a)");
+    game();
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    
+    makeTheorem("modus ponens", "((a=>b)&&a)=>b");
+    game();
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+   
+    makeTheorem("modus tollens", "((a=>b)&&!b)=>!a");
+    game();
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+
+    makeTheorem("modus barbara propositional", "((a=>b)&&(b=>c))=>(a=>c)");
+    game();
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+
+    makeTheorem("modus barbara impl", "(a=>b)=>((b=>c)=>(a=>c))");
+    game();
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+
+    makeTheorem("Distributivity &&", "(a&&(b||c))<=>((a&&b)||(a&&c))");
+    game();
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+    std::cout << "____________________________________________________________________________" << std::endl;
+
+    makeTheorem("Distributivity ||", "(a||(b&&c))<=>((a||b)&&(a||c))");
+    game();
+}
+
 void LogicGame::createTheorem()
 {
     //ask user to create theorem
@@ -88,6 +181,12 @@ void LogicGame::createTheorem()
         /*std::cout << "[DEBUG] content: " << std::endl;
         N_Logic::Logic::printTheorem(0);*/
     }
+}
+
+void LogicGame::makeTheorem(const std::string& name, const std::string& content)
+{
+    std::cout << "Demonstrate " << name << ": " << content << std::endl;
+    N_Logic::Logic::makeTheorem(name, content);
 }
 
 void LogicGame::printActions()
@@ -168,7 +267,7 @@ void LogicGame::askPlayer()
             std::cout << "AI Mode" << std::endl;
             m_mode = AIMode;
             //Init Logic
-            auto nbInstance = (std::thread::hardware_concurrency() / 2) + 1; //opti for th moment
+            auto nbInstance = (std::thread::hardware_concurrency()/2) + 1; //opti for th moment
             N_Logic::Logic::init(nbInstance);
             m_player = std::make_unique<AI>(AI::MCTS,nbInstance);
             ok = true;
@@ -178,7 +277,7 @@ void LogicGame::askPlayer()
             std::cout << "AIDeep Mode" << std::endl;
             m_mode = AIMode;
             //Init Logic
-            auto nbInstance = (std::thread::hardware_concurrency() / 2) + 1; //opti for th moment
+            auto nbInstance = (std::thread::hardware_concurrency()) + 1; //opti for th moment
             N_Logic::Logic::init(nbInstance);
             m_player = std::make_unique<AI>(AI::DEEP, nbInstance);
             ok = true;

@@ -594,6 +594,57 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
     return nullptr;
 }
 
+/**---------------------------------------------------------------
+ * computeImplPaths methods
+ * ---------------------------------------------------------------
+ */
+template<SubTheoremProperty SubPropertyType>
+const std::vector<std::vector<Arity> >& SubTheorem<SubPropertyType>::computeImplPaths()
+{
+    if (!m_implPaths.size())
+    {
+        m_implPaths.push_back({});
+
+        //left subProperty
+        std::vector<std::vector<Arity>> leftPath = (*m_son)[0]->getImplPaths();
+        for (size_t k = 0; k < leftPath.size(); k++)
+        {
+            std::vector<Arity> crtPath = leftPath[k];
+            crtPath.insert(crtPath.begin(), 0);
+            m_implPaths.push_back(crtPath);
+        }
+
+        //right subProperty
+        std::vector<std::vector<Arity>> rightPath = (*m_son)[1]->getImplPaths();
+        for (size_t k = 0; k < rightPath.size(); k++)
+        {
+            std::vector<Arity> crtPath = rightPath[k];
+            crtPath.insert(crtPath.begin(), 1);
+            m_implPaths.push_back(crtPath);
+        }
+    }
+    return m_implPaths;
+}
+
+template<>
+const std::vector<std::vector<Arity> >& SubTheorem<Implication<ASubTheorem>>::computeImplPaths()
+{
+    if (!m_implPaths.size())
+    {
+        m_implPaths.push_back({});
+
+        //right subProperty
+        std::vector<std::vector<Arity>> rightPath = (*m_son)[1]->getImplPaths();
+        for (size_t k = 0; k < rightPath.size(); k++)
+        {
+            std::vector<Arity> crtPath = rightPath[k];
+            crtPath.insert(crtPath.begin(), 1);
+            m_implPaths.push_back(crtPath);
+        }
+    }
+    return m_implPaths;
+}
+
 
 /**---------------------------------------------------------------
  * Constructor methods from a vector of subProperties
@@ -621,6 +672,7 @@ SubTheorem<Hyp<ASubTheorem>>::SubTheorem(const std::vector<ptr<ASubTheorem>>& su
     m_son(std::make_unique<Hyp<ASubTheorem>>(subProps)), m_extVars(getDbVarFromTheorems(subProps))
 {
     computeAllPaths();
+    computeImplPaths();
 }
 
 template<>
@@ -630,12 +682,14 @@ SubTheorem<Implication<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& leftSub
     m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars())
 {
     computeAllPaths();
+    computeImplPaths();
 }
 
 SubTheorem<Not<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& subProp):
     m_son(std::make_unique<Not<ASubTheorem>>(subProp)), m_extVars(subProp->getExtVars())
 {
     computeAllPaths();
+    computeImplPaths();
 }
 
 template<>
@@ -643,18 +697,21 @@ SubTheorem<Or<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& leftSubProp, con
     m_son(std::make_unique<Or<ASubTheorem>>(leftSubProp,rightSubProp)), m_extVars(leftSubProp->getExtVars(),rightSubProp->getExtVars())
 {
     computeAllPaths();
+    computeImplPaths();
 }
 
 SubTheorem<Boolean>::SubTheorem(const std::shared_ptr<Boolean>& son):
     m_son(son), m_extVars(son)
 {
     computeAllPaths();
+    computeImplPaths();
 }
 
 SubTheorem<ConstBoolean>::SubTheorem(const bool& val):
     m_son(std::make_unique<ConstBoolean>(val))
 {
     computeAllPaths();
+    computeImplPaths();
 }
 
 
@@ -662,6 +719,7 @@ SubTheorem<ConstBoolean>::SubTheorem(const SubRule<ConstBoolean>& prop):
     m_son(std::make_unique<ConstBoolean>(prop.evaluate()))
 {
     computeAllPaths();
+    computeImplPaths();
 }
 
 /**---------------------------------------------------------------
@@ -1085,6 +1143,64 @@ const std::vector<std::vector<Arity> >& SubTheorem<ConstBoolean>::computeAllPath
         m_allPaths.push_back({});
     }
     return m_allPaths;
+}
+
+
+/**---------------------------------------------------------------
+ * computeImplPaths methods
+ * ---------------------------------------------------------------
+ */
+
+const std::vector<std::vector<Arity> >& SubTheorem<Hyp<ASubTheorem>>::computeImplPaths()
+{
+    if (!m_implPaths.size())
+    {
+        m_implPaths.push_back({});
+        auto implIdx = arity() - 1;
+        std::vector<std::vector<Arity>> sonPath = (*m_son)[implIdx]->getImplPaths();
+        if (sonPath.size())
+        {
+            for (size_t k = 0; k < sonPath.size(); k++)
+            {
+                std::vector<Arity> crtPath = sonPath[k];
+                crtPath.insert(crtPath.begin(), implIdx);
+                m_implPaths.push_back(crtPath);
+            }
+        }
+        else
+        {
+            m_implPaths.push_back({ implIdx });
+        }
+    }
+    return m_implPaths;
+}
+
+const std::vector<std::vector<Arity> >& SubTheorem<Not<ASubTheorem>>::computeImplPaths()
+{
+    if (!m_implPaths.size())
+    {
+        m_implPaths.push_back({});
+    }
+    return m_implPaths;
+}
+
+
+const std::vector<std::vector<Arity> >& SubTheorem<Boolean>::computeImplPaths()
+{
+    if (!m_implPaths.size())
+    {
+        m_implPaths.push_back({});
+    }
+    return m_implPaths;
+}
+
+const std::vector<std::vector<Arity> >& SubTheorem<ConstBoolean>::computeImplPaths()
+{
+    if (!m_implPaths.size())
+    {
+        m_implPaths.push_back({});
+    }
+    return m_implPaths;
 }
 
 

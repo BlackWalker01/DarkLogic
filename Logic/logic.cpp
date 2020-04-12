@@ -82,6 +82,8 @@ Logic::Logic(): m_theorem(nullptr), m_nbAppliedRule(0), m_isLastRuleSymetric(tru
     insert(andEr);
     auto andCom = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&Com", "({HYP}p&&q)<=>({HYP}q&&p)"));
     insert(andCom);
+    /*auto doubleAnd = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("2&&", "({HYP}p)<=>({HYP}p&&p)"));
+    insert(doubleAnd);*/
 
     //OR Rules
     auto orI = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("||I", "(({HYP}p)||({HYP}q))<=>({HYP}p||q)"));
@@ -95,6 +97,8 @@ Logic::Logic(): m_theorem(nullptr), m_nbAppliedRule(0), m_isLastRuleSymetric(tru
     insert(orE);
     auto orCom = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("||Com", "({HYP}p||q)<=>({HYP}q||p)"));
     insert(orCom);
+    /*auto doubleOr = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("2||", "({HYP}p)<=>({HYP}p||p)"));
+    insert(doubleOr);*/
 
     //IMPLICATION Rules
     auto implI = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("=>I", "({p,HYP}q)<=>({HYP}p=>q)"));

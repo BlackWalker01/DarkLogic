@@ -22,6 +22,7 @@ public:
     std::string toString(unsigned short priorityParent=1000) const override final;
     const DbVar* getExtVars() const override final;
     const std::vector<std::vector<Arity>>& computeAllPaths() override final;
+    const std::vector<std::vector<Arity>>& computeImplPaths() override final;
 
     void operator=(const ValueType& val) const;
 
@@ -42,7 +43,8 @@ template<SubTheoremFormula VarType>
 SubArithmeticTheorem<VarType>::SubArithmeticTheorem(const std::shared_ptr<VarType> &var):
     m_son(var), m_extVars(var)
 {
-    
+    computeAllPaths();
+    computeImplPaths();
 }
 
 template<SubTheoremFormula VarType>
@@ -90,6 +92,18 @@ const std::vector<std::vector<Arity> > &SubArithmeticTheorem<VarType>::computeAl
     }
     return this->m_allPaths;
 }
+
+
+template<SubTheoremFormula VarType>
+const std::vector<std::vector<Arity> >& SubArithmeticTheorem<VarType>::computeImplPaths()
+{
+    if (!this->m_implPaths.size())
+    {
+        this->m_implPaths.push_back({});
+    }
+    return this->m_implPaths;
+}
+
 
 template<SubTheoremFormula VarType>
 void SubArithmeticTheorem<VarType>::operator=(const ValueType &val) const

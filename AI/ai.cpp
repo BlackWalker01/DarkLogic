@@ -29,7 +29,7 @@ std::shared_ptr<const Action> AI::play()
 		std::cv_status status = std::cv_status::no_timeout;
 		while (!m_hasEvents && (status!=std::cv_status::timeout))
 		{
-			status = m_condition_var.wait_until(m_lock, start + std::chrono::seconds(5));			
+			status = m_condition_var.wait_until(m_lock, start + std::chrono::seconds(3600)); //1h			
 		}
 		if (status == std::cv_status::timeout)
 		{

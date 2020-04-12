@@ -17,6 +17,7 @@ public:
     LogicGame();
 
     void start();
+    void test();
 
     ~LogicGame() = default;
 private:
@@ -32,6 +33,7 @@ private:
 
     //Methods to manipulate Logic
     void createTheorem();
+    void makeTheorem(const std::string& name, const std::string& content);
     void printActions();
     bool pushAction(const std::string& action);
     bool popAction();

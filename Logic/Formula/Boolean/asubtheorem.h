@@ -17,6 +17,8 @@ public:
     virtual ptr<ASubTheorem> copyTheorem() const =0; //method used by a subRule to create a theorem from this subTheorem
     const std::vector<std::vector<Arity> > &getAllPaths() const; //method to get all possible paths to terms of this subtheorem (once computed)
     virtual const std::vector<std::vector<Arity>>& computeAllPaths()=0; //method to compute all possible paths to terms of this subtheorem
+    const std::vector<std::vector<Arity> >& getImplPaths() const; //method to get all possible paths for implications to terms of this subtheorem (once computed)
+    virtual const std::vector<std::vector<Arity>>& computeImplPaths() = 0; //method to compute all possible paths to terms of this subtheorem
     virtual bool canBeDemonstrated() const;
 
     //apply rule on subtheorem of this theorem following path from indexes
@@ -34,6 +36,7 @@ private:
     bool testCanBeDemonstrated(const std::vector<ptr<AbstractTerm>>& vars, std::unique_ptr<bool>& crtValue) const;
 protected:
     std::vector<std::vector<Arity>> m_allPaths;
+    std::vector<std::vector<Arity>> m_implPaths;
 };
 
 template<> struct ToRuleStruct<ASubTheorem> { using Type = ASubRule; };

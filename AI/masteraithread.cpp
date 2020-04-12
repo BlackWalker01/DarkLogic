@@ -1,6 +1,7 @@
 #include "masteraithread.h"
 #include "Logic/logic.h"
 #include "ai.h"
+#include <iostream>
 
 MasterAIThread::MasterAIThread(const size_t& maxInstanceIdx_, AI& ai_): 
     m_ai(ai_), m_maxInstanceIdx(maxInstanceIdx_), m_hasEvents(false), m_thread(runMaster, this), m_lock(m_mutex)

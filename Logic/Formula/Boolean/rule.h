@@ -77,7 +77,15 @@ std::vector<size_t> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem> &pr
 
     //get all possible paths from prop
     std::vector<Arity> crtPath;
-    std::vector<std::vector<Arity>> allPaths=prop->getAllPaths();
+    std::vector<std::vector<Arity>> allPaths;
+    if constexpr (std::is_same_v<SubPropertyType, Equivalent<ASubRule>>)
+    {
+        allPaths = prop->getAllPaths();
+    }
+    else
+    {
+        allPaths = prop->getImplPaths();
+    }    
 
     //get all actions
     std::vector<size_t> actionTab;
