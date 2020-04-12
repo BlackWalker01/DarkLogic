@@ -119,7 +119,7 @@ void MasterAIThread::_start()
         for (unsigned char k = 0; k < actions.size(); k++)
         {
             m_slaveThreads[k]->start();
-            m_threadAlive[k] = k;
+            m_threadAlive[m_slaveThreads[k]->instanceId()] = m_slaveThreads[k]->instanceId();
         }
     }
     
