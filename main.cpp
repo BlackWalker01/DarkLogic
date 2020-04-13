@@ -1,4 +1,4 @@
-#include "MainBlackLogic/logicgame.h"
+#include "MainDarkLogic/logicgame.h"
 
 int main()
 {

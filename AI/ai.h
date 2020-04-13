@@ -1,6 +1,6 @@
 #ifndef AI_H
 #define AI_H
-#include "MainBlackLogic/player.h"
+#include "MainDarkLogic/player.h"
 #include "node.hpp"
 #include "masteraithread.h"
 

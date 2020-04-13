@@ -1,5 +1,0 @@
-#ifndef SUBTHEOREM_HXX
-#define SUBTHEOREM_HXX
-
-
-#endif // SUBTHEOREM_HXX

@@ -1,19 +1,19 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(BlackLogic LANGUAGES CXX)
+project(LogicGame LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(LIB_DIR ${CMAKE_SOURCE_DIR}/Lib)
-include_directories("Logic")
+include_directories("DarkLogic")
 
-add_executable(BlackLogic
+add_executable(LogicGame
   main.cpp
-  MainBlackLogic/logicgame.cpp
-  MainBlackLogic/player.cpp
-  MainBlackLogic/action.cpp
+  MainDarkLogic/logicgame.cpp
+  MainDarkLogic/player.cpp
+  MainDarkLogic/action.cpp
   Human/human.cpp
   AI/ai.cpp
   AI/masteraithread.cpp
@@ -21,10 +21,10 @@ add_executable(BlackLogic
   AI/event.cpp
   AI/node.cpp
 
-  MainBlackLogic/logicgame.h
-  MainBlackLogic/player.h
-  MainBlackLogic/action.h
-  MainBlackLogic/EnumFun.h
+  MainDarkLogic/logicgame.h
+  MainDarkLogic/player.h
+  MainDarkLogic/action.h
+  MainDarkLogic/EnumFun.h
   Human/human.h
   AI/ai.h
   AI/masteraithread.h
@@ -36,5 +36,5 @@ add_executable(BlackLogic
 link_directories(${LIB_DIR})
 
 add_compile_definitions(_SILENCE_CLANG_CONCEPTS_MESSAGE)
-target_link_libraries(BlackLogic ${LIB_DIR}/Logic.lib)
-install(TARGETS BlackLogic DESTINATION ${CMAKE_SOURCE_DIR}/Lib)
+target_link_libraries(LogicGame ${LIB_DIR}/DarkLogic.lib)
+install(TARGETS LogicGame DESTINATION ${CMAKE_SOURCE_DIR}/Lib)
