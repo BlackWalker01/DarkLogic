@@ -267,7 +267,7 @@ void LogicGame::askPlayer()
             std::cout << "AI Mode" << std::endl;
             m_mode = AIMode;
             //Init Logic
-            auto nbInstance = (std::thread::hardware_concurrency()/2) + 1; //opti for th moment
+            auto nbInstance = (std::thread::hardware_concurrency()/2) + 1; //opti for the moment
             N_Logic::Logic::init(nbInstance);
             m_player = std::make_unique<AI>(AI::MCTS,nbInstance);
             ok = true;
@@ -277,7 +277,7 @@ void LogicGame::askPlayer()
             std::cout << "AIDeep Mode" << std::endl;
             m_mode = AIMode;
             //Init Logic
-            auto nbInstance = (std::thread::hardware_concurrency()) + 1; //opti for th moment
+            auto nbInstance = (std::thread::hardware_concurrency()) + 1; //opti for the moment
             N_Logic::Logic::init(nbInstance);
             m_player = std::make_unique<AI>(AI::DEEP, nbInstance);
             ok = true;

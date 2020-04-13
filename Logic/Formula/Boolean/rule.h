@@ -39,7 +39,7 @@ public:
     ~Rule() override = default;
 
 private:    
-    bool identify(const ptr<ASubTheorem>& prop, const size_t& crtAction) const;
+    bool identify(const ptr<ASubTheorem>& prop, const std::vector<Arity>& path, DbVarProp& dbVarProp) const;
     void clearIdentifications() const;
 
     const std::string m_name;
@@ -76,42 +76,33 @@ std::vector<size_t> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem> &pr
     clearIdentifications();
 
     //get all possible paths from prop
-    std::vector<Arity> crtPath;
-    std::vector<std::vector<Arity>> allPaths;
     if constexpr (std::is_same_v<SubPropertyType, Equivalent<ASubRule>>)
     {
-        allPaths = prop->getAllPaths();
+        for (const auto& path : prop->getAllPaths())
+        {
+            auto dbVarProp = std::make_shared<DbVarProp>(m_basicIdentifications);
+            if (identify(prop, path, *dbVarProp))
+            {
+                (*m_crtActions)[lastActionIndex] = path;
+                (*m_actionToIdentifications)[lastActionIndex] = dbVarProp;
+                ret.push_back(lastActionIndex);
+                lastActionIndex++;
+            }
+        }
     }
     else
     {
-        allPaths = prop->getImplPaths();
-    }    
-
-    //get all actions
-    std::vector<size_t> actionTab;
-    for(size_t k=0;k<allPaths.size();k++)
-    {
-        (*m_crtActions)[lastActionIndex]=allPaths[k];
-        actionTab.push_back(lastActionIndex);
-        lastActionIndex++;
-    }
-
-    //check which action is legal
-    for(const auto& crtAction: actionTab)
-    {
-        (*m_actionToIdentifications)[crtAction]=std::make_shared<DbVarProp>(m_basicIdentifications);
-        if(!identify(prop,crtAction))
+        for (const auto& path : prop->getImplPaths())
         {
-            auto it=m_actionToIdentifications->find(crtAction);
-            m_actionToIdentifications->erase(it);
-            auto it2=m_crtActions->find(crtAction);
-            m_crtActions->erase(it2);
+            auto dbVarProp = std::make_shared<DbVarProp>(m_basicIdentifications);
+            if (identify(prop, path, *dbVarProp))
+            {
+                (*m_crtActions)[lastActionIndex] = path;
+                (*m_actionToIdentifications)[lastActionIndex] = dbVarProp;
+                ret.push_back(lastActionIndex);
+                lastActionIndex++;
+            }
         }
-    }
-
-    for(auto it=m_crtActions->begin();it!=m_crtActions->end();it++)
-    {
-        ret.push_back(it->first);
     }
 
     return ret;
@@ -191,12 +182,11 @@ inline ptr<Rule<SubPropertyType>> Rule<SubPropertyType>::getTrueEquivalent() con
  * @return true if it can identify all variable in the antecedent of this rule with sub-properties of prop
  */
 template<SubRuleProperty SubPropertyType>
-bool Rule<SubPropertyType>::identify(const ptr<ASubTheorem> &prop, const size_t &crtAction) const
+bool Rule<SubPropertyType>::identify(const ptr<ASubTheorem> &prop, const std::vector<Arity>& path, DbVarProp& dbVarProp) const
 {
     auto impl=(*(this->m_son))[1];
     ptr<IISubTheoremFormula> propToIdentify=prop;
-    std::vector<Arity> propIndexes=(*m_crtActions)[crtAction];
-    for(size_t index : propIndexes)
+    for(const size_t& index : path)
     {
         switch(propToIdentify->getFormulaType())
         {
@@ -222,10 +212,9 @@ bool Rule<SubPropertyType>::identify(const ptr<ASubTheorem> &prop, const size_t 
             }
         }
     }
-    auto dbVarProp=(*m_actionToIdentifications)[crtAction];
-    if(impl->identifyPriv(std::dynamic_pointer_cast<const ASubTheorem>(propToIdentify),*dbVarProp))
+    if(impl->identifyPriv(std::dynamic_pointer_cast<const ASubTheorem>(propToIdentify),dbVarProp))
     {
-        return dbVarProp->isTotallyIdentified();
+        return dbVarProp.isTotallyIdentified();
     }
     else
     {
