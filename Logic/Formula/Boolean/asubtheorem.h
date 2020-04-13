@@ -33,7 +33,7 @@ public:
 
 
 private:
-    bool testCanBeDemonstrated(const std::vector<ptr<AbstractTerm>>& vars, std::unique_ptr<bool>& crtValue) const;
+    bool testCanBeDemonstrated(const std::vector<ptr<AVariable>>& vars, std::unique_ptr<bool>& crtValue) const;
 protected:
     std::vector<std::vector<Arity>> m_allPaths;
     std::vector<std::vector<Arity>> m_implPaths;

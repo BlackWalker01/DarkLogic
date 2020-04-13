@@ -14,6 +14,7 @@ namespace N_Logic
 class IOperator;
 class ASubRule;
 class ASubTheorem;
+class AbstractTerm;
 
 template<Type ValueType_>
 class AbstractFormula: public ValueTypeObject

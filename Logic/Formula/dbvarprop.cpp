@@ -1,80 +1,62 @@
 #include "dbvarprop.h"
 #include "Boolean/asubtheorem.h"
+#include "Variable/avariable.h"
 
 using namespace N_Logic;
 
-DbVarProp::DbVarProp()
+DbVarProp::DbVarProp(const DbVarProp& dbVarProp) : m_db(dbVarProp.m_db)
 {
 
 }
 
-DbVarProp::DbVarProp(const DbVarProp& dbVarProp): m_db(dbVarProp.m_db)
+DbVarProp::DbVarProp(const std::vector<ptr<AVariable>>& vars)
 {
-
-}
-
-DbVarProp::DbVarProp(const std::vector<std::string>& dbVar)
-{
-    for(size_t k=0;k<dbVar.size();k++)
+    for(const auto& var : vars)
     {
-        if(!isHypVariable(dbVar[k]))
+        if(!var->isHypVariable())
         {
-            m_db[dbVar[k]]=nullptr;
+            m_db[var->id()]=nullptr;
         }
         else
         {
-            m_hypAssoc[dbVar[k]]={};
+            m_hypAssoc[var->id()]={};
         }
     }
 }
 
-bool DbVarProp::contains(const std::string& nameVar) const
+bool DbVarProp::contains(const IDVar& idVar) const
 {
-    return (m_db.find(nameVar)->second)!=nullptr;
+    return (m_db.find(idVar)->second)!=nullptr;
 }
 
-bool DbVarProp::containsHyp(const std::string& hypProp) const
+bool DbVarProp::containsHyp(const IDVar& idHypVar) const
 {
-    return m_hypAssoc.find(hypProp)!=m_hypAssoc.end();
+    return m_hypAssoc.find(idHypVar)!=m_hypAssoc.end();
 }
 
-const ptr<IISubTheoremFormula>& DbVarProp::operator[](const std::string& nameVar) const
+const ptr<IISubTheoremFormula>& DbVarProp::operator[](const IDVar& idVar) const
 {
-    return m_db.find(nameVar)->second;
+    return m_db.at(idVar);
 }
 
-ptr<IISubTheoremFormula> &DbVarProp::operator[](const std::string &nameVar)
+ptr<IISubTheoremFormula> &DbVarProp::operator[](const IDVar& idVar)
 {
-    return m_db[nameVar];
+    return m_db[idVar];
 }
 
-
-void DbVarProp::insert(const std::string &nameVar, const ptr<ASubTheorem>& prop)
+void DbVarProp::insertHypEmpty(const IDVar& idHypVar)
 {
-    m_db[nameVar]=prop;
+    m_hypAssoc[idHypVar]={};
 }
 
-void DbVarProp::insertHypEmpty(const std::string& nameHypVar)
+void DbVarProp::insertHypAssoc(const IDVar& idHypVar, const ptr<ASubTheorem>& prop)
 {
-    m_hypAssoc[nameHypVar]={};
-    m_hypMapOrdered[nameHypVar] = {};
+    m_hypAssoc[idHypVar].push_back(prop);    
 }
 
-void DbVarProp::insertHypAssoc(const std::string& nameHypVar, const ptr<ASubTheorem>& prop)
+std::vector<ptr<ASubTheorem>> DbVarProp::getHypAssoc(const IDVar& idHypVar)
 {
-    std::string key=prop->toString();
-    m_hypMapOrdered[nameHypVar].push_back(key);
-    m_hypAssoc[nameHypVar][key]=prop;    
-}
-
-std::vector<ptr<ASubTheorem>> DbVarProp::getHypAssoc(const std::string& nameHypVar)
-{
-    std::vector<ptr<const ASubTheorem>> ret;
-    for(size_t k=0;k<m_hypMapOrdered.at(nameHypVar).size();k++)
-    {
-        ret.push_back(m_hypAssoc.at(nameHypVar).at(m_hypMapOrdered.at(nameHypVar)[k]));
-    }
-    return ret;
+    return m_hypAssoc[idHypVar];
 }
 
 bool DbVarProp::isTotallyIdentified() const
@@ -89,9 +71,9 @@ bool DbVarProp::isTotallyIdentified() const
     return true;
 }
 
-bool DbVarProp::isHypVariable(const std::string& nameVar)
+bool DbVarProp::isHypVariable(const ptr<AVariable>& var)
 {
-    return nameVar.substr(0,3)=="HYP";
+    return var->isHypVariable();
 }
 
 void DbVarProp::clear()
@@ -104,10 +86,5 @@ void DbVarProp::clear()
     for(auto it=m_hypAssoc.begin();it!=m_hypAssoc.end();it++)
     {
         m_hypAssoc[it->first]={};
-    }
-
-    for(auto it=m_hypMapOrdered.begin();it!=m_hypMapOrdered.end();it++)
-    {
-        m_hypMapOrdered[it->first]={};
     }
 }

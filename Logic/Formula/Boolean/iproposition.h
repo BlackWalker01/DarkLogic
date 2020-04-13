@@ -41,6 +41,14 @@ public:
 
     virtual bool isEqual(const ASubRule& prop) const =0;
     virtual bool isEqual(const ASubTheorem& prop) const =0;
+    
+    //terminal subproposition methods
+    virtual constexpr bool isHypProp() const
+    {
+        return false;
+    }
+    virtual IDVar variableId() const;
+
 
     virtual ~IProposition() = default;
 };

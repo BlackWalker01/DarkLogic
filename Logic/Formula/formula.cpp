@@ -229,7 +229,15 @@ void VariableContainer::init()
         }
         case BOOL_TYPE:
         {
-            var=std::make_shared<Boolean>(name);
+            if (name.substr(0, 3) == "HYP")
+            {
+                var = std::make_shared<HypBoolean>(name);
+            }
+            else
+            {
+                var = std::make_shared<Boolean>(name);
+            }
+            
             break;
         }
         case NATURAL_INT_TYPE:

@@ -51,6 +51,7 @@ namespace  N_Logic
       * Define Variable for Logic
       ---------------------------------------------------------------
       */
+    using IDVar = unsigned int; //identifiant type for variable
     template<SetDerived SetType>
     class Variable;
     class Boolean;

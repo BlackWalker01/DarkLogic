@@ -77,14 +77,14 @@ template<SubRuleFormula VarType>
 bool SubArithmeticRule<VarType>::
 identifyPriv(const ptr<typename SubArithmeticRule<VarType>::ATheoremType> &prop, DbVarProp &dbVarProp) const
 {
-    if(!dbVarProp.contains(m_son->name()))
+    if(!dbVarProp.contains(m_son->id()))
     {
-        dbVarProp[m_son->name()]=prop;
+        dbVarProp[m_son->id()]=prop;
         return true;
     }
     else
     {
-        auto exProp=dbVarProp[m_son->name()];
+        auto exProp=dbVarProp[m_son->id()];
         auto exPropCast=std::dynamic_pointer_cast<const ASubArithmeticRule<ValueType>>(exProp);
         if(exPropCast)
         {
@@ -103,7 +103,7 @@ ptr<typename SubArithmeticRule<VarType>::ATheoremType>
 SubArithmeticRule<VarType>::
 applyPriv(DbVarProp &dbVarProp) const
 {
-    return std::dynamic_pointer_cast<const ATheoremType>(dbVarProp[m_son->name()]);
+    return std::dynamic_pointer_cast<const ATheoremType>(dbVarProp[m_son->id()]);
 }
 
 
@@ -111,7 +111,7 @@ template<SubRuleFormula VarType>
 ptr<typename SubArithmeticRule<VarType>::ATheoremType>
 SubArithmeticRule<VarType>::applyFirstPriv(DbVarProp &dbVarProp) const
 {
-    return std::dynamic_pointer_cast<const ATheoremType>(dbVarProp[m_son->name()]);
+    return std::dynamic_pointer_cast<const ATheoremType>(dbVarProp[m_son->id()]);
 }
 
 

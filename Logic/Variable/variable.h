@@ -1,11 +1,11 @@
 #ifndef VARIABLE_H
 #define VARIABLE_H
-#include "term.h"
+#include "avariable.h"
 #include "variableexception.h"
 
 namespace N_Logic {
 template<SetDerived SetType_>
-class Variable: public AbstractTerm
+class Variable: public AVariable
 {
 public:
     using SetType = SetType_;
@@ -39,7 +39,7 @@ protected:
 };
 
 template<SetDerived SetType_>
-Variable<SetType_>::Variable(const std::string& name_): AbstractTerm(name_), 
+Variable<SetType_>::Variable(const std::string& name_): AVariable(name_), 
 m_val(std::make_unique<std::unique_ptr<ValueType>>(nullptr))
 {
 
@@ -55,7 +55,7 @@ constexpr bool Variable<SetType>::operator==(const Variable<SetType2>&) const
 template<SetDerived SetType>
 constexpr bool Variable<SetType>::operator==(const Variable<SetType>& var) const
 {
-    return this->m_name==var.m_name;
+    return this->m_id==var.m_id;
 }
 
 template<SetDerived SetType>
