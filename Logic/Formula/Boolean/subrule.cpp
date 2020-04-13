@@ -801,6 +801,15 @@ const ptr<ASubRule>& SubRule<Not<ASubRule>>::operator[](const size_t&) const
 }
 
 /**---------------------------------------------------------------
+ * variableId methods
+ * ---------------------------------------------------------------
+ */
+IDVar SubRule<Boolean>::variableId() const
+{
+    return m_son->id();
+}
+
+/**---------------------------------------------------------------
  * arity methods
  * ---------------------------------------------------------------
  */
@@ -882,7 +891,7 @@ bool SubRule<Hyp<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarPro
             for(size_t k=0;k<m_son->arity()-1;k++)
             {
                 //if is HYP variable
-                if ((*m_son)[k]->type() == PropType::VAR_PROP && dbVarProp.isHypVariable((*m_son)[k]->toString()))
+                if ((*m_son)[k]->isHypProp())
                 {
                     //only one HYP variable can be automatically identified
                     if (hasAlreadyHyp)
@@ -891,11 +900,11 @@ bool SubRule<Hyp<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarPro
                     }
                     hasAlreadyHyp = true;
                     size_t nbToIdentify = propCast->arity() - m_son->arity() + 1;
-                    std::string nameHypVar = (*m_son)[k]->toString();
-                    if (dbVarProp.containsHyp(nameHypVar))
+                    IDVar idHypVar = (*m_son)[k]->variableId();
+                    if (dbVarProp.containsHyp(idHypVar))
                     {
                         //check if old mapping is the same as the current one
-                        auto props = dbVarProp.getHypAssoc(nameHypVar);
+                        auto props = dbVarProp.getHypAssoc(idHypVar);
                         if (nbToIdentify != props.size())
                         {
                             return false;
@@ -912,11 +921,11 @@ bool SubRule<Hyp<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarPro
                     }
                     else
                     {
-                        dbVarProp.insertHypEmpty(nameHypVar);
+                        dbVarProp.insertHypEmpty(idHypVar);
                         //map HYP variable with prop subProperties
                         for (size_t i = 0; i < nbToIdentify; i++)
                         {
-                            dbVarProp.insertHypAssoc(nameHypVar, propCast->getSon()[subThIdx]);
+                            dbVarProp.insertHypAssoc(idHypVar, propCast->getSon()[subThIdx]);
                             subThIdx++;
                         }
                     }
@@ -940,14 +949,14 @@ bool SubRule<Hyp<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarPro
     }
     else if(m_son->arity()==2)
     {
-        std::string nameHypVar=(*m_son)[0]->toString();
-        if (dbVarProp.containsHyp(nameHypVar))
+        IDVar idHypVar=(*m_son)[0]->variableId();
+        if (dbVarProp.containsHyp(idHypVar))
         {
             return false;
         }
         else
         {
-            dbVarProp.insertHypEmpty(nameHypVar);
+            dbVarProp.insertHypEmpty(idHypVar);
             return (*m_son)[1]->identifyPriv(prop, dbVarProp);
         }        
     }
@@ -977,14 +986,14 @@ bool SubRule<Or<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp
 
 bool SubRule<Boolean>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp& dbVarProp) const
 {
-    if(!dbVarProp.contains(m_son->name()))
+    if(!dbVarProp.contains(m_son->id()))
     {
-        dbVarProp[m_son->name()]=prop;
+        dbVarProp[m_son->id()]=prop;
         return true;
     }
     else
     {
-        auto exPropCast=std::dynamic_pointer_cast<const ASubTheorem>(dbVarProp[m_son->name()]);
+        auto exPropCast=std::dynamic_pointer_cast<const ASubTheorem>(dbVarProp[m_son->id()]);
         if(exPropCast)
         {
             return *prop==*exPropCast;
@@ -1034,10 +1043,10 @@ ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
     //Handle all variable in Hyp operator before implication
     for(size_t k=0;k<m_son->arity()-1;k++)
     {
-        if((*m_son)[k]->type()==PropType::VAR_PROP && dbVarProp.isHypVariable((*m_son)[k]->toString()))
+        if((*m_son)[k]->isHypProp())
         {
-            std::string hypName=(*m_son)[k]->toString();
-            std::vector<ptr<ASubTheorem>> hypAssoc=dbVarProp.getHypAssoc(hypName);
+            IDVar idHypVar=(*m_son)[k]->variableId();
+            std::vector<ptr<ASubTheorem>> hypAssoc=dbVarProp.getHypAssoc(idHypVar);
             for(size_t k=0;k<hypAssoc.size();k++)
             {
                 ret.push_back(hypAssoc[k]);
@@ -1074,7 +1083,7 @@ ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
 
 ptr<ASubTheorem> SubRule<Boolean>::applyPriv(DbVarProp& dbVarProp) const
 {
-    return std::dynamic_pointer_cast<const ASubTheorem>(dbVarProp[m_son->name()]);
+    return std::dynamic_pointer_cast<const ASubTheorem>(dbVarProp[m_son->id()]);
 }
 
 ptr<ASubTheorem> SubRule<ConstBoolean>::applyPriv(DbVarProp&) const
@@ -1114,10 +1123,10 @@ ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) co
     //Handle all variable in Hyp operator before HYP variable
     for(size_t k=0;k<m_son->arity()-1;k++)
     {
-        if((*m_son)[k]->type()==PropType::VAR_PROP && dbVarProp.isHypVariable((*m_son)[k]->toString()))
+        if((*m_son)[k]->isHypProp())
         {
-            std::string hypName=(*m_son)[k]->toString();
-            std::vector<ptr<ASubTheorem>> hypAssoc=dbVarProp.getHypAssoc(hypName);
+            IDVar idHypVar=(*m_son)[k]->variableId();
+            std::vector<ptr<ASubTheorem>> hypAssoc=dbVarProp.getHypAssoc(idHypVar);
             for(size_t k=0;k<hypAssoc.size();k++)
             {
                 ret.push_back(hypAssoc[k]);
@@ -1154,7 +1163,7 @@ ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) con
 
 ptr<ASubTheorem> SubRule<Boolean>::applyFirstPriv(DbVarProp& dbVarProp) const
 {
-    return std::dynamic_pointer_cast<const ASubTheorem>(dbVarProp[m_son->name()])->copyTheorem();
+    return std::dynamic_pointer_cast<const ASubTheorem>(dbVarProp[m_son->id()])->copyTheorem();
 }
 
 ptr<ASubTheorem> SubRule<ConstBoolean>::applyFirstPriv(DbVarProp&) const

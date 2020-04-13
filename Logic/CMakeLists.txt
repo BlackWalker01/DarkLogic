@@ -5,7 +5,6 @@ project(Logic LANGUAGES CXX)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-#set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 add_library(Logic SHARED
     #Sources
@@ -45,6 +44,8 @@ add_library(Logic SHARED
     Variable/constante.cpp
     Variable/dbvar.cpp
     Variable/term.cpp
+    Variable/avariable.cpp
+    Variable/Boolean/hypboolean.cpp
     Logger/log.cpp
     Utils/action.cpp
     Variable/variableexception.cpp
@@ -158,13 +159,15 @@ add_library(Logic SHARED
     Variable/dbvar.h
     Variable/dbvar.hxx
     Variable/term.h
+    Variable/avariable.h
     Variable/variable.h
     Variable/variable.hxx
+    Variable/Boolean/hypboolean.h
     Logger/log.h
     Utils/action.h
     Utils/exception.h
     Variable/variableexception.h
-  )
+   "Variable/avariable.cpp" "Variable/Boolean/hypboolean.cpp")
 
 target_compile_definitions(Logic PRIVATE LOGIC_LIBRARY)
 add_compile_definitions(_SILENCE_CLANG_CONCEPTS_MESSAGE)

@@ -59,7 +59,14 @@ std::shared_ptr<AbstractTerm> AbstractTerm::create(const std::string &name)
         }
         else
         {
-            return std::make_shared<Boolean>(name);
+            if (name.substr(0, 3) == "HYP")
+            {
+                return std::make_shared<HypBoolean>(name);
+            }
+            else
+            {
+                return std::make_shared<Boolean>(name);
+            }
         }
     }
     return nullptr;

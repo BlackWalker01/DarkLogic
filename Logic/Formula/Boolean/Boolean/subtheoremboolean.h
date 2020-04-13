@@ -29,6 +29,12 @@ public:
 
     ptr<ASubTheorem> copyTheorem() const override final;
     const SubPropertyType& getSon() const;
+    constexpr bool isHypProp() const override final
+    {
+        return m_son->isHypVariable();
+    }
+    IDVar variableId() const override final;
+
     ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<size_t>& indexes, const size_t& actionKey) const override;
 
     ~SubTheorem() override = default;

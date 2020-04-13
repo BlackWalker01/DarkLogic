@@ -3,6 +3,7 @@
 #include "NaturalInteger/constnaturalinteger.h"
 #include "NaturalInteger/naturalinteger.h"
 #include "Boolean/boolean.h"
+#include "Boolean/hypboolean.h"
 #include "Boolean/constboolean.h"
 #include "Set/constset.h"
 #include "Set/varset.h"

@@ -1,9 +1,9 @@
 #include "dbvar.h"
-#include "term.h"
+#include "avariable.h"
 
 using namespace N_Logic;
 
-DbVar::DbVar(const std::shared_ptr<const AbstractTerm> &var): db(createDb(var))
+DbVar::DbVar(const ptr<AVariable> &var): db(createDb(var))
 {
 
 }
@@ -24,15 +24,15 @@ DbVar::DbVar(const std::vector<const DbVar*>& dbVars): db(merge((dbVars)))
 }
 
 
-const std::shared_ptr<const AbstractTerm> &DbVar::find(const std::string &name)
+const ptr<AVariable> &DbVar::find(const IDVar &idVar) const
 {
-    return db[name];
+    return db.at(idVar);
 }
 
 
-std::vector<std::string> DbVar::nameVars() const
+std::vector<IDVar> DbVar::nameVars() const
 {
-    std::vector<std::string> ret;
+    std::vector<IDVar> ret;
     for(auto it=db.begin();it!=db.end();it++)
     {
         ret.push_back(it->first);
@@ -40,9 +40,9 @@ std::vector<std::string> DbVar::nameVars() const
     return ret;
 }
 
-std::vector<std::shared_ptr<const AbstractTerm>> N_Logic::DbVar::getVars() const
+std::vector<ptr<AVariable>> N_Logic::DbVar::getVars() const
 {
-	std::vector<std::shared_ptr<const AbstractTerm>> ret;
+	std::vector<ptr<AVariable>> ret;
     for (const auto& var : db)
     {
         ret.push_back(var.second);
@@ -51,22 +51,22 @@ std::vector<std::shared_ptr<const AbstractTerm>> N_Logic::DbVar::getVars() const
 }
 
 
-bool DbVar::contains(const std::string& name) const
+bool DbVar::contains(const IDVar& idVar) const
 {
-    return db.find(name)!=db.end();
+    return db.find(idVar)!=db.end();
 }
 
-std::unordered_map<std::string, std::shared_ptr<const AbstractTerm> >
-DbVar::createDb(const std::shared_ptr<const AbstractTerm> &var)
+std::unordered_map<IDVar, ptr<AVariable> >
+DbVar::createDb(const ptr<AVariable> &var)
 {
-    std::unordered_map<std::string, std::shared_ptr<const AbstractTerm> > ret;
-    ret[var->name()]=var;
+    std::unordered_map<IDVar, ptr<AVariable> > ret;
+    ret[var->id()]=var;
     return ret;
 }
 
-std::unordered_map<std::string, std::shared_ptr<const AbstractTerm>> N_Logic::DbVar::createDb(const DbVar* db)
+std::unordered_map<IDVar, ptr<AVariable>> N_Logic::DbVar::createDb(const DbVar* db)
 {
-    std::unordered_map<std::string, std::shared_ptr<const AbstractTerm>> ret;
+    std::unordered_map<IDVar, ptr<AVariable>> ret;
     if (db)
     {
         ret.insert(db->db.begin(), db->db.end());
@@ -74,10 +74,10 @@ std::unordered_map<std::string, std::shared_ptr<const AbstractTerm>> N_Logic::Db
     return ret;
 }
 
-std::unordered_map<std::string, std::shared_ptr<const AbstractTerm> >
+std::unordered_map<IDVar, ptr<AVariable> >
 DbVar::merge(const DbVar *db, const DbVar *db2)
 {
-    std::unordered_map<std::string, std::shared_ptr<const AbstractTerm> > ret;
+    std::unordered_map<IDVar, ptr<AVariable> > ret;
     if (db)
     {
         ret.insert(db->db.begin(), db->db.end());
@@ -89,10 +89,10 @@ DbVar::merge(const DbVar *db, const DbVar *db2)
     return ret;
 }
 
-std::unordered_map<std::string, std::shared_ptr<const AbstractTerm> >
+std::unordered_map<IDVar, ptr<AVariable> >
 DbVar::merge(const std::vector<const DbVar*> &dbs)
 {
-    std::unordered_map<std::string, std::shared_ptr<const AbstractTerm> > ret;
+    std::unordered_map<IDVar, ptr<AVariable> > ret;
     for(const auto& db: dbs)
     {
         if (db)

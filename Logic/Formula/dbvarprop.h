@@ -8,36 +8,35 @@ namespace N_Logic {
 
 class IISubTheoremFormula;
 class ASubTheorem;
+class AVariable;
 
 class DbVarProp
 {
 public:
-    DbVarProp();
+    DbVarProp() = default;
     DbVarProp(const DbVarProp& dbVarProp);
-    DbVarProp(const std::vector<std::string>& dbVar);
+    DbVarProp(const std::vector<ptr<AVariable>>& vars);
 
-    bool contains(const std::string& nameVar) const;
-    bool containsHyp(const std::string& hypProp) const;
-    const ptr<IISubTheoremFormula>& operator[](const std::string& nameVar) const;
-    ptr<IISubTheoremFormula>& operator[](const std::string& nameVar);
-    std::vector<ptr<ASubTheorem> > getHypAssoc(const std::string& nameHypVar);
+    bool contains(const IDVar& idVar) const;
+    bool containsHyp(const IDVar& idHyp) const;
+    const ptr<IISubTheoremFormula>& operator[](const IDVar& idVar) const;
+    ptr<IISubTheoremFormula>& operator[](const IDVar& idVar);
+    std::vector<ptr<ASubTheorem> > getHypAssoc(const IDVar& idHypVar);
 
-    void insert(const std::string &nameVar, const ptr<ASubTheorem> &prop);
-    void insertHypEmpty(const std::string& nameHypVar);
-    void insertHypAssoc(const std::string& nameHypVar, const ptr<ASubTheorem>& prop);
+    void insertHypEmpty(const IDVar& idHypVar);
+    void insertHypAssoc(const IDVar& idHypVar, const ptr<ASubTheorem>& prop);
 
     bool isTotallyIdentified() const;
-    static bool isHypVariable(const std::string& nameVar);
+    static bool isHypVariable(const ptr<AVariable>& var);
 
     void clear();
     ~DbVarProp() = default;
 
 private:
     //gathers the formula associated to the variable name
-    std::unordered_map<std::string, ptr<IISubTheoremFormula>> m_db;
+    std::unordered_map<IDVar, ptr<IISubTheoremFormula>> m_db;
 
-    std::unordered_map<std::string,std::vector<std::string>> m_hypMapOrdered;
-    std::unordered_map<std::string,std::unordered_map<std::string, ptr<ASubTheorem>>> m_hypAssoc;
+    std::unordered_map<IDVar,std::vector<ptr<ASubTheorem>>> m_hypAssoc;
 };
 }
 #endif // DBVARPROP_H

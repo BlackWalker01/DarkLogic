@@ -29,7 +29,7 @@ bool N_Logic::ASubTheorem::canBeDemonstrated() const
  * return true if the theorem has one crtValue
  * crtValue is the current evaluation of the theorem
 */
-bool N_Logic::ASubTheorem::testCanBeDemonstrated(const std::vector<ptr<AbstractTerm>>& vars, 
+bool N_Logic::ASubTheorem::testCanBeDemonstrated(const std::vector<ptr<AVariable>>& vars,
     std::unique_ptr<bool>& crtValue) const
 {
     //try to evaluate directly 

@@ -28,6 +28,11 @@ public:
     std::string toString(unsigned short priorityParent=1000) const override final;
     const DbVar* getExtVars() const override final;
     const SubPropertyType& getSon() const;
+    constexpr bool isHypProp() const override final
+    {
+        return m_son->isHypVariable();
+    }
+    IDVar variableId() const override final;
 
     ~SubRule() override = default;
 
