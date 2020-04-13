@@ -1,6 +1,6 @@
 #include "aithread.h"
 #include "ai.h"
-#include "Logic/logic.h"
+#include "logic.h"
 #include <iostream>
 
 AIThread::AIThread(const size_t& instanceId, AI& ai) : m_instanceId(instanceId), 
@@ -38,12 +38,12 @@ bool AIThread::mustStop()
 
 void AIThread::computeActions()
 {
-    N_Logic::Logic::getActions(m_instanceId);
+    N_DarkLogic::DarkLogic::getActions(m_instanceId);
 }
 
 void AIThread::updateLogic(const size_t& actionId)
 {
-    N_Logic::Logic::apply(m_instanceId,actionId);
+    N_DarkLogic::DarkLogic::apply(m_instanceId,actionId);
     m_crtActions.clear();
 }
 
@@ -71,7 +71,7 @@ void AIThread::_start()
 {
     //std::cout << "[DEBUG] Start thread:"<<m_instanceId << std::endl;
     m_hasStarted = true;
-    N_Logic::Logic::getActions(m_instanceId);
+    N_DarkLogic::DarkLogic::getActions(m_instanceId);
 
     //compute value of given nodes
     while (!mustStop())

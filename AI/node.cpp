@@ -1,6 +1,6 @@
 #include "node.hpp"
 #include "node.hpp"
-#include "Logic/logic.h"
+#include "logic.h"
 #include "ai.h"
 #include <ctime>
 #include <random>
@@ -86,14 +86,14 @@ bool Node::isRoot() const
 unsigned short Node::makeSimu()
 {
 	//play move
-	N_Logic::Logic::apply(m_threadId, m_actionId);
+	N_DarkLogic::DarkLogic::apply(m_threadId, m_actionId);
 
 	//check if node is terminal
-	if (N_Logic::Logic::isAlreadyPlayed(m_threadId) || !N_Logic::Logic::canBeDemonstrated(m_threadId))
+	if (N_DarkLogic::DarkLogic::isAlreadyPlayed(m_threadId) || !N_DarkLogic::DarkLogic::canBeDemonstrated(m_threadId))
 	{
 		m_value = USHRT_MAX;
 	}
-	else if (N_Logic::Logic::isDemonstrated(m_threadId))
+	else if (N_DarkLogic::DarkLogic::isDemonstrated(m_threadId))
 	{
 		//std::cout << "[DEBUG] found demonstration!" << std::endl;
 		m_value = 0;
@@ -108,7 +108,7 @@ unsigned short Node::makeSimu()
 		if (!s_ai->mustStop(m_threadId))
 		{
 			//get actions
-			std::vector<size_t> actions = N_Logic::Logic::getActions(m_threadId);
+			std::vector<size_t> actions = N_DarkLogic::DarkLogic::getActions(m_threadId);
 
 			//play random action
 			auto newAction = actions[rand() % actions.size()];
@@ -122,7 +122,7 @@ unsigned short Node::makeSimu()
 	}
 
 	//unplay crt move
-	N_Logic::Logic::unapply(m_threadId);
+	N_DarkLogic::DarkLogic::unapply(m_threadId);
 
 	//increment nb simulation
 	m_nbSimu++;
@@ -220,16 +220,16 @@ unsigned short Node::explore(const std::vector<size_t>& actions)
 unsigned short Node::explore()
 {
 	//play crt move
-	N_Logic::Logic::apply(m_threadId, m_actionId);
+	N_DarkLogic::DarkLogic::apply(m_threadId, m_actionId);
 
 	//check if node is terminal
-	if (N_Logic::Logic::isAlreadyPlayed(m_threadId) || !N_Logic::Logic::canBeDemonstrated(m_threadId))
+	if (N_DarkLogic::DarkLogic::isAlreadyPlayed(m_threadId) || !N_DarkLogic::DarkLogic::canBeDemonstrated(m_threadId))
 	{
 		m_value = USHRT_MAX;
 		//increment nb simulations
 		m_nbSimu++;
 	}
-	else if(N_Logic::Logic::isDemonstrated(m_threadId))
+	else if(N_DarkLogic::DarkLogic::isDemonstrated(m_threadId))
 	{
 		m_value = 0;
 		//increment nb simulations
@@ -238,14 +238,14 @@ unsigned short Node::explore()
 	else
 	{
 		//get actions
-		std::vector<size_t> actions = N_Logic::Logic::getActions(m_threadId);
+		std::vector<size_t> actions = N_DarkLogic::DarkLogic::getActions(m_threadId);
 		
 		//explore one subNode among actions
 		explore(actions);		
 	}
 
 	//unplay crt move
-	N_Logic::Logic::unapply(m_threadId);	
+	N_DarkLogic::DarkLogic::unapply(m_threadId);	
 
 	return m_value;
 }
@@ -294,18 +294,18 @@ unsigned short Node::exploreDeep(const std::vector<size_t>& actions)
 unsigned short Node::exploreDeep(const unsigned short maxDepth)
 {
 	//play crt move
-	N_Logic::Logic::apply(m_threadId, m_actionId);
+	N_DarkLogic::DarkLogic::apply(m_threadId, m_actionId);
 
 	//no need to go deeper
 	if (m_depth == maxDepth)
 	{
 		//check if it is a node which leads to loss
-		if (N_Logic::Logic::isAlreadyPlayed(m_threadId) || !N_Logic::Logic::canBeDemonstrated(m_threadId))
+		if (N_DarkLogic::DarkLogic::isAlreadyPlayed(m_threadId) || !N_DarkLogic::DarkLogic::canBeDemonstrated(m_threadId))
 		{
 			m_value = USHRT_MAX;
 		}
 		//check if it is a node which leads to win
-		else if (N_Logic::Logic::isDemonstrated(m_threadId))
+		else if (N_DarkLogic::DarkLogic::isDemonstrated(m_threadId))
 		{
 			m_value = 0;
 			
@@ -316,7 +316,7 @@ unsigned short Node::exploreDeep(const unsigned short maxDepth)
 	else if(!s_ai->mustStop(m_threadId))
 	{
 		//get actions
-		std::vector<size_t> actions = N_Logic::Logic::getActions(m_threadId);
+		std::vector<size_t> actions = N_DarkLogic::DarkLogic::getActions(m_threadId);
 
 		//add all subnodes if they have not been created yet
 		if (m_depth == maxDepth - 1)
@@ -369,7 +369,7 @@ unsigned short Node::exploreDeep(const unsigned short maxDepth)
 	}
 
 	//unplay crt move
-	N_Logic::Logic::unapply(m_threadId);
+	N_DarkLogic::DarkLogic::unapply(m_threadId);
 
 	return m_value;
 }

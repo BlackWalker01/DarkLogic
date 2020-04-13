@@ -1,7 +1,7 @@
 #include "ai.h"
-#include "Logic/logic.h"
-#include "MainBlackLogic/action.h"
-#include "MainBlackLogic/EnumFun.h"
+#include "logic.h"
+#include "MainDarkLogic/action.h"
+#include "MainDarkLogic/EnumFun.h"
 #include "masteraithread.h"
 #include <chrono>
 #include <condition_variable>

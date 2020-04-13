@@ -1,5 +1,5 @@
 #include "masteraithread.h"
-#include "Logic/logic.h"
+#include "logic.h"
 #include "ai.h"
 #include <iostream>
 
@@ -92,7 +92,7 @@ void MasterAIThread::incrRootNbSimu(const size_t& instanceIdx)
 void MasterAIThread::_start()
 {
     //dispatch actions between slave threads
-    auto actions = N_Logic::Logic::getActions(0);
+    auto actions = N_DarkLogic::DarkLogic::getActions(0);
     for (size_t k = 0; k < actions.size(); k++)
     {
         m_slaveThreads[k % m_slaveThreads.size()]->pushAction(actions[k]);

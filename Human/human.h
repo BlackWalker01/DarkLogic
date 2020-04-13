@@ -1,8 +1,8 @@
 #ifndef HUMAN_H
 #define HUMAN_H
 #include <unordered_map>
-#include "MainBlackLogic/player.h"
-#include "MainBlackLogic/EnumFun.h"
+#include "MainDarkLogic/player.h"
+#include "MainDarkLogic/EnumFun.h"
 
 class Human : public Player
 {
