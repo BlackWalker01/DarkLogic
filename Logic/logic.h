@@ -37,7 +37,7 @@ public:
 
     //operator access methods
     static std::string theoremName();
-    static std::vector<size_t> getActions(const size_t& instanceIdx);
+    static const std::vector<size_t>& getActions(const size_t& instanceIdx);
     static std::vector<Action> getHumanActions();
     static std::vector<Action> getDemonstration();
 
@@ -79,7 +79,7 @@ private:
     void _printTheorem();
 
     //operator access methods
-    std::vector<size_t> _getActions();
+    const std::vector<size_t>& _getActions();
     std::vector<Action> _getHumanActions();
     std::vector<Action> _getDemonstration();
 
@@ -93,7 +93,6 @@ private:
     ptr<ASubTheorem> m_theorem;
     std::vector<Antecedent> m_antecedents;
     DbRule m_rules;
-    size_t m_nbAppliedRule;
     bool m_isLastRuleSymetric;
 
     static std::vector<std::unique_ptr<Logic>> s_instances;

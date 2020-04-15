@@ -167,7 +167,7 @@ add_library(Logic SHARED
     Utils/action.h
     Utils/exception.h
     Variable/variableexception.h
-   "Variable/avariable.cpp" "Variable/Boolean/hypboolean.cpp")
+   )
 
 target_compile_definitions(Logic PRIVATE LOGIC_LIBRARY)
 add_compile_definitions(_SILENCE_CLANG_CONCEPTS_MESSAGE)
