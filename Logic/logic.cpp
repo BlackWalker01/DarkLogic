@@ -64,7 +64,7 @@ const std::string BelongsToStr::s_symbol="€";
 
 std::vector<std::unique_ptr<Logic>> Logic::s_instances = {};
 
-Logic::Logic(): m_theorem(nullptr), m_nbAppliedRule(0), m_isLastRuleSymetric(true)
+Logic::Logic(): m_theorem(nullptr), m_isLastRuleSymetric(true)
 {
     //set up rules of the logic
     //AXIOME Rule
@@ -234,7 +234,7 @@ std::string N_Logic::Logic::theoremName()
     return s_instances[0]->m_theoremName;
 }
 
-std::vector<size_t> Logic::getActions(const size_t& instanceIdx)
+const std::vector<size_t>& Logic::getActions(const size_t& instanceIdx)
 {
     return s_instances[instanceIdx]->_getActions();
 }
@@ -279,7 +279,6 @@ void N_Logic::Logic::_clear()
 {
     m_theorem = nullptr;
     m_antecedents.clear();
-    m_nbAppliedRule = 0;
     m_isLastRuleSymetric = true;
 }
 
@@ -394,9 +393,9 @@ void N_Logic::Logic::_printTheorem()
     m_theorem->print();
 }
 
-std::vector<size_t> N_Logic::Logic::_getActions()
+const std::vector<size_t>& N_Logic::Logic::_getActions()
 {
-    return m_rules.getActions(m_theorem, m_nbAppliedRule);
+    return m_rules.getActions(m_theorem);
 }
 
 std::vector<Action> N_Logic::Logic::_getHumanActions()
@@ -434,17 +433,15 @@ void N_Logic::Logic::_apply(const size_t& actionKey)
     auto couple= m_rules.apply(actionKey, m_theorem);
     m_theorem = couple.first;
     m_isLastRuleSymetric = m_isLastRuleSymetric && couple.second;
-    m_nbAppliedRule++;
 }
 
 void N_Logic::Logic::_unapply()
 {    
     auto antecedent = m_antecedents.back().theorem;
     m_isLastRuleSymetric = m_antecedents.back().isSymmetric;
-    m_rules.unapply(antecedent, m_nbAppliedRule);
+    m_rules.unapply(antecedent);
     m_theorem = antecedent;
     m_antecedents.pop_back();
-    m_nbAppliedRule--;
 }
 
 bool N_Logic::Logic::_hasAlreadyPlayed()

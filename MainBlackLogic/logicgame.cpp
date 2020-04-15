@@ -277,6 +277,7 @@ void LogicGame::askPlayer()
             std::cout << "AIDeep Mode" << std::endl;
             m_mode = AIMode;
             //Init Logic
+            //auto nbInstance = 1 + 1;
             auto nbInstance = (std::thread::hardware_concurrency()) + 1; //opti for the moment
             N_Logic::Logic::init(nbInstance);
             m_player = std::make_unique<AI>(AI::DEEP, nbInstance);

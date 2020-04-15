@@ -26,9 +26,12 @@ public:
 
     //method used by Logic
     virtual std::pair<ptr<ATheoremType>,bool> apply(const size_t& actionKey, const ptr<ATheoremType>& theorem) const;
-    virtual void unapply() const;
     virtual std::vector<size_t> getActions(const ptr<ATheoremType>& prop, size_t& lastActionIndex) const;
     virtual std::vector<Action> getHumanActions() const;
+
+    //store actions method
+    virtual void storeActions() const;
+    virtual void unstoreActions() const;
 
     //internal methods
     virtual bool identifyPriv(const ptr<ATheoremType>& prop, DbVarProp& dbVarProp) const=0;
@@ -46,12 +49,6 @@ std::pair<ptr<ATheoremType>,bool> ISubRuleFormula<ATheoremType>::apply(const siz
 }
 
 template<SubTheoremType ATheoremType>
-void ISubRuleFormula<ATheoremType>::unapply() const
-{
-    throw std::runtime_error("Cannot unapply subrule formula");
-}
-
-template<SubTheoremType ATheoremType>
 std::vector<size_t> ISubRuleFormula<ATheoremType>::getActions(const ptr<ATheoremType> &, size_t &) const
 {
     throw std::runtime_error("Cannot get possible actions from a subrule formula");
@@ -61,6 +58,18 @@ template<SubTheoremType ATheoremType>
 std::vector<Action> ISubRuleFormula<ATheoremType>::getHumanActions() const
 {
     throw std::runtime_error("Cannot get possible human actions from a subrule formula");
+}
+
+template<SubTheoremType ATheoremType_>
+inline void ISubRuleFormula<ATheoremType_>::storeActions() const
+{
+    throw std::runtime_error("Cannot call storeAction method with subrule formula");
+}
+
+template<SubTheoremType ATheoremType_>
+inline void ISubRuleFormula<ATheoremType_>::unstoreActions() const
+{
+    throw std::runtime_error("Cannot call unstoreAction method with subrule formula");
 }
 
 }
