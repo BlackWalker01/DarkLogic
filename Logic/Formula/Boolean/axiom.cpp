@@ -201,8 +201,8 @@ ptr<ASubRule> N_Logic::createAxiom(const std::string &name, std::vector<Operator
                                 {
                                     case BOOL_TYPE:
                                     {
-                                        auto leftOpeCast=std::dynamic_pointer_cast<const ASubRule>(leftOpe);
-                                        auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
+                                        auto leftOpeCast=std::static_pointer_cast<const ASubRule>(leftOpe);
+                                        auto rightOpeCast=std::static_pointer_cast<const ASubRule>(rightOpe);
                                         return std::make_shared<const Axiom<Equivalent<ASubRule>>>
                                         (name,leftOpeCast,rightOpeCast);
                                     }
@@ -230,8 +230,8 @@ ptr<ASubRule> N_Logic::createAxiom(const std::string &name, std::vector<Operator
                                 {
                                     case BOOL_TYPE:
                                     {
-                                        auto leftOpeCast=std::dynamic_pointer_cast<const ASubRule>(leftOpe);
-                                        auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
+                                        auto leftOpeCast=std::static_pointer_cast<const ASubRule>(leftOpe);
+                                        auto rightOpeCast=std::static_pointer_cast<const ASubRule>(rightOpe);
                                         return std::make_shared<const Axiom<Implication<ASubRule >>>
                                         (name,leftOpeCast,rightOpeCast);
                                     }

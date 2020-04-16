@@ -145,7 +145,7 @@ std::pair<ptr<ASubTheorem>,bool> Rule<SubPropertyType>::apply(const size_t &acti
     }
     else
     {
-        return { std::dynamic_pointer_cast<const ASubTheorem>(applyAnnexe(actionKey,theorem, indexes)), isSymetric()};
+        return { std::static_pointer_cast<const ASubTheorem>(applyAnnexe(actionKey,theorem, indexes)), isSymetric()};
     }    
 }
 
@@ -153,14 +153,13 @@ template<SubRuleProperty SubPropertyType>
 ptr<IISubTheoremFormula> Rule<SubPropertyType>::applyAnnexe(const size_t &actionKey, const ptr<IISubTheoremFormula> &theorem,
                                                     std::vector<Arity> &indexes) const
 {
-    auto theoremCast=std::dynamic_pointer_cast<const ASubTheorem>(theorem); //?? cast not only to ASubTheorem
     if(indexes.size()==0)
     {
         return (*(this->m_son))[0]->applyPriv(*((*m_actionToIdentifications)->at(actionKey)));
     }
     else
     {
-        return theoremCast->ruleApply(*this,indexes,actionKey);
+        return std::static_pointer_cast<const ASubTheorem>(theorem)->ruleApply(*this,indexes,actionKey); //?? cast not only to ASubTheorem
     }
 }
 
@@ -218,12 +217,12 @@ bool Rule<SubPropertyType>::identify(const ptr<ASubTheorem> &prop, const std::ve
         {
             case IISubTheoremFormula::SUBPURETH:
             {
-                propToIdentify=((*std::dynamic_pointer_cast<const ASubPureTheorem>(propToIdentify))[index]);
+                propToIdentify=((*std::static_pointer_cast<const ASubPureTheorem>(propToIdentify))[index]);
                 break;
             }
             case IISubTheoremFormula::SUBIMPURETH:
             {
-                propToIdentify=((*std::dynamic_pointer_cast<const ASubImpureTheorem>(propToIdentify))[index]);
+                propToIdentify=((*std::static_pointer_cast<const ASubImpureTheorem>(propToIdentify))[index]);
                 break;
             }
             case IISubTheoremFormula::NONTERMARITH:
@@ -238,7 +237,7 @@ bool Rule<SubPropertyType>::identify(const ptr<ASubTheorem> &prop, const std::ve
             }
         }
     }
-    if(impl->identifyPriv(std::dynamic_pointer_cast<const ASubTheorem>(propToIdentify),dbVarProp))
+    if(impl->identifyPriv(std::static_pointer_cast<const ASubTheorem>(propToIdentify),dbVarProp))
     {
         return dbVarProp.isTotallyIdentified();
     }

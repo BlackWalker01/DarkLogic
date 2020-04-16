@@ -74,7 +74,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                     std::vector<ptr<ASubRule>> subPropCasts;
                     for(auto subProp: subProps)
                     {
-                        if((subPropCast=std::dynamic_pointer_cast<const ASubRule>(subProp)))
+                        if((subPropCast=std::static_pointer_cast<const ASubRule>(subProp)))
                         {
                             subPropCasts.push_back(subPropCast);
                         }
@@ -108,7 +108,7 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                             {
                                 case BOOL_TYPE:
                                 {
-                                    auto subOpeCast=std::dynamic_pointer_cast<const ASubRule>(subOpe);
+                                    auto subOpeCast=std::static_pointer_cast<const ASubRule>(subOpe);
                                     return std::make_shared<const SubRule<Not<ASubRule>>>(subOpeCast);
                                 }
                                 default:
@@ -192,8 +192,8 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                     {
                                         case BOOL_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubRule>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubRule>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubRule>(rightOpe);
                                             return std::make_shared<const SubRule<And<ASubRule>>>
                                             (leftOpeCast,rightOpeCast);
                                         }
@@ -221,8 +221,8 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                     {
                                         case BOOL_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubRule>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubRule>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubRule>(rightOpe);
                                             return std::make_shared<const SubRule<Equivalent<ASubRule>>>
                                             (leftOpeCast,rightOpeCast);
                                         }
@@ -250,8 +250,8 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                     {
                                         case BOOL_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubRule>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubRule>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubRule>(rightOpe);
                                             return std::make_shared<const SubRule<Implication<ASubRule >>>
                                             (leftOpeCast,rightOpeCast);
                                         }
@@ -279,8 +279,8 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                     {
                                         case BOOL_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubRule>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubRule>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubRule>(rightOpe);
                                             return std::make_shared<const SubRule<Or<ASubRule >>>
                                             (leftOpeCast,rightOpeCast);
                                         }
@@ -319,8 +319,8 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                     {
                                         case NATURAL_INT_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const SubArithmeticRule<NaturalInteger>>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<size_t>>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const SubArithmeticRule<NaturalInteger>>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubArithmeticRule<size_t>>(rightOpe);
                                             return std::make_shared<const SubArithmeticRule<SetEqual<SubArithmeticRule<NaturalInteger> >>>(
                                                                                                                 leftOpeCast,rightOpeCast);
                                         }
@@ -348,8 +348,8 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                     {
                                         case NATURAL_INT_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<size_t>>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<size_t>>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubArithmeticRule<size_t>>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubArithmeticRule<size_t>>(rightOpe);
                                             return std::make_shared<const SubRule<Equal<ASubArithmeticRule<size_t>, ASubArithmeticRule<size_t> >>>
                                                                     (leftOpeCast,rightOpeCast);
                                         }
@@ -415,8 +415,8 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                     {
                                         case NATURAL_INTEGERSET_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<size_t>>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<NaturalIntegerSet>>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubArithmeticRule<size_t>>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubArithmeticRule<NaturalIntegerSet>>(rightOpe);
                                             return std::make_shared<const SubRule<BelongsTo<ASubArithmeticRule<size_t>, ASubArithmeticRule<NaturalIntegerSet> >>>
                                                     (leftOpeCast,rightOpeCast);
                                         }
@@ -444,8 +444,8 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                     {
                                         case BOOL_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<void>>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubArithmeticRule<void>>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubRule>(rightOpe);
                                             return std::make_shared<const SubRule<Let<ASubArithmeticRule<void>,ASubRule>>>
                                                                                             (leftOpeCast,rightOpeCast);
                                         }
@@ -461,8 +461,8 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                     {
                                         case BOOL_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubRule>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubRule>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubRule>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubRule>(rightOpe);
                                             return std::make_shared<const SubRule<Let<ASubRule,ASubRule>>>
                                                                                 (leftOpeCast,rightOpeCast);
                                         }
@@ -490,8 +490,8 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                                     {
                                         case NATURAL_INT_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<size_t>>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubArithmeticRule<size_t>>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubArithmeticRule<size_t>>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubArithmeticRule<size_t>>(rightOpe);
                                             return std::make_shared<const SubArithmeticRule<Plus<ASubArithmeticRule<size_t>,
                                                     ASubArithmeticRule<size_t> >>>(leftOpeCast,rightOpeCast);
                                         }
@@ -533,22 +533,22 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                 case VALUE_TYPE::BOOL_TYPE:
                 {
                     return std::make_shared<const SubRule<ConstBoolean>>(
-                                            std::dynamic_pointer_cast<ConstBoolean>(var)->evaluate());
+                                            std::static_pointer_cast<ConstBoolean>(var)->evaluate());
                 }
                 case VALUE_TYPE::NATURAL_INT_TYPE:
                 {
                     return std::make_shared<const ConstSubArithmeticRule<ConstNaturalInteger>>(
-                        std::dynamic_pointer_cast<ConstNaturalInteger>(var)->evaluate());
+                        std::static_pointer_cast<ConstNaturalInteger>(var)->evaluate());
                 }
                 case VALUE_TYPE::NATURAL_INTEGERSET_TYPE:
                 {
                     return std::make_shared<const ConstSubArithmeticTheorem<ConstSet<NaturalIntegerSet>>>(
-                                                std::dynamic_pointer_cast<ConstSet<NaturalIntegerSet>>(var)->evaluate());
+                                                std::static_pointer_cast<ConstSet<NaturalIntegerSet>>(var)->evaluate());
                 }
                 case VALUE_TYPE::BOOLEANSET_TYPE:
                 {
                     return std::make_shared<const ConstSubArithmeticTheorem<ConstSet<BooleanSet>>>(
-                                                std::dynamic_pointer_cast<ConstSet<BooleanSet>>(var)->evaluate());
+                                                std::static_pointer_cast<ConstSet<BooleanSet>>(var)->evaluate());
                 }
                 default:
                 {
@@ -563,23 +563,23 @@ ptr<ValueTypeObject> N_Logic::createSubRule(const std::string &name, std::vector
                 case VALUE_TYPE::BOOL_TYPE:
                 {
                     return std::make_shared<const SubRule<Boolean>>(
-                                            std::dynamic_pointer_cast<Boolean>(var));
+                                            std::static_pointer_cast<Boolean>(var));
                 }
                 case VALUE_TYPE::NATURAL_INT_TYPE:
                 {
                     return std::make_shared<const SubArithmeticRule<NaturalInteger>>(
-                                        std::dynamic_pointer_cast<NaturalInteger>(var));
+                                        std::static_pointer_cast<NaturalInteger>(var));
                 }
 
                 case VALUE_TYPE::NATURAL_INTEGERSET_TYPE:
                 {
                     return std::make_shared<const SubArithmeticRule<VarSet<NaturalIntegerSet>>>(
-                                                std::dynamic_pointer_cast<VarSet<NaturalIntegerSet>>(var));
+                                                std::static_pointer_cast<VarSet<NaturalIntegerSet>>(var));
                 }
                 case VALUE_TYPE::BOOLEANSET_TYPE:
                 {
                     return std::make_shared<const SubArithmeticRule<VarSet<BooleanSet>>>(
-                                                std::dynamic_pointer_cast<VarSet<BooleanSet>>(var));
+                                                std::static_pointer_cast<VarSet<BooleanSet>>(var));
                 }
                 default:
                 {
@@ -849,7 +849,7 @@ bool SubRule<And<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarPro
 {
     if(prop->type()==PropType::AND_PROP)
     {
-        auto propCast=std::dynamic_pointer_cast<const SubTheorem<And<ASubTheorem>>>(prop);
+        auto propCast=std::static_pointer_cast<const SubTheorem<And<ASubTheorem>>>(prop);
         return (*m_son)[0]->identifyPriv(propCast->getSon()[0],dbVarProp) && (*m_son)[1]->identifyPriv(propCast->getSon()[1],dbVarProp);
     }
     return false;
@@ -860,7 +860,7 @@ bool SubRule<Equivalent<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, D
 {
     if(prop->type()==PropType::EQUIV_PROP)
     {
-        auto propCast=std::dynamic_pointer_cast<const SubTheorem<Equivalent<ASubTheorem>>>(prop);
+        auto propCast=std::static_pointer_cast<const SubTheorem<Equivalent<ASubTheorem>>>(prop);
         return (*m_son)[0]->identifyPriv(propCast->getSon()[0],dbVarProp) && (*m_son)[1]->identifyPriv(propCast->getSon()[1],dbVarProp);
     }
     return false;
@@ -871,7 +871,7 @@ bool SubRule<Implication<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, 
 {
     if(prop->type()==PropType::IMPL_PROP)
     {
-        auto propCast=std::dynamic_pointer_cast<const SubTheorem<Implication<ASubTheorem>>>(prop);
+        auto propCast=std::static_pointer_cast<const SubTheorem<Implication<ASubTheorem>>>(prop);
         return (*m_son)[0]->identifyPriv(propCast->getSon()[0],dbVarProp) && (*m_son)[1]->identifyPriv(propCast->getSon()[1],dbVarProp);
     }
     return false;
@@ -881,7 +881,7 @@ bool SubRule<Hyp<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarPro
 {
     if(prop->type()==PropType::HYP_PROP)
     {
-        auto propCast=std::dynamic_pointer_cast<const SubTheorem<Hyp<ASubTheorem>>>(prop);
+        auto propCast=std::static_pointer_cast<const SubTheorem<Hyp<ASubTheorem>>>(prop);
         if(propCast->arity()>=m_son->arity()-1)
         {
             bool ret=false;
@@ -967,7 +967,7 @@ bool SubRule<Not<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarPro
 {
     if(prop->type()==PropType::NOT_PROP)
     {
-        auto propCast=std::dynamic_pointer_cast<const SubTheorem<Not<ASubTheorem>>>(prop);
+        auto propCast=std::static_pointer_cast<const SubTheorem<Not<ASubTheorem>>>(prop);
         return (*m_son)[0]->identifyPriv(propCast->getSon()[0],dbVarProp);
     }
     return false;
@@ -978,7 +978,7 @@ bool SubRule<Or<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp
 {
     if(prop->type()==PropType::OR_PROP)
     {
-        auto propCast=std::dynamic_pointer_cast<const SubTheorem<Or<ASubTheorem>>>(prop);
+        auto propCast=std::static_pointer_cast<const SubTheorem<Or<ASubTheorem>>>(prop);
         return (*m_son)[0]->identifyPriv(propCast->getSon()[0],dbVarProp) && (*m_son)[1]->identifyPriv(propCast->getSon()[1],dbVarProp);
     }
     return false;
@@ -993,7 +993,7 @@ bool SubRule<Boolean>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp& dbV
     }
     else
     {
-        auto exPropCast=std::dynamic_pointer_cast<const ASubTheorem>(dbVarProp[m_son->id()]);
+        auto exPropCast=std::static_pointer_cast<const ASubTheorem>(dbVarProp[m_son->id()]);
         if(exPropCast)
         {
             return *prop==*exPropCast;
@@ -1083,7 +1083,7 @@ ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
 
 ptr<ASubTheorem> SubRule<Boolean>::applyPriv(DbVarProp& dbVarProp) const
 {
-    return std::dynamic_pointer_cast<const ASubTheorem>(dbVarProp[m_son->id()]);
+    return std::static_pointer_cast<const ASubTheorem>(dbVarProp[m_son->id()]);
 }
 
 ptr<ASubTheorem> SubRule<ConstBoolean>::applyPriv(DbVarProp&) const
@@ -1163,7 +1163,7 @@ ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) con
 
 ptr<ASubTheorem> SubRule<Boolean>::applyFirstPriv(DbVarProp& dbVarProp) const
 {
-    return std::dynamic_pointer_cast<const ASubTheorem>(dbVarProp[m_son->id()])->copyTheorem();
+    return std::static_pointer_cast<const ASubTheorem>(dbVarProp[m_son->id()])->copyTheorem();
 }
 
 ptr<ASubTheorem> SubRule<ConstBoolean>::applyFirstPriv(DbVarProp&) const
@@ -1430,7 +1430,7 @@ identifyPriv(const ptr<ASubTheorem> &prop, DbVarProp &dbVarProp) const
 {
     if(prop->type()==PropType::EQUAL_PROP)
     {
-        auto propCast=std::dynamic_pointer_cast<const SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>,
+        auto propCast=std::static_pointer_cast<const SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>,
                 ASubArithmeticTheorem<ValueType2> >>>(prop);
         return get<0>(*m_son)->identifyPriv(get<0>(propCast->getSon()),dbVarProp) &&
                 get<1>(*m_son)->identifyPriv(get<1>(propCast->getSon()),dbVarProp);

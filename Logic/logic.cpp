@@ -68,75 +68,75 @@ Logic::Logic(): m_theorem(nullptr), m_isLastRuleSymetric(true)
 {
     //set up rules of the logic
     //AXIOME Rule
-    auto ax = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("ax", "true<=>({p,HYP}p)"));
+    auto ax = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("ax", "true<=>({p,HYP}p)"));
     insert(ax);
 
     //AND rules
-    auto andI = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&I", "(({HYP}p)&&({HYP}q))<=>({HYP}p&&q)"));
+    auto andI = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&I", "(({HYP}p)&&({HYP}q))<=>({HYP}p&&q)"));
     insert(andI);
-    auto andE = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&E", "({HYP}p&&q)<=>(({HYP}p)&&({HYP}q))"));
+    auto andE = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&E", "({HYP}p&&q)<=>(({HYP}p)&&({HYP}q))"));
     insert(andE);
-    auto andEl = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("&&Eg", "({HYP}p&&q)=>({HYP}p)")); //complicated to use!
+    auto andEl = std::static_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("&&Eg", "({HYP}p&&q)=>({HYP}p)")); //complicated to use!
     insert(andEl);
-    auto andEr = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("&&Ed", "({HYP}p&&q)=>({HYP}q)")); //complicated to use!
+    auto andEr = std::static_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("&&Ed", "({HYP}p&&q)=>({HYP}q)")); //complicated to use!
     insert(andEr);
-    auto andCom = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&Com", "({HYP}p&&q)<=>({HYP}q&&p)"));
+    auto andCom = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&Com", "({HYP}p&&q)<=>({HYP}q&&p)"));
     insert(andCom);
-    /*auto doubleAnd = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("2&&", "({HYP}p)<=>({HYP}p&&p)"));
+    /*auto doubleAnd = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("2&&", "({HYP}p)<=>({HYP}p&&p)"));
     insert(doubleAnd);*/
 
     //OR Rules
-    auto orI = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("||I", "(({HYP}p)||({HYP}q))<=>({HYP}p||q)"));
+    auto orI = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("||I", "(({HYP}p)||({HYP}q))<=>({HYP}p||q)"));
     insert(orI);
-    auto orIl = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||Ig", "({HYP}p)=>({HYP}p||q)"));
+    auto orIl = std::static_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||Ig", "({HYP}p)=>({HYP}p||q)"));
     insert(orIl);
-    auto orIr = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||Id", "({HYP}q)=>({HYP}p||q)"));
+    auto orIr = std::static_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||Id", "({HYP}q)=>({HYP}p||q)"));
     insert(orIr);
-    auto orE = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||E", 
+    auto orE = std::static_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("||E", 
         "(({HYP}p||q)&&({p,HYP}r)&&({q,HYP}r))=>(({HYP}r)")); //complicated to use!
     insert(orE);
-    auto orCom = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("||Com", "({HYP}p||q)<=>({HYP}q||p)"));
+    auto orCom = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("||Com", "({HYP}p||q)<=>({HYP}q||p)"));
     insert(orCom);
-    /*auto doubleOr = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("2||", "({HYP}p)<=>({HYP}p||p)"));
+    /*auto doubleOr = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("2||", "({HYP}p)<=>({HYP}p||p)"));
     insert(doubleOr);*/
 
     //IMPLICATION Rules
-    auto implI = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("=>I", "({p,HYP}q)<=>({HYP}p=>q)"));
+    auto implI = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("=>I", "({p,HYP}q)<=>({HYP}p=>q)"));
     insert(implI);
-    auto implE = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("=>E", 
+    auto implE = std::static_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("=>E", 
         "(({HYP}p)&&({HYP}p=>q))=>({HYP}q)")); //complicated to use!
     insert(implE);    
 
     //EQUIVALENT Rules
-    auto eqI = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("<=>I", 
+    auto eqI = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("<=>I", 
         "({HYP}p=>q) && ({HYP}q=>p) <=>({HYP}p<=>q)"));
     insert(eqI);
-    auto eqCom = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&Com", "({HYP}p&&q)<=>({HYP}q&&p)"));
+    auto eqCom = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("&&Com", "({HYP}p&&q)<=>({HYP}q&&p)"));
     insert(eqCom);
 
 
     //FALSE Rules
-    auto fi = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("FI", "({HYP}(p&&!p))<=>({HYP}false)"));
+    auto fi = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("FI", "({HYP}(p&&!p))<=>({HYP}false)"));
     insert(fi);
-    auto fe = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("FE", "({p,HYP}false)<=>({HYP}!p)"));
+    auto fe = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("FE", "({p,HYP}false)<=>({HYP}!p)"));
     insert(fe);
-    auto fiNot = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("FI!", "({!p,HYP}p)<=>({!p,HYP}false)"));
+    auto fiNot = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("FI!", "({!p,HYP}p)<=>({!p,HYP}false)"));
     insert(fiNot);
 
     //HYPOTHESIS Rules
-    auto hypCom1 = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("HypCom1", "({p,HYP,q}r)<=>({p,q,HYP}r)"));
+    auto hypCom1 = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("HypCom1", "({p,HYP,q}r)<=>({p,q,HYP}r)"));
     insert(hypCom1);
-    auto hypCom2 = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("HypCom2", "({p,q,HYP}r)<=>({q,p,HYP}r)"));
+    auto hypCom2 = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("HypCom2", "({p,q,HYP}r)<=>({q,p,HYP}r)"));
     insert(hypCom2);
 
     //WEAKENING Rule
-    auto weak = std::dynamic_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("weakening", "({HYP}p)=>({q,HYP}p)"));
+    auto weak = std::static_pointer_cast<const Rule<Implication<ASubRule>>>(createRule("weakening", "({HYP}p)=>({q,HYP}p)"));
     insert(weak);
 
     //ABSURD REASONNING Rules (ARR)
-    auto arr = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("arr", "({!p,HYP}false)<=>({HYP}p)"));
+    auto arr = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("arr", "({!p,HYP}false)<=>({HYP}p)"));
     insert(arr);
-    auto doubleNot = std::dynamic_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("!!", "({HYP}!!p)<=>({HYP}p)"));
+    auto doubleNot = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("!!", "({HYP}!!p)<=>({HYP}p)"));
     insert(doubleNot);
 }
 
