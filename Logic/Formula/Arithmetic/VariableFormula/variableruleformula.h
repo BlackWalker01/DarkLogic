@@ -103,7 +103,7 @@ ptr<typename SubArithmeticRule<VarType>::ATheoremType>
 SubArithmeticRule<VarType>::
 applyPriv(DbVarProp &dbVarProp) const
 {
-    return std::dynamic_pointer_cast<const ATheoremType>(dbVarProp[m_son->id()]);
+    return std::static_pointer_cast<const ATheoremType>(dbVarProp[m_son->id()]);
 }
 
 
@@ -111,7 +111,7 @@ template<SubRuleFormula VarType>
 ptr<typename SubArithmeticRule<VarType>::ATheoremType>
 SubArithmeticRule<VarType>::applyFirstPriv(DbVarProp &dbVarProp) const
 {
-    return std::dynamic_pointer_cast<const ATheoremType>(dbVarProp[m_son->id()]);
+    return std::static_pointer_cast<const ATheoremType>(dbVarProp[m_son->id()]);
 }
 
 

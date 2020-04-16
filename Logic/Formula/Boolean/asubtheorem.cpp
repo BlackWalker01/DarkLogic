@@ -62,7 +62,7 @@ bool N_Logic::ASubTheorem::testCanBeDemonstrated(const std::vector<ptr<AVariable
                 continue;
             }
 
-            auto boolVar = std::dynamic_pointer_cast<const Boolean>(var);
+            auto boolVar = std::static_pointer_cast<const Boolean>(var);
 
             //try to evaluate theorem with var=true
             (*boolVar) = (true);

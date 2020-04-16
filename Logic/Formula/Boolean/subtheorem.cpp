@@ -105,7 +105,7 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
                             {
                                 case BOOL_TYPE:
                                 {
-                                    auto subOpeCast=std::dynamic_pointer_cast<const ASubTheorem>(subOpe);
+                                    auto subOpeCast=std::static_pointer_cast<const ASubTheorem>(subOpe);
                                     return std::make_shared<const SubTheorem<Not<ASubTheorem>>>(subOpeCast);
                                 }
                                 default:
@@ -188,8 +188,8 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
                                     {
                                         case BOOL_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubTheorem>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubTheorem>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubTheorem>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubTheorem>(rightOpe);
                                             return std::make_shared<const SubTheorem<And<ASubTheorem>>>
                                             (leftOpeCast,rightOpeCast);
                                         }
@@ -217,8 +217,8 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
                                     {
                                         case BOOL_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubTheorem>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubTheorem>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubTheorem>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubTheorem>(rightOpe);
                                             return std::make_shared<const SubTheorem<Equivalent<ASubTheorem>>>
                                             (leftOpeCast,rightOpeCast);
                                         }
@@ -246,8 +246,8 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
                                     {
                                         case BOOL_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubTheorem>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubTheorem>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubTheorem>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubTheorem>(rightOpe);
                                             return std::make_shared<const SubTheorem<Implication<ASubTheorem >>>
                                             (leftOpeCast,rightOpeCast);
                                         }
@@ -275,8 +275,8 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
                                     {
                                         case BOOL_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubTheorem>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubTheorem>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubTheorem>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubTheorem>(rightOpe);
                                             return std::make_shared<const SubTheorem<Or<ASubTheorem >>>
                                             (leftOpeCast,rightOpeCast);
                                         }
@@ -305,8 +305,8 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
                                     {
                                         case NATURAL_INT_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubArithmeticTheorem<size_t>>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubArithmeticTheorem<size_t>>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubArithmeticTheorem<size_t>>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubArithmeticTheorem<size_t>>(rightOpe);
                                             return std::make_shared<const SubTheorem<Equal<ASubArithmeticTheorem<size_t>, ASubArithmeticTheorem<size_t> >>>
                                             (leftOpeCast,rightOpeCast);
                                         }
@@ -372,8 +372,8 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
                                     {
                                         case NATURAL_INTEGERSET_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubArithmeticTheorem<size_t>>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubArithmeticTheorem<NaturalIntegerSet>>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubArithmeticTheorem<size_t>>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubArithmeticTheorem<NaturalIntegerSet>>(rightOpe);
                                             return std::make_shared<const SubTheorem<BelongsTo<ASubArithmeticTheorem<size_t>,
                                                     ASubArithmeticTheorem<NaturalIntegerSet> >>>(leftOpeCast,rightOpeCast);
                                         }
@@ -417,8 +417,8 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
                                     {
                                         case NATURAL_INT_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const SubArithmeticTheorem<NaturalInteger>>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubArithmeticTheorem<size_t>>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const SubArithmeticTheorem<NaturalInteger>>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubArithmeticTheorem<size_t>>(rightOpe);
                                             return std::make_shared<const SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<NaturalInteger> >>>
                                                                     (leftOpeCast,rightOpeCast);
                                         }
@@ -446,8 +446,8 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
                                     {
                                         case BOOL_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubArithmeticTheorem<void>>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubTheorem>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubArithmeticTheorem<void>>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubTheorem>(rightOpe);
                                             return std::make_shared<const Theorem<Let<ASubArithmeticTheorem<void>,ASubTheorem>>>
                                                                                             (leftOpeCast,rightOpeCast);
                                         }
@@ -463,8 +463,8 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
                                     {
                                         case BOOL_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubTheorem>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubTheorem>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubTheorem>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubTheorem>(rightOpe);
                                             return std::make_shared<const Theorem<Let<ASubTheorem,ASubTheorem>>>
                                                                                 (leftOpeCast,rightOpeCast);
                                         }
@@ -492,8 +492,8 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
                                     {
                                         case NATURAL_INT_TYPE:
                                         {
-                                            auto leftOpeCast=std::dynamic_pointer_cast<const ASubArithmeticTheorem<size_t>>(leftOpe);
-                                            auto rightOpeCast=std::dynamic_pointer_cast<const ASubArithmeticTheorem<size_t>>(rightOpe);
+                                            auto leftOpeCast=std::static_pointer_cast<const ASubArithmeticTheorem<size_t>>(leftOpe);
+                                            auto rightOpeCast=std::static_pointer_cast<const ASubArithmeticTheorem<size_t>>(rightOpe);
                                             return std::make_shared<const SubArithmeticTheorem<Plus<ASubArithmeticTheorem<size_t>,
                                                     ASubArithmeticTheorem<size_t> >>>(leftOpeCast,rightOpeCast);
                                         }
@@ -533,22 +533,22 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
                 case VALUE_TYPE::BOOL_TYPE:
                 {
                     return std::make_shared<const SubTheorem<ConstBoolean>>(
-                                            std::dynamic_pointer_cast<ConstBoolean>(var)->evaluate());
+                                            std::static_pointer_cast<ConstBoolean>(var)->evaluate());
                 }
                 case VALUE_TYPE::NATURAL_INT_TYPE:
                 {
                     return std::make_shared<const ConstSubArithmeticTheorem<ConstNaturalInteger>>(
-                                                std::dynamic_pointer_cast<ConstNaturalInteger>(var)->evaluate());
+                                                std::static_pointer_cast<ConstNaturalInteger>(var)->evaluate());
                 }
                 case VALUE_TYPE::NATURAL_INTEGERSET_TYPE:
                 {
                     return std::make_shared<const ConstSubArithmeticTheorem<ConstSet<NaturalIntegerSet>>>(
-                                                std::dynamic_pointer_cast<ConstSet<NaturalIntegerSet>>(var)->evaluate());
+                                                std::static_pointer_cast<ConstSet<NaturalIntegerSet>>(var)->evaluate());
                 }
                 case VALUE_TYPE::BOOLEANSET_TYPE:
                 {
                     return std::make_shared<const ConstSubArithmeticTheorem<ConstSet<BooleanSet>>>(
-                                                std::dynamic_pointer_cast<ConstSet<BooleanSet>>(var)->evaluate());
+                                                std::static_pointer_cast<ConstSet<BooleanSet>>(var)->evaluate());
                 }
                 default:
                 {
@@ -563,22 +563,22 @@ ptr<N_Logic::ValueTypeObject> N_Logic::createSubTheorem(const std::string &name,
                 case VALUE_TYPE::BOOL_TYPE:
                 {
                     return std::make_shared<const SubTheorem<Boolean>>(
-                                            std::dynamic_pointer_cast<Boolean>(var));
+                                            std::static_pointer_cast<Boolean>(var));
                 }
                 case VALUE_TYPE::NATURAL_INT_TYPE:
                 {
                     return std::make_shared<const SubArithmeticTheorem<NaturalInteger>>(
-                                                std::dynamic_pointer_cast<NaturalInteger>(var));
+                                                std::static_pointer_cast<NaturalInteger>(var));
                 }
                 case VALUE_TYPE::NATURAL_INTEGERSET_TYPE:
                 {
                     return std::make_shared<const SubArithmeticTheorem<VarSet<NaturalIntegerSet>>>(
-                                                std::dynamic_pointer_cast<VarSet<NaturalIntegerSet>>(var));
+                                                std::static_pointer_cast<VarSet<NaturalIntegerSet>>(var));
                 }
                 case VALUE_TYPE::BOOLEANSET_TYPE:
                 {
                     return std::make_shared<const SubArithmeticTheorem<VarSet<BooleanSet>>>(
-                                                std::dynamic_pointer_cast<VarSet<BooleanSet>>(var));
+                                                std::static_pointer_cast<VarSet<BooleanSet>>(var));
                 }
                 default:
                 {
@@ -1030,16 +1030,15 @@ ptr<IISubTheoremFormula> SubTheorem<SubPropertyType>::ruleApply(const IISubRuleF
 {
     Arity index=indexes[0];
     indexes.erase(indexes.begin());
-    auto ruleCast=dynamic_cast<const ASubRule*>(&rule);
     if(index==0)
     {
         return std::make_shared<const SubTheorem<SubPropertyType>>(
-        std::dynamic_pointer_cast<const ASubTheorem>(ruleCast->applyAnnexe(actionKey,(*m_son)[0],indexes)), (*m_son)[1]);
+        std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*m_son)[0],indexes)), (*m_son)[1]);
     }
     else
     {
         return std::make_shared<const SubTheorem<SubPropertyType>>(
-        (*m_son)[0], std::dynamic_pointer_cast<const ASubTheorem>(ruleCast->applyAnnexe(actionKey,(*m_son)[1],indexes)));
+        (*m_son)[0], std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*m_son)[1],indexes)));
     }
 }
 
@@ -1053,8 +1052,8 @@ ptr<IISubTheoremFormula> SubTheorem<Hyp<ASubTheorem>>::ruleApply(const IISubRule
     {
         sons.push_back((*m_son)[k]);
     }
-    auto ruleCast=dynamic_cast<const ASubRule*>(&rule);
-    sons.push_back(std::dynamic_pointer_cast<const ASubTheorem>(ruleCast->applyAnnexe(actionKey,((*m_son)[index]),indexes)));
+
+    sons.push_back(std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,((*m_son)[index]),indexes)));
 
     for(size_t k=index+1;k<m_son->arity();k++)
     {
@@ -1068,9 +1067,8 @@ ptr<IISubTheoremFormula> SubTheorem<Not<ASubTheorem>>::ruleApply(const IISubRule
                                                                  std::vector<size_t> &indexes, const size_t &actionKey) const
 {
     indexes.erase(indexes.begin());
-    auto ruleCast=dynamic_cast<const ASubRule*>(&rule);
     return std::make_shared<const SubTheorem<Not<ASubTheorem>>>(
-    std::dynamic_pointer_cast<const ASubTheorem>(ruleCast->applyAnnexe(actionKey,(*m_son)[0],indexes)));
+    std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*m_son)[0],indexes)));
 }
 
 ptr<IISubTheoremFormula> SubTheorem<Boolean>::ruleApply(const IISubRuleFormula &, std::vector<size_t> &, const size_t &) const

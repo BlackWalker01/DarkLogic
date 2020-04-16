@@ -137,7 +137,7 @@ SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::
 applyPriv(DbVarProp &dbVarProp) const
 {
     return std::make_shared<const SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>>>>(
-    std::dynamic_pointer_cast<const SubArithmeticTheorem<VariableType>>(get<0>(*m_son)->applyPriv(dbVarProp)),
+    std::static_pointer_cast<const SubArithmeticTheorem<VariableType>>(get<0>(*m_son)->applyPriv(dbVarProp)),
                                                 get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
@@ -146,7 +146,7 @@ ptr<typename SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::AThe
 SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::applyFirstPriv(DbVarProp &dbVarProp) const
 {
     return std::make_shared<const SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>>>>(
-    std::dynamic_pointer_cast<const SubArithmeticTheorem<VariableType>>(get<0>(*m_son)->applyPriv(dbVarProp)),
+    std::static_pointer_cast<const SubArithmeticTheorem<VariableType>>(get<0>(*m_son)->applyPriv(dbVarProp)),
                                                                 get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
