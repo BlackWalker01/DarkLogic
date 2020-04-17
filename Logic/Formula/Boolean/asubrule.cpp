@@ -21,6 +21,11 @@ bool ASubRule::isSymetric() const
 	return false;
 }
 
+void N_Logic::ASubRule::clearAllIdentifications() const
+{
+    throw std::runtime_error("SubRule cannot call clearAllIdentifications method");
+}
+
 
 ptr<IOperator> N_Logic::createRuleOperator(const Name name, const Arity &arity)
 {

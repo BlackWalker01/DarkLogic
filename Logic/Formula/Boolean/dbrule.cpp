@@ -98,3 +98,15 @@ bool DbRule::isLastRuleSymetric(const size_t& actionKey) const
 {
     return m_actionKeyToRule.at(actionKey)->isSymetric();
 }
+
+void N_Logic::DbRule::clear()
+{
+    m_actions.clear();
+    (*m_nbGetActionCalls) = 0;
+    m_oldActions.clear();
+    m_actionKeyToRule.clear();
+    for (const auto& rule : m_db)
+    {
+        rule->clearAllIdentifications();
+    }
+}

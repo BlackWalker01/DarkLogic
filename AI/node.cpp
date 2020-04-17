@@ -279,7 +279,7 @@ unsigned short Node::exploreDeep(const std::vector<size_t>& actions)
 				break;
 			}
 		}
-		if (maxDepth >= 3)
+		if (maxDepth >= 4)
 		{
 			end = std::chrono::high_resolution_clock::now();
 			double elapsed_seconds = std::chrono::duration<double>(end - start).count();

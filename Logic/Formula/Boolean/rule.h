@@ -48,6 +48,7 @@ public:
 
     ~Rule() override = default;
 
+    void clearAllIdentifications() const override final;
 private:    
     bool identify(const ptr<ASubTheorem>& prop, const std::vector<Arity>& path, DbVarProp& dbVarProp) const;
     void clearIdentifications() const;
@@ -198,6 +199,14 @@ inline void Rule<SubPropertyType>::unstoreActions() const
     *m_crtActions = m_oldActions->back().first;
     *m_actionToIdentifications = m_oldActions->back().second;
     m_oldActions->pop_back();
+}
+
+template<SubRuleProperty SubPropertyType>
+inline void Rule<SubPropertyType>::clearAllIdentifications() const
+{
+    (*m_crtActions)->clear();
+    (*m_actionToIdentifications)->clear();
+    m_oldActions->clear();
 }
 
 /**
