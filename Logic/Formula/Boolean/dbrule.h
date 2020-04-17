@@ -28,9 +28,12 @@ public:
     std::shared_ptr<Action> getHumanAction(const size_t& actionKey);
     bool isLastRuleSymetric(const size_t& actionKey) const;
 
+    void clear();
+
     ~DbRule() = default;
 private:
     std::vector<ptr<ASubRule>> m_db;
+
     ActionList m_actions;
     std::unique_ptr<size_t> m_nbGetActionCalls;
     std::vector<std::pair<ActionList,ActionToRuleMap>> m_oldActions;

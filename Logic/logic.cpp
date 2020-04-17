@@ -280,6 +280,7 @@ void N_Logic::Logic::_clear()
     m_theorem = nullptr;
     m_antecedents.clear();
     m_isLastRuleSymetric = true;
+    m_rules.clear();
 }
 
 bool N_Logic::Logic::_isDemonstrated()
