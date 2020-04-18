@@ -30,11 +30,6 @@ bool N_Logic::ASubTheorem::canBeDemonstrated() const
     return testCanBeDemonstrated(getExtVars()->getVars(), eval);    
 }
 
-bool N_Logic::ASubTheorem::testEvaluate() const
-{
-	return this->evaluate();
-}
-
 /**
  * return true if the theorem has one crtValue
  * crtValue is the current evaluation of the theorem

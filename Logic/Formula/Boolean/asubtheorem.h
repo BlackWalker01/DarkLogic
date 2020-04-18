@@ -21,7 +21,10 @@ public:
     virtual const std::vector<std::vector<Arity>>& computeImplPaths() = 0; //method to compute all possible paths to terms of this subtheorem
     virtual bool isEvaluated() const;
     virtual bool canBeDemonstrated() const;
-    virtual bool testEvaluate() const;
+    virtual inline bool testEvaluate() const
+    {
+        return evaluate();
+    }
 
     //apply rule on subtheorem of this theorem following path from indexes
     virtual ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<size_t>& indexes,

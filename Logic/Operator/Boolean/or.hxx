@@ -36,15 +36,12 @@ bool OrFun<SubPropertyType>::operator()() const
         {
             return true;
         }
-        else
-        {
-            return std::get<1>(m_sonProps)->testEvaluate();
-        }
     }
-    catch (std::runtime_error&)
+    catch (VariableException&)
     {
         return std::get<1>(m_sonProps)->testEvaluate();
     }
+    return std::get<1>(m_sonProps)->testEvaluate();
 }
 
 template<Proposition SubPropertyType>
