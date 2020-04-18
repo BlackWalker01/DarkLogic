@@ -31,13 +31,9 @@ bool AndFun<SubPropertyType>::operator()() const
         if (!std::get<0>(m_sonProps)->testEvaluate())
         {
             return false;
-        }
-        else
-        {
-            return std::get<1>(m_sonProps)->testEvaluate();
-        }
+        }        
     }
-    catch (std::runtime_error& e)
+    catch (VariableException& e)
     {
         if (!std::get<1>(m_sonProps)->testEvaluate())
         {
@@ -48,6 +44,8 @@ bool AndFun<SubPropertyType>::operator()() const
             throw e;
         }
     }
+
+    return std::get<1>(m_sonProps)->testEvaluate();
 }
 
 

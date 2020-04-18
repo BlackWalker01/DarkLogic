@@ -27,7 +27,7 @@ template<Proposition SubPropertyType>
 bool HypFun<SubPropertyType>::operator()() const
 {
     bool ret=true;
-    std::unique_ptr<std::runtime_error> except=nullptr;
+    std::unique_ptr<VariableException> except=nullptr;
     for(size_t k=0;k<m_sonProps.size()-1;k++)
     {
         try
@@ -39,14 +39,21 @@ bool HypFun<SubPropertyType>::operator()() const
                 break;
             }
         }
-        catch (std::runtime_error& e)
+        catch (VariableException& e)
         {
-            except = std::make_unique<std::runtime_error>(e);
+            except = std::make_unique<VariableException>(e);
         }        
     }
     if (except)
     {
-        throw *except;
+        if (m_sonProps.back()->testEvaluate())
+        {
+            return true;
+        }
+        else
+        {
+            throw* except;
+        }        
     }
     return ret? m_sonProps.back()->testEvaluate(): true;
 }
