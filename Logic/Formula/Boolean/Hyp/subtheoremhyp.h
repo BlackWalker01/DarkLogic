@@ -13,7 +13,7 @@ public:
 
     SubTheorem(const std::vector<ptr<ASubTheorem>>& subProps);
 
-    bool evaluate() const override final;
+    bool evaluate() const override;
     constexpr PropType type() const override final
     {
         return PropType::HYP_PROP;

@@ -25,7 +25,7 @@ bool Implication<SubPropertyType>::operator==(const Implication<SubPropertyType2
 template<Proposition SubPropertyType>
 bool ImplFun<SubPropertyType>::operator()() const
 {
-    return std::get<0>(m_sonProps)->evaluate() ? std::get<1>(m_sonProps)->evaluate() : true;
+    return std::get<0>(m_sonProps)->testEvaluate() ? std::get<1>(m_sonProps)->testEvaluate() : true;
 }
 
 template<Proposition SubPropertyType>

@@ -15,6 +15,11 @@ const std::vector<std::vector<Arity>>& N_Logic::ASubTheorem::getImplPaths() cons
     return m_implPaths;
 }
 
+bool N_Logic::ASubTheorem::isEvaluated() const
+{
+    throw std::logic_error("SubTheorem cannot call isEvaluated method");
+}
+
 /**
  * Default implementation of canBeDemonstrated method
  * return true if for all values of its variables, the theorem is evaluate to true (or false) 
@@ -23,6 +28,11 @@ bool N_Logic::ASubTheorem::canBeDemonstrated() const
 {
     std::unique_ptr<bool> eval = nullptr;
     return testCanBeDemonstrated(getExtVars()->getVars(), eval);    
+}
+
+bool N_Logic::ASubTheorem::testEvaluate() const
+{
+	return this->evaluate();
 }
 
 /**
@@ -37,12 +47,12 @@ bool N_Logic::ASubTheorem::testCanBeDemonstrated(const std::vector<ptr<AVariable
     {
         if (crtValue)
         {
-            bool newValue = evaluate();
+            bool newValue = testEvaluate();
             return (*crtValue) == newValue;
         }
         else
         {
-            crtValue = std::make_unique<bool>(evaluate());
+            crtValue = std::make_unique<bool>(testEvaluate());
             return true;
         }    
     }
