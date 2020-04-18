@@ -11,7 +11,7 @@ class SubTheorem: public ASubPureTheorem
 public:
     SubTheorem(const ptr<ASubTheorem>& leftSubProp, const ptr<ASubTheorem>& rightSubProp);    
 
-    bool evaluate() const override final;
+    bool evaluate() const override;
     constexpr PropType type() const override final
     {
         if constexpr (std::is_same_v<SubPropertyType, And<ASubTheorem>>)

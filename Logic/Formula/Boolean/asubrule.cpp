@@ -26,6 +26,11 @@ void N_Logic::ASubRule::clearAllIdentifications() const
     throw std::runtime_error("SubRule cannot call clearAllIdentifications method");
 }
 
+bool N_Logic::ASubRule::testEvaluate() const
+{
+	return evaluate();
+}
+
 
 ptr<IOperator> N_Logic::createRuleOperator(const Name name, const Arity &arity)
 {

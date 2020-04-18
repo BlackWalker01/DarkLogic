@@ -14,7 +14,7 @@ public:
 
     SubTheorem(const ptr<ASubTheorem>& subProp);
 
-    bool evaluate() const override final;
+    bool evaluate() const override;
     constexpr PropType type() const override final
     {
         return PropType::NOT_PROP;

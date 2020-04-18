@@ -285,9 +285,9 @@ void N_Logic::Logic::_clear()
 
 bool N_Logic::Logic::_isDemonstrated()
 {
-    try
+    if(m_theorem->isEvaluated())
     {
-        if (_evaluate())
+        if (m_theorem->evaluate())
         {
             return true;
         }
@@ -296,10 +296,8 @@ bool N_Logic::Logic::_isDemonstrated()
             return m_isLastRuleSymetric;
         }       
     }
-    catch (const VariableException&)
-    {
-        return false;
-    }
+    return false;
+
 }
 
 bool N_Logic::Logic::_isAlreadyPlayed()
@@ -316,48 +314,18 @@ bool N_Logic::Logic::_isAlreadyPlayed()
 }
 
 bool N_Logic::Logic::_canBeDemonstrated()
-{
-    try
-    {
-        if (!_evaluate())
-        {
-            return m_isLastRuleSymetric;
-        }
-        return true;
-    }
-    catch (const VariableException&)
-    {
-        return m_theorem->canBeDemonstrated();
-    }    
+{    
+    return m_theorem->canBeDemonstrated();    
 }
 
 bool N_Logic::Logic::_evaluate()
 {
-    if (m_theorem)
-    {
-        return m_theorem->evaluate();
-    }
-    else
-    {
-        throw std::runtime_error("Cannot evaluate an invalid theorem");
-    }
+    return m_theorem->evaluate();
 }
 
 bool N_Logic::Logic::_isEvaluated()
 {
-    if (m_theorem)
-    {
-        try
-        {
-            m_theorem->evaluate();
-            return true;
-        }
-        catch (const VariableException&)
-        {
-            return false;
-        }
-    }
-    return false;
+    return m_theorem->isEvaluated();
 }
 
 bool N_Logic::Logic::_appliedRuleSymetric()

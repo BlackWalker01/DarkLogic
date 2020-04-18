@@ -13,10 +13,9 @@ public:
 
     SubTheorem(const ptr<ASubArithmeticTheorem<typename SetType::Type>>& leftFormula,
                const ptr<ASubArithmeticTheorem<SetType>>& rightFormula);
-    SubTheorem(const std::string& name, const std::vector<ASubTheorem*>& subProps);
     SubTheorem(const SubRule<ConstBoolean>& prop);
 
-    bool evaluate() const override final;
+    bool evaluate() const override;
     constexpr PropType type() const override final;
 
     bool isEqual(const ASubTheorem& prop) const override final;

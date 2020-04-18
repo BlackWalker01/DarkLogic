@@ -25,7 +25,7 @@ bool Equivalent<SubPropertyType>::operator==(const Equivalent<SubPropertyType2> 
 template<Proposition SubPropertyType>
 bool EqFun<SubPropertyType>::operator()() const
 {
-    return std::get<0>(m_sonProps)->evaluate() == std::get<1>(m_sonProps)->evaluate();
+    return std::get<0>(m_sonProps)->testEvaluate() == std::get<1>(m_sonProps)->testEvaluate();
 }
 
 template<Proposition SubPropertyType>

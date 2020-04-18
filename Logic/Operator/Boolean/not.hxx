@@ -24,7 +24,7 @@ bool Not<SubPropertyType>::operator==(const Not<SubPropertyType2> &ope) const
 template<Proposition SubPropertyType>
 bool NotFun<SubPropertyType>::operator()() const
 {
-    return !m_sonProp->evaluate();
+    return !m_sonProp->testEvaluate();
 }
 
 template<Proposition SubPropertyType>

@@ -385,20 +385,6 @@ EqualFun<ASubArithmeticTheorem<ValueType>,ASubArithmeticTheorem<ValueType>>::ope
     return std::get<0>(m_sonProps)->evaluate() == std::get<1>(m_sonProps)->evaluate();
 }
 
-
-template<typename ValueType1, typename ValueType2>
-void EqualFun<ASubArithmeticTheorem<ValueType1>,ASubArithmeticTheorem<ValueType2>>::add(ASubArithmeticTheorem<ValueType1> &prop)
-{
-    std::get<0>(m_sonProps)=&prop;
-}
-
-template<typename ValueType1, typename ValueType2>
-void EqualFun<ASubArithmeticTheorem<ValueType1>,ASubArithmeticTheorem<ValueType2>>::add(ASubArithmeticTheorem<ValueType2> &prop)
-{
-    std::get<1>(m_sonProps)=&prop;
-}
-
-
 /**
   * symbol methods
   */

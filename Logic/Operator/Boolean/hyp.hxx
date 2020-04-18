@@ -32,7 +32,7 @@ bool HypFun<SubPropertyType>::operator()() const
     {
         try
         {
-            ret = m_sonProps[k]->evaluate();
+            ret = m_sonProps[k]->testEvaluate();
             if (!ret)
             {
                 except = nullptr;
@@ -48,7 +48,7 @@ bool HypFun<SubPropertyType>::operator()() const
     {
         throw *except;
     }
-    return ret? m_sonProps.back()->evaluate(): true;
+    return ret? m_sonProps.back()->testEvaluate(): true;
 }
 
 template<Proposition SubPropertyType>

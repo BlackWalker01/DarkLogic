@@ -15,7 +15,7 @@ public:
                const ptr<ASubArithmeticTheorem<ValueType2>>& rightFormula);
     SubTheorem(const ptr<SubRule<ConstBoolean>>& prop);
 
-    bool evaluate() const override final;
+    bool evaluate() const override;
     constexpr PropType type() const override final;
 
     bool isEqual(const ASubTheorem& prop) const override final;

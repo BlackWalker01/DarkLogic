@@ -12,7 +12,7 @@ public:
 
     SubTheorem(const std::shared_ptr<Boolean>& val);
 
-    bool evaluate() const override final;
+    bool evaluate() const override;
     constexpr PropType type() const override final
     {
         return PropType::VAR_PROP;
