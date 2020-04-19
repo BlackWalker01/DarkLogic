@@ -1171,6 +1171,110 @@ ptr<ASubTheorem> SubRule<ConstBoolean>::applyFirstPriv(DbVarProp&) const
     return std::make_shared<const Theorem<ConstBoolean>>(*this);
 }
 
+/**---------------------------------------------------------------
+ * SubRule::getEquivalentRules() methods
+ * ---------------------------------------------------------------
+ */
+template<SubRuleProperty SubPropertyType>
+std::vector<ptr<ASubRule>> SubRule<SubPropertyType>::getEquivalentRules() const
+{
+    std::vector<ptr<ASubRule>> ret;
+    std::vector<ptr<ASubRule>> leftRet = (*m_son)[0]->getEquivalentRules();
+    leftRet.push_back((*m_son)[0]);
+    std::vector<ptr<ASubRule>> rightRet = (*m_son)[1]->getEquivalentRules();
+    rightRet.push_back((*m_son)[1]);
+
+    for (const auto& subRuleLeft : leftRet)
+    {
+        for (const auto& subRuleRight : rightRet)
+        {
+            if constexpr (!std::is_same_v<SubPropertyType, Implication<ASubRule>>)
+            {
+                ret.push_back(std::make_shared<const SubRule>(subRuleRight, subRuleLeft)); //symmetric case
+            }            
+            ret.push_back(std::make_shared<const SubRule>(subRuleLeft, subRuleRight)); //direct case            
+        }
+    }
+
+    //remove last one because it is the same as "this" SubRuleFormula
+    ret.pop_back();
+    return ret;
+}
+
+std::vector<ptr<ASubRule>> SubRule<Hyp<ASubRule>>::getEquivalentRules() const
+{
+    std::vector<ptr<ASubRule>> ret;
+    std::vector<std::vector<ptr<ASubRule>>> allEquiSubRules;
+    for (size_t k = 0; k < m_son->arity(); k++)
+    {
+        auto equiSubRules_k = (*m_son)[k]->getEquivalentRules();
+        equiSubRules_k.push_back((*m_son)[k]);
+        allEquiSubRules.push_back(equiSubRules_k);
+    }
+    //init case
+    std::vector<std::vector<ptr<ASubRule>>> acc;
+    for (size_t k = 0; k < allEquiSubRules[0].size(); k++)
+    {
+        acc.push_back({ allEquiSubRules[0][k] });
+    }
+    
+    //iterative cartesian product
+    for (size_t k = 1; k < allEquiSubRules.size(); k++)
+    {
+        std::vector<std::vector<ptr<ASubRule>>> newAcc;
+        for (size_t accIdx = 0; accIdx < acc.size(); accIdx++)
+        {            
+            for (size_t j = 0; j < allEquiSubRules[k].size(); j++)
+            {
+                std::vector<ptr<ASubRule>> crtNewAcc = acc[accIdx];
+                crtNewAcc.push_back(allEquiSubRules[k][j]);
+                newAcc.push_back(crtNewAcc);
+            }
+        }
+        acc = newAcc;
+    }
+
+    //create equivalent SubRules
+    for (size_t k = 0; k < acc.size(); k++)
+    {
+        //permutation case
+        std::vector<std::vector<size_t>> permuteTab = permutation(m_son->arity()-1);
+        for (const auto& permuter : permuteTab)
+        {
+            std::vector<ptr<ASubRule>> crtSons;
+            for (size_t i = 0; i < permuter.size(); i++)
+            {
+                crtSons.push_back(acc[k][permuter[i]]);
+            }
+            crtSons.push_back(acc[k].back());
+            ret.push_back(std::make_shared<const SubRule>(crtSons));
+        }
+
+        ret.push_back(std::make_shared<const SubRule>(acc[k])); //direct case
+    }
+
+    //remove last one because it is the same as "this" SubRuleFormula
+    ret.pop_back();
+
+    return ret;
+}
+
+std::vector<ptr<ASubRule>> SubRule<Not<ASubRule>>::getEquivalentRules() const
+{
+    std::vector<ptr<ASubRule>> ret;
+    std::vector<ptr<ASubRule>> subRet = (*m_son)[0]->getEquivalentRules();
+    subRet.push_back((*m_son)[0]);
+
+    for (const auto& subRule : subRet)
+    {
+        ret.push_back(std::make_shared<const SubRule>(subRule));
+    }
+
+    //remove last one because it is the same as "this" SubRuleFormula
+    ret.pop_back();
+    return ret;
+}
+
 
 /**---------------------------------------------------------------
  * SubRule::operator==(ASubTheorem) methods

@@ -18,6 +18,7 @@ public:
     typedef SetEqual<SubArithmeticRule<VariableType_>> SubOperatorType;
     typedef void ValueType;
     typedef ASubArithmeticTheorem<void> ATheoremType;
+    using ARuleType = ASubArithmeticRule<void>;
 
     SubArithmeticRule(const ptr<SubLeftFormula>& leftFormula,
                       const ptr<SubRightFormula>& rightFormula);
@@ -36,6 +37,7 @@ public:
     bool operator==(const SubArithmeticRule& prop) const;
     bool operator==(const SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType_>>>& prop) const;
 
+    std::vector<ptr<ARuleType>> getEquivalentRules() const override final;
     std::string toString(unsigned short priorityParent=1000) const override final;
     const DbVar* getExtVars() const override final;
 
@@ -148,6 +150,31 @@ SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::applyFirstPriv(Db
     return std::make_shared<const SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>>>>(
     std::static_pointer_cast<const SubArithmeticTheorem<VariableType>>(get<0>(*m_son)->applyPriv(dbVarProp)),
                                                                 get<1>(*m_son)->applyPriv(dbVarProp));
+}
+
+
+template<typename VariableType>
+std::vector<ptr<typename SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::ARuleType>>
+SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::getEquivalentRules() const
+{
+    std::vector<ptr<ARuleType>> ret;
+    std::vector<ptr<SubArithmeticRule<VariableType>>> leftRet;
+    leftRet.push_back(get<0>(*m_son));
+    std::vector<ptr<ASubArithmeticRule<typename VariableType::ValueType>>> rightRet = get<1>(*m_son)->getEquivalentRules();
+    rightRet.push_back(get<1>(*m_son));
+
+    for (const auto& subRuleLeft : leftRet)
+    {
+        for (const auto& subRuleRight : rightRet)
+        {
+            ret.push_back(std::make_shared<const SubArithmeticRule>(subRuleLeft, subRuleRight)); //direct case
+        }
+    }
+
+    //remove last one because it is the same as "this" SubRuleFormula
+    ret.pop_back();
+
+    return ret;
 }
 
 template<typename VariableType>

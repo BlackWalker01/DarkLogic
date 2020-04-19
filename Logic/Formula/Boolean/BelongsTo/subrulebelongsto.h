@@ -24,7 +24,7 @@ public:
     bool operator==(const SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,
                     ASubArithmeticTheorem<SetType>>>& prop) const;
 
-
+    std::vector<ptr<ASubRule>> getEquivalentRules() const override final;
     std::string toString(unsigned short priorityParent=1000) const override final;
     const DbVar* getExtVars() const override final;
     const SubPropertyType& getSon() const;
@@ -108,6 +108,29 @@ bool SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmetic
 operator==(const SubRule &prop) const
 {
     return *m_son==(prop.getSon());
+}
+
+template<typename SetType>
+inline std::vector<ptr<ASubRule>> SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>, ASubArithmeticRule<SetType>>>::getEquivalentRules() const
+{
+    std::vector<ptr<ASubRule>> ret;
+    std::vector<ptr<ASubArithmeticRule<typename SetType::Type>>> leftRet;
+    leftRet.push_back(get<0>(*m_son));
+    std::vector<ptr<ASubArithmeticRule<SetType>>> rightRet = get<1>(*m_son)->getEquivalentRules();
+    rightRet.push_back(get<1>(*m_son));
+
+    for (const auto& subRuleLeft : leftRet)
+    {
+        for (const auto& subRuleRight : rightRet)
+        {
+            ret.push_back(std::make_shared<const SubRule>(subRuleLeft, subRuleRight)); //direct case
+        }
+    }
+
+    //remove last one because it is the same as "this" SubRuleFormula
+    ret.pop_back();
+
+    return ret;
 }
 
 template<typename SetType>

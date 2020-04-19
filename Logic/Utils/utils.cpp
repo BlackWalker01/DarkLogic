@@ -1,6 +1,40 @@
 #include "utils.h"
 #include <sstream>
 
+std::vector<std::vector<size_t>> N_Logic::permutation(const size_t& n)
+{
+    std::vector<std::vector<size_t>> ret;
+    if (n == 1)
+    {
+        ret.push_back({0});
+    }
+    else if (n > 1)
+    {
+        std::vector<std::vector<size_t>> acc = permutation(n - 1);
+        for (size_t i = 0; i < acc.size(); i++)
+        {
+            for (size_t pos = 0; pos < n; pos++)
+            {
+                std::vector<size_t> crtRet;
+                for (size_t j = 0; j < pos; j++)
+                {
+                    crtRet.push_back(acc[i][j]);
+                }
+
+                crtRet.push_back(n-1);
+
+                for (size_t j = pos; j < acc[i].size(); j++)
+                {
+                    crtRet.push_back(acc[i][j]);
+                }
+                ret.push_back(crtRet);
+            }
+        }        
+    }
+
+    return ret;
+}
+
 bool isCharInVar(char c)
 {
     return (c>='0' && c<='9')||(c>='a' && c<='z')||(c>='A' && c<='Z');

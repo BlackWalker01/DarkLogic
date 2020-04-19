@@ -43,11 +43,11 @@ public:
     }
 
     bool isEqual(const ASubRule& prop) const override final;
-    bool isEqual(const ASubTheorem& prop) const override final;
+    bool isEqual(const ASubTheorem& prop) const override;
     bool operator==(const SubRule& prop) const;
     bool operator==(const SubTheorem<ToTheoremOpe<SubPropertyType>>& prop) const;
 
-
+    std::vector<ptr<ASubRule>> getEquivalentRules() const override;
     std::string toString(unsigned short priorityParent=1000) const override final;
     const SubPropertyType& getSon() const;
     const DbVar* getExtVars() const override final;

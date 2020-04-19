@@ -14,9 +14,10 @@ public:
 	{
 		return false;
 	}
+	static std::vector<std::string> getAllVarName();
 protected:
 	const IDVar m_id;
-private:
+private:	
 	static IDVar getIDVar(const std::string& name_);
 	static std::unordered_map<std::string, IDVar> s_nameToID;
 };

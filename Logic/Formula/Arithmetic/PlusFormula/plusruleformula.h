@@ -19,6 +19,7 @@ public:
     typedef typename SubOperatorType::ValueType ValueType;
     typedef typename
     ASubArithmeticRule<typename Plus< ASubArithmeticRule<ValueType1>,ASubArithmeticRule<ValueType2>>::ValueType>::ATheoremType ATheoremType;
+    using ARuleType = ASubArithmeticRule<ValueType>;
 
     SubArithmeticRule(const ptr<SubLeftFormula>& leftFormula, const ptr<SubRightFormula>& rightFormula);
 
@@ -36,6 +37,7 @@ public:
     bool operator==(const SubArithmeticRule& prop) const;
     bool operator==(const SubArithmeticTheorem<ToTheoremOpe<SubOperatorType>>& prop) const;
 
+    std::vector<ptr<ARuleType>> getEquivalentRules() const override final;
     std::string toString(unsigned short priorityParent=1000) const override final;
     const DbVar* getExtVars() const override final;
 
@@ -156,6 +158,32 @@ typename SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRu
 SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::evaluate() const
 {
     return m_son->evaluate();
+}
+
+template<typename ValueType1, typename ValueType2>
+inline std::vector<ptr<typename SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2>>>::ARuleType>>
+SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2>>>::getEquivalentRules() const
+{
+    std::vector<ptr<ARuleType>> ret;
+    std::vector<ptr<ASubArithmeticRule<ValueType1>>> leftRet = get<0>(*m_son)->getEquivalentRules();
+    leftRet.push_back(get<0>(*m_son));
+    std::vector<ptr<ASubArithmeticRule<ValueType2>>> rightRet = get<1>(*m_son)->getEquivalentRules();
+    rightRet.push_back(get<1>(*m_son));
+    
+    for (const auto& subRuleLeft : leftRet)
+    {
+        for (const auto& subRuleRight : rightRet)
+        {            
+            ret.push_back(std::make_shared<const SubArithmeticRule<Plus<ASubArithmeticRule<ValueType2>, 
+                ASubArithmeticRule<ValueType1>>>>(subRuleRight, subRuleLeft)); //symmetric case
+            ret.push_back(std::make_shared<const SubArithmeticRule>(subRuleLeft, subRuleRight)); //direct case
+        }        
+    }
+
+    //remove last one because it is the same as "this" SubRuleFormula
+    ret.pop_back();
+
+    return ret;
 }
 
 template<typename ValueType1, typename ValueType2>

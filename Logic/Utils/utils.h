@@ -4,6 +4,7 @@
 #include <memory>
 #include <complex>
 #include <concepts>
+#include <vector>
 
 namespace  N_Logic
 {
@@ -211,6 +212,10 @@ namespace  N_Logic
     class Rule;
     template<typename T>
     concept RuleType = RuleProposition<T> && std::is_base_of_v<Rule<typename T::SubPropertyType>, T>;
+
+
+    //permutation function
+    std::vector<std::vector<size_t>> permutation(const size_t& n);
 }
 
 /**

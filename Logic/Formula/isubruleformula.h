@@ -4,6 +4,8 @@
 #include <string>
 #include <stdexcept>
 #include "iisubruleformula.h"
+#include "Utils/utils.h"
+#include "Boolean/asubtheorem.h"
 
 namespace N_Logic
 {
@@ -20,7 +22,8 @@ template<SubTheoremType ATheoremType_>
 class ISubRuleFormula: public IISubRuleFormula
 {
 public:
-    typedef ATheoremType_ ATheoremType;
+    using ATheoremType = ATheoremType_;
+    using ARuleType = ToRule<ATheoremType>;
 
     ISubRuleFormula() = default;
 
@@ -28,6 +31,9 @@ public:
     virtual std::pair<ptr<ATheoremType>,bool> apply(const size_t& actionKey, const ptr<ATheoremType>& theorem) const;
     virtual std::vector<size_t> getActions(const ptr<ATheoremType>& prop, size_t& lastActionIndex) const;
     virtual std::vector<Action> getHumanActions() const;
+
+    //create equivalent subRuleFormulas
+    virtual std::vector<ptr<ARuleType>> getEquivalentRules() const;
 
     //store actions method
     virtual void storeActions() const;
@@ -58,6 +64,12 @@ template<SubTheoremType ATheoremType>
 std::vector<Action> ISubRuleFormula<ATheoremType>::getHumanActions() const
 {
     throw std::runtime_error("Cannot get possible human actions from a subrule formula");
+}
+
+template<SubTheoremType ATheoremType_>
+inline std::vector<ptr<ToRule<ATheoremType_>>> ISubRuleFormula<ATheoremType_>::getEquivalentRules() const
+{
+    return std::vector<ptr<ARuleType>>();
 }
 
 template<SubTheoremType ATheoremType_>

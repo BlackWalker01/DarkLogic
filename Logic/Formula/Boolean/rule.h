@@ -39,8 +39,8 @@ public:
 
     //reciprocity methods
     bool isSymetric() const override;
-    ptr<Rule> getReciprocal() const;
     ptr<Rule> getTrueEquivalent() const;
+    std::vector<ptr<ASubRule>> getEquivalentRules() const override;
 
     //handle storage of actions
     void storeActions() const override final;
@@ -165,15 +165,38 @@ ptr<IISubTheoremFormula> Rule<SubPropertyType>::applyAnnexe(const size_t &action
 }
 
 template<SubRuleProperty SubPropertyType>
-inline bool Rule<SubPropertyType>::isSymetric() const
+std::vector<ptr<ASubRule>> Rule<SubPropertyType>::getEquivalentRules() const
 {
-    return false;
+    std::vector<ptr<ASubRule>> ret;
+    std::vector<ptr<ASubRule>> leftRet = (*(this->m_son))[0]->getEquivalentRules();
+    leftRet.push_back((*(this->m_son))[0]);
+    std::vector<ptr<ASubRule>> rightRet = (*(this->m_son))[1]->getEquivalentRules();
+    rightRet.push_back((*(this->m_son))[1]);
+
+    size_t idx = 0;
+    for (const auto& subRuleLeft : leftRet)
+    {
+        for (const auto& subRuleRight : rightRet)
+        {
+            if constexpr (std::is_same_v<SubPropertyType, Equivalent<ASubRule>>)
+            {
+                ret.push_back(std::make_shared<const Rule>("'"+m_name+"'_Annexe_"+sizeToString(idx),subRuleRight, subRuleLeft)); //symmetric case
+                idx++;
+            }
+            ret.push_back(std::make_shared<const Rule>("'" + m_name + "'_Annexe_" + sizeToString(idx),subRuleLeft, subRuleRight)); //direct case
+            idx++;
+        }
+    }
+
+    //remove last one because it is the same as "this" SubRuleFormula
+    ret.pop_back();
+    return ret;
 }
 
 template<SubRuleProperty SubPropertyType>
-inline ptr<Rule<SubPropertyType>> Rule<SubPropertyType>::getReciprocal() const
+inline bool Rule<SubPropertyType>::isSymetric() const
 {
-    return std::make_shared<const Rule<SubPropertyType>>(name()+"_Recip",(*this)[1],(*this)[0]);
+    return false;
 }
 
 template<SubRuleProperty SubPropertyType>
