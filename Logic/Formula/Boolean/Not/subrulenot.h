@@ -25,7 +25,7 @@ public:
     bool operator==(const SubRule& prop) const;
     bool operator==(const SubTheorem<ToTheoremOpe<SubPropertyType>>& prop) const;
 
-
+    std::vector<ptr<ASubRule>> getEquivalentRules() const override final;
     std::string toString(unsigned short priorityParent=1000) const override final;
     const SubPropertyType& getSon() const;
     const DbVar* getExtVars() const override final;

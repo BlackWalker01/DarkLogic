@@ -110,3 +110,109 @@ void N_Logic::DbRule::clear()
         rule->clearAllIdentifications();
     }
 }
+
+bool N_Logic::DbRule::_insertSafely(const ptr<ASubRule>& rule)
+{    
+    auto varNames = AVariable::getAllVarName();
+    std::unordered_map<std::string, std::string> varNameDb;
+    std::unordered_map<std::string, std::string> varContents;
+    for (const auto& varName : varNames)
+    {
+        std::string ch;
+        for (size_t k = 0; k < varName.size(); k++)
+        {            
+            ch += varName[k];
+            varContents[ch] = ch;
+        }
+        varNameDb[varName] = varName;
+    }
+
+    auto isVar = [varNameDb](const std::string& nameVar)
+    {
+        return varNameDb.find(nameVar) != varNameDb.end();
+    };
+
+    auto isStringInVar = [varContents](const std::string& nameVar)
+    {
+        return varContents.find(nameVar) != varContents.end();
+    };
+
+    auto getVarName = [&isVar, &isStringInVar](const std::string& ruleStr)
+    {
+        std::vector<std::string> ret;
+        std::unordered_map<std::string, std::string> dbVar;
+        std::string crtVar = "";
+        for (size_t k = 0; k < ruleStr.size(); k++)
+        {
+            crtVar += ruleStr[k];
+            if (isVar(crtVar))
+            {
+                if (dbVar.find(crtVar) == dbVar.end())
+                {
+                    ret.push_back(crtVar);
+                    dbVar[crtVar] = crtVar;
+                }
+                
+                crtVar = "";
+            }
+            else if (!isStringInVar(crtVar))
+            {
+                crtVar = "";
+            }
+        }
+        return ret;
+    };
+
+    auto replaceVarIn = [&isVar, &isStringInVar](const std::string& ruleStr, const std::unordered_map<std::string, std::string>& varNameAssoc)
+    {
+        std::string ret;
+        std::string crtVar = "";
+        for (size_t k = 0; k < ruleStr.size(); k++)
+        {
+            crtVar += ruleStr[k];
+            if (isVar(crtVar))
+            {
+                ret += varNameAssoc.at(crtVar);
+                crtVar = "";
+            }
+            else if (!isStringInVar(crtVar))
+            {
+                ret += crtVar;
+                crtVar = "";
+            }
+        }
+        return ret;
+    };
+
+    std::string ruleStr = rule->toString();
+    for (const auto& ruleDb : m_db)
+    {                
+        std::string ruleDbStr = ruleDb->toString();
+        if (ruleStr == ruleDbStr)
+        {
+            return false;
+        }
+        auto ruleVarNames = getVarName(ruleStr);
+        auto ruleDbVarNames = getVarName(ruleDbStr);
+        if ((ruleVarNames.size() == ruleDbVarNames.size()) && (ruleStr.size() == ruleDbStr.size()))
+        {
+            auto permutationTab = permutation(ruleVarNames.size());
+            std::unordered_map<std::string, std::string> varNameAssoc;
+            for (const auto& permuter : permutationTab)
+            {
+                for (size_t k = 0; k < permuter.size(); k++)
+                {
+                    varNameAssoc[ruleVarNames[k]] = ruleDbVarNames[permuter[k]];
+                }
+
+                //replace and compare 
+                if(replaceVarIn(ruleStr,varNameAssoc)==ruleDbStr)
+                {
+                    return false;
+                }                
+            }
+        }
+    }
+    m_db.push_back(rule);
+    return true;
+}

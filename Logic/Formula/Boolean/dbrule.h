@@ -32,6 +32,7 @@ public:
 
     ~DbRule() = default;
 private:
+    bool _insertSafely(const ptr<ASubRule>& rule);
     std::vector<ptr<ASubRule>> m_db;
 
     ActionList m_actions;
@@ -43,16 +44,17 @@ private:
 template<RuleType ruleType>
 void DbRule::insert(const ptr<ruleType >& rule)
 {
-    if constexpr (std::is_same_v<typename ruleType::SubPropertyType, Equivalent<ASubRule>>)
+    if (_insertSafely(rule))
     {
-        m_db.push_back(rule);
-        m_db.push_back(rule->getReciprocal());
-    }
-    else
-    {
-        m_db.push_back(rule);
-    }
-    m_db.push_back(rule->getTrueEquivalent());
+        auto equivalentRules = rule->getEquivalentRules();
+
+        for (const auto& eqRule : equivalentRules)
+        {
+            _insertSafely(eqRule);
+        }
+
+        _insertSafely(rule->getTrueEquivalent());
+    }    
 }
 }
 #endif // DBRULE_H

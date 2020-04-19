@@ -12,6 +12,16 @@ IDVar N_Logic::AVariable::id() const
 	return m_id;
 }
 
+std::vector<std::string> N_Logic::AVariable::getAllVarName()
+{
+	std::vector<std::string> ret;
+	for (const auto& it : s_nameToID)
+	{
+		ret.push_back(it.first);
+	}
+	return ret;
+}
+
 IDVar N_Logic::AVariable::getIDVar(const std::string& name_)
 {
 	auto it = s_nameToID.find(name_);

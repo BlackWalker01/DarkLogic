@@ -24,7 +24,7 @@ public:
     template<typename SubTheoremType>
     bool operator==(const SubTheorem<Let<SubTheoremType, ASubTheorem>>& prop) const;
 
-
+    std::vector<ptr<ASubRule>> getEquivalentRules() const override final;
     std::string toString(unsigned short priorityParent=1000) const override final;
     const DbVar* getExtVars() const override final;
 
@@ -93,6 +93,30 @@ bool SubRule<Let<SubRuleType, ASubRule > >::isEqual(const ASubTheorem &prop) con
         return false;
     }
 }
+
+template<typename SubRuleType>
+std::vector<ptr<ASubRule>> SubRule<Let<SubRuleType, ASubRule > >::getEquivalentRules() const
+{
+    std::vector<ptr<ASubRule>> ret;
+    std::vector<ptr<SubRuleType>> leftRet;
+    leftRet.push_back(get<0>(*m_son));
+    std::vector<ptr<ASubRule>> rightRet = get<1>(*m_son)->getEquivalentRules();
+    rightRet.push_back(get<1>(*m_son));
+
+    for (const auto& subRuleLeft : leftRet)
+    {
+        for (const auto& subRuleRight : rightRet)
+        {
+            ret.push_back(std::make_shared<const SubRule>(subRuleLeft, subRuleRight)); //direct case
+        }
+    }
+
+    //remove last one because it is the same as "this" SubRuleFormula
+    ret.pop_back();
+
+    return ret;
+}
+
 
 template<typename SubRuleType>
 bool SubRule<Let<SubRuleType, ASubRule > >::

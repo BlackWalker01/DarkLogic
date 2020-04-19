@@ -253,7 +253,6 @@ unsigned short Node::explore()
 unsigned short Node::exploreDeep(const std::vector<size_t>& actions)
 {
 	unsigned short maxDepth = minDepth();
-	std::cout << "Starting search at MaxDepth="+ numberToString(maxDepth) << std::endl;
 	unsigned char threadId = m_sons[actions[0]]->threadId();
 	std::chrono::high_resolution_clock::time_point start, end;
 	start = std::chrono::high_resolution_clock::now();
@@ -279,7 +278,7 @@ unsigned short Node::exploreDeep(const std::vector<size_t>& actions)
 				break;
 			}
 		}
-		if (maxDepth >= 4)
+		if (maxDepth >= 3)
 		{
 			end = std::chrono::high_resolution_clock::now();
 			double elapsed_seconds = std::chrono::duration<double>(end - start).count();
