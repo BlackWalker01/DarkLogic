@@ -14,6 +14,8 @@ LogicGame::LogicGame():
 
 void LogicGame::start()
 {
+    std::cout << "Welcome in LogicGame (v1.0.0)!" << std::endl;
+    
     //create player and init logic
     askPlayer();
 
@@ -127,7 +129,7 @@ void LogicGame::createTheorem()
     bool ok=false;
     while(!ok)
     {
-        std::cout<<"Create a new theorem to start session"<<std::endl;
+        std::cout<<"Create a new theorem to start a session"<<std::endl;
         std::cout<<"Theorem name:"<<std::endl;
         if(!std::getline(std::cin,thName))
         {
@@ -178,6 +180,13 @@ void LogicGame::createTheorem()
         }
         thStr=thStr2;
         ok=N_DarkLogic::DarkLogic::makeTheorem(thName,thStr);
+        if (m_mode == Mode::HumanMode)
+        {            
+            std::cout << "Choose between :" << std::endl;
+            std::cout << "-> getAction : to print all possible actions" << std::endl;
+            std::cout << "-> pushAction : to make an action" << std::endl;
+            std::cout << "-> popAction : to cancel the latest action" << std::endl;
+        }        
         /*std::cout << "[DEBUG] content: " << std::endl;
         N_DarkLogic::DarkLogic::printTheorem(0);*/
     }
