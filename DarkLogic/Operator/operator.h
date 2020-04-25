@@ -19,6 +19,7 @@
 #include <string>
 #include <tuple>
 #include "ioperator.h"
+#include "Variable/variableexception.h"
 
 
 namespace N_DarkLogic {

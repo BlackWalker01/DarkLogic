@@ -80,7 +80,8 @@ std::vector<Action> ISubRuleFormula<ATheoremType>::getHumanActions() const
 }
 
 template<SubTheoremType ATheoremType_>
-inline std::vector<ptr<ToRule<ATheoremType_>>> ISubRuleFormula<ATheoremType_>::getEquivalentRules() const
+inline std::vector<ptr<typename ISubRuleFormula<ATheoremType_>::ARuleType>>
+ISubRuleFormula<ATheoremType_>::getEquivalentRules() const
 {
     return std::vector<ptr<ARuleType>>();
 }

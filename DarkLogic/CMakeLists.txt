@@ -166,5 +166,9 @@ add_library(DarkLogic SHARED
 
 target_compile_definitions(DarkLogic PRIVATE DARK_LOGIC_LIBRARY)
 add_compile_definitions(_SILENCE_CLANG_CONCEPTS_MESSAGE)
+if(UNIX)
+    target_link_libraries(DarkLogic stdc++)
+endif()
+    
 
 install(TARGETS DarkLogic DESTINATION ${CMAKE_SOURCE_DIR}/../Lib)
