@@ -39,7 +39,6 @@ struct SetEqualToStr
 template<typename VariableType>
 struct SetEqualFun<SubArithmeticRule<VariableType>>
 {
-    typedef void ValueType;
     using ValueType = void;
     using SubFormulaType = ASubArithmeticRule<ValueType>;
 

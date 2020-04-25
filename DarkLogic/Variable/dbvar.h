@@ -25,7 +25,6 @@ class AVariable;
 class DbVar
 {
 public:
-    DbVar() = default;
     DbVar(const ptr<AVariable>& var);
     DbVar(const DbVar *dbVar);
     DbVar(const DbVar* dbVar, const DbVar* dbVar2);

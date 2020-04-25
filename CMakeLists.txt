@@ -33,8 +33,14 @@ add_executable(LogicGame
   AI/node.hpp
 )
 
-link_directories(${LIB_DIR})
+target_link_directories(LogicGame PUBLIC ${LIB_DIR})
 
 add_compile_definitions(_SILENCE_CLANG_CONCEPTS_MESSAGE)
-target_link_libraries(LogicGame ${LIB_DIR}/DarkLogic.lib)
+
+if(UNIX)
+    target_link_libraries(LogicGame DarkLogic pthread stdc++ m)
+else()
+    target_link_libraries(LogicGame DarkLogic)
+endif()
+
 install(TARGETS LogicGame DESTINATION ${CMAKE_SOURCE_DIR}/Lib)

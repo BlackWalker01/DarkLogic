@@ -28,8 +28,13 @@ private:
     DarkLogic();
 
 public:
-    //friend typename std::_MakeUniq<DarkLogic>::__single_object std::make_unique<DarkLogic>(); //mingw
-    friend std::unique_ptr<DarkLogic> std::make_unique();
+    //if we use MVSC STL includes
+    #ifdef _MSVC_STL_VERSION
+        friend std::unique_ptr<DarkLogic> std::make_unique();
+    //if we use gcc STL includes
+    #else
+        friend typename std::_MakeUniq<DarkLogic>::__single_object std::make_unique<DarkLogic>(); //gcc
+    #endif
     static void init(const size_t& nbInstances);
 
     static bool isOver(const size_t& instanceIdx);
