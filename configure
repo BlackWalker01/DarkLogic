@@ -1,0 +1,56 @@
+#!/bin/sh
+testClang()
+{
+	echo "Check presence of clang 10 or greater ->"
+	if [ ! -x "/usr/local/bin/clang" ]
+	then
+		echo "[Fail] DarkLogic library needs Clang 10 (or greater version) to be built"
+		exit 1
+	else
+		configtestResult=$(/usr/local/bin/clang -dumpversion 2>&1)
+		if [ "$configtestResult" \< "10" ]
+		then
+			echo "[Fail] DarkLogic library needs Clang 10 (or greater version) to be built"
+			exit 1
+		fi
+	fi
+	echo "[Success]"
+}
+
+
+
+#clean build directory of LogicGame
+if [ -d "build" ]
+then
+	rm -r build/
+fi
+
+#clean build directory of DarkLogics
+if [ -d "DarkLogic/build" ]
+then
+	rm -r DarkLogic/build/
+fi
+
+#build DarkLogic library
+cd DarkLogic
+mkdir build
+cd build
+#for the moment, it works only with clang > 10
+testClang
+echo "Configure DarkLogic library"
+cmake -DCMAKE_CXX_COMPILER=/usr/local/bin/clang .. > /dev/null
+echo "Building DarkLogic library..."
+make -j > /dev/null
+make install > /dev/null
+echo "DarkLogic successfully built!"
+
+#configure LogicGame
+cd ../..
+mkdir build
+cd build
+echo "Configure LogicGame"
+cmake ..
+
+
+
+
