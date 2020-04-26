@@ -56,7 +56,7 @@ public:
     virtual bool isEqual(const ASubTheorem& prop) const =0;
     
     //terminal subproposition methods
-    virtual constexpr bool isHypProp() const
+    virtual inline bool isHypProp() const
     {
         return false;
     }

@@ -42,7 +42,7 @@ public:
 
     ptr<ASubTheorem> copyTheorem() const override final;
     const SubPropertyType& getSon() const;
-    constexpr bool isHypProp() const override final
+    inline bool isHypProp() const override final
     {
         return m_son->isHypVariable();
     }
