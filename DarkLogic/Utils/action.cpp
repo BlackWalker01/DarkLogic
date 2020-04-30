@@ -16,13 +16,13 @@
 
 using namespace N_DarkLogic;
 
-Action::Action(const size_t &_id, const std::string &_ruleName, const std::string &_ruleStr, const std::vector<size_t> &_path):
+Action::Action(const Id &_id, const std::string &_ruleName, const std::string &_ruleStr, const std::vector<Id> &_path):
     m_id(_id), m_ruleName(_ruleName), m_ruleStr(_ruleStr), m_path(_path)
 {
 
 }
 
-size_t Action::id() const
+Action::Id Action::id() const
 {
     return m_id;
 }
@@ -37,14 +37,14 @@ std::string Action::ruleStr() const
     return m_ruleStr;
 }
 
-std::vector<size_t> Action::path() const
+std::vector<Action::Id> Action::path() const
 {
     return m_path;
 }
 
 std::string Action::toString() const
 {
-    auto tabToString=[](const std::vector<size_t>& tab)
+    auto tabToString=[](const std::vector<Id>& tab)
     {
         std::string ret="[";
         if(tab.size()>0)

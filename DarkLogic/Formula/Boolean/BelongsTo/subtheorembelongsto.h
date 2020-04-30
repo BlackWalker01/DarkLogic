@@ -44,7 +44,7 @@ public:
     ptr<ASubTheorem> copyTheorem() const override final;
     const SubPropertyType& getSon() const;
     const ptr<IISubTheoremFormula>& operator[](const size_t& index) const override final;
-    ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<size_t>& indexes, const size_t& actionKey) const override;
+    ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<Arity>& indexes, const Action::Id& actionKey) const override;
 
     ~SubTheorem() override = default;
 
@@ -158,7 +158,7 @@ operator==(const SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,AS
 template<typename SetType>
 ptr<IISubTheoremFormula>
 N_DarkLogic::SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>> >::
-ruleApply(const IISubRuleFormula &/*rule*/, std::vector<size_t> &indexes, const size_t &/*actionKey*/) const
+ruleApply(const IISubRuleFormula &/*rule*/, std::vector<Arity> &indexes, const Action::Id&/*actionKey*/) const
 {
     Arity index=indexes[0];
     indexes.erase(indexes.begin());

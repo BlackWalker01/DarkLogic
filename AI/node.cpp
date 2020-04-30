@@ -108,7 +108,7 @@ unsigned short Node::makeSimu()
 		if (!s_ai->mustStop(m_threadId))
 		{
 			//get actions
-			std::vector<size_t> actions = N_DarkLogic::DarkLogic::getActions(m_threadId);
+			auto actions = N_DarkLogic::DarkLogic::getActions(m_threadId);
 
 			//play random action
 			auto newAction = actions[rand() % actions.size()];
@@ -131,7 +131,7 @@ unsigned short Node::makeSimu()
 }
 
 
-unsigned short Node::explore(const std::vector<size_t>& actions)
+unsigned short Node::explore(const std::vector<N_DarkLogic::Action::Id>& actions)
 {	
 	unsigned int retValue = 0;
 	double maxValue = 0;
@@ -238,7 +238,7 @@ unsigned short Node::explore()
 	else
 	{
 		//get actions
-		std::vector<size_t> actions = N_DarkLogic::DarkLogic::getActions(m_threadId);
+		auto actions = N_DarkLogic::DarkLogic::getActions(m_threadId);
 		
 		//explore one subNode among actions
 		explore(actions);		
@@ -250,7 +250,7 @@ unsigned short Node::explore()
 	return m_value;
 }
 
-unsigned short Node::exploreDeep(const std::vector<size_t>& actions)
+unsigned short Node::exploreDeep(const std::vector<N_DarkLogic::Action::Id>& actions)
 {
 	unsigned short maxDepth = minDepth();
 	unsigned char threadId = m_sons[actions[0]]->threadId();
@@ -316,7 +316,7 @@ unsigned short Node::exploreDeep(const unsigned short maxDepth)
 	else if(!s_ai->mustStop(m_threadId))
 	{
 		//get actions
-		std::vector<size_t> actions = N_DarkLogic::DarkLogic::getActions(m_threadId);
+		auto actions = N_DarkLogic::DarkLogic::getActions(m_threadId);
 
 		//add all subnodes if they have not been created yet
 		if (m_depth == maxDepth - 1)

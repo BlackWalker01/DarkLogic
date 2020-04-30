@@ -24,7 +24,7 @@ DbRule::DbRule(): m_nbGetActionCalls(std::make_unique<size_t>(0))
 {
 }
 
-std::pair<ptr<ASubTheorem>,bool> DbRule::apply(const size_t& actionKey, const ptr<ASubTheorem>& theorem)
+std::pair<ptr<ASubTheorem>,bool> DbRule::apply(const Action::Id& actionKey, const ptr<ASubTheorem>& theorem)
 {
     auto rule=m_actionKeyToRule[actionKey];
 
@@ -60,15 +60,15 @@ void DbRule::unapply(const ptr<ASubTheorem> &prop)
     }
 }
 
-const std::vector<size_t>& DbRule::getActions(const ptr<ASubTheorem> &prop)
+const std::vector<Action::Id>& DbRule::getActions(const ptr<ASubTheorem> &prop)
 {
     if ((*m_nbGetActionCalls) == m_oldActions.size())
     {       
         m_actions.clear();
-        size_t lastActionIndex = 0;
+        Action::Id lastActionIndex = 0;
         for (auto& rule : m_db)
         {
-            std::vector<size_t> crtActions = rule->getActions(prop, lastActionIndex);
+            std::vector<Action::Id> crtActions = rule->getActions(prop, lastActionIndex);
             for (auto action : crtActions)
             {
                 m_actionKeyToRule[action] = rule;
@@ -91,7 +91,7 @@ std::vector<Action> DbRule::getHumanActions() const
     return ret;
 }
 
-std::shared_ptr<Action> N_DarkLogic::DbRule::getHumanAction(const size_t& actionKey)
+std::shared_ptr<Action> N_DarkLogic::DbRule::getHumanAction(const Action::Id& actionKey)
 {
     for (const auto& rule : m_db)
     {
@@ -107,7 +107,7 @@ std::shared_ptr<Action> N_DarkLogic::DbRule::getHumanAction(const size_t& action
     return nullptr;
 }
 
-bool DbRule::isLastRuleSymetric(const size_t& actionKey) const
+bool DbRule::isLastRuleSymetric(const Action::Id& actionKey) const
 {
     return m_actionKeyToRule.at(actionKey)->isSymetric();
 }

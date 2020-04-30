@@ -20,8 +20,6 @@ namespace N_DarkLogic {
 class DbVarProp;
 class DbVar;
 
-typedef size_t Arity;
-
 class ASubRule;
 class ASubTheorem;
 class AbstractTerm;

@@ -5,6 +5,7 @@
 #include <mutex>
 #include <sstream>
 #include <vector>
+#include "Utils/action.h"
 #define MAX_DEPTH 50
 #define VAL_INIT std::numeric_limits<unsigned short>::max()-1
 
@@ -22,8 +23,8 @@ public:
 	/*
 	 * explore one subNode among actions and return its value. called only by AIThread
 	 */
-	unsigned short explore(const std::vector<size_t>& actions);	
-	unsigned short exploreDeep(const std::vector<size_t>& actions); //explore all subNodes among actions
+	unsigned short explore(const std::vector<N_DarkLogic::Action::Id>& actions);
+	unsigned short exploreDeep(const std::vector<N_DarkLogic::Action::Id>& actions); //explore all subNodes among actions
 	
 
 	//make simulation on a node until depth = MAX_DEPTH

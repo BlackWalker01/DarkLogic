@@ -90,7 +90,7 @@ std::shared_ptr<const Action> Human::play()
                 std::stringstream ss;
                 ss << args;
                 ss >> id;
-                std::vector<size_t> actions = N_DarkLogic::DarkLogic::getActions(0);
+                auto actions = N_DarkLogic::DarkLogic::getActions(0);
                 for (const auto& actionId : actions)
                 {
                     if (id == actionId)

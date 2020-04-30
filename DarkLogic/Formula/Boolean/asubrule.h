@@ -31,7 +31,7 @@ public:
     ASubRule(const ASubRule&) = delete;
 
     virtual std::string name() const;
-    virtual ptr<IISubTheoremFormula> applyAnnexe(const size_t& actionKey,
+    virtual ptr<IISubTheoremFormula> applyAnnexe(const Action::Id& actionKey,
                                                         const ptr<IISubTheoremFormula> &theorem, std::vector<Arity>& indexes) const;
     virtual bool isSymetric() const;
     virtual void clearAllIdentifications() const;

@@ -15,6 +15,7 @@
 #define DARK_LOGIC_DBRULE_H
 #include <unordered_map>
 #include "Utils/utils.h"
+#include "Utils/action.h"
 
 namespace N_DarkLogic {
 
@@ -25,8 +26,8 @@ class Action;
 class DbRule
 {
 public:
-    using ActionList = std::vector<size_t>;
-    using ActionToRuleMap = std::unordered_map<size_t, ptr<ASubRule>>;
+    using ActionList = std::vector<Action::Id>;
+    using ActionToRuleMap = std::unordered_map<Action::Id, ptr<ASubRule>>;
 
     DbRule();
 
@@ -34,12 +35,12 @@ public:
     void insert(const ptr<ruleType>& rule);
 
 
-    std::pair<ptr<ASubTheorem>,bool> apply(const size_t& actionKey, const ptr<ASubTheorem> &theorem);
+    std::pair<ptr<ASubTheorem>,bool> apply(const Action::Id& actionKey, const ptr<ASubTheorem> &theorem);
     void unapply(const ptr<ASubTheorem> &prop);
-    const std::vector<size_t>& getActions(const ptr<ASubTheorem> &prop);
+    const std::vector<Action::Id>& getActions(const ptr<ASubTheorem> &prop);
     std::vector<Action> getHumanActions() const;
-    std::shared_ptr<Action> getHumanAction(const size_t& actionKey);
-    bool isLastRuleSymetric(const size_t& actionKey) const;
+    std::shared_ptr<Action> getHumanAction(const Action::Id& actionKey);
+    bool isLastRuleSymetric(const Action::Id& actionKey) const;
 
     void clear();
 

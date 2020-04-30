@@ -26,7 +26,7 @@ public:
 private:
 	void pushCrtAction(const size_t& actionId, const unsigned char threadIdx) const;
 	void stopFromMasterThread();
-	void explore(const std::vector<size_t>& actions);
+	void explore(const std::vector<N_DarkLogic::Action::Id>& actions);
 	bool mustStop(const unsigned char threadIdx) const;
 	void stopThread(const unsigned char threadIdx) const;
 	std::shared_ptr<MasterAIThread> getMaster() const;	

@@ -216,8 +216,8 @@ Theorem<ConstBoolean>::Theorem(const SubRule<ConstBoolean>& prop):
  * ---------------------------------------------------------------
  */
 template<SubTheoremProperty SubPropertyType>
-ptr<IISubTheoremFormula> N_DarkLogic::Theorem<SubPropertyType>::ruleApply(const IISubRuleFormula &rule, std::vector<size_t> &indexes,
-                                                                  const size_t &actionKey) const
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<SubPropertyType>::ruleApply(const IISubRuleFormula &rule, std::vector<Arity> &indexes,
+                                                                  const Action::Id& actionKey) const
 {
     Arity index=indexes[0];
     indexes.erase(indexes.begin());
@@ -233,8 +233,8 @@ ptr<IISubTheoremFormula> N_DarkLogic::Theorem<SubPropertyType>::ruleApply(const 
     }
 }
 
-ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Hyp<ASubTheorem>>::ruleApply(const IISubRuleFormula &rule, std::vector<size_t> &indexes,
-                                                                   const size_t &actionKey) const
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Hyp<ASubTheorem>>::ruleApply(const IISubRuleFormula &rule, std::vector<Arity> &indexes,
+                                                                   const Action::Id& actionKey) const
 {
     Arity index=indexes[0];
     indexes.erase(indexes.begin());
@@ -253,21 +253,21 @@ ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Hyp<ASubTheorem>>::ruleApply(const
     return std::make_shared<const Theorem<SubPropertyType>>(sons);
 }
 
-ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Not<ASubTheorem>>::ruleApply(const IISubRuleFormula &rule, std::vector<size_t> &indexes,
-                                                                           const size_t &actionKey) const
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Not<ASubTheorem>>::ruleApply(const IISubRuleFormula &rule, std::vector<Arity> &indexes,
+                                                                           const Action::Id& actionKey) const
 {
     indexes.erase(indexes.begin());
     return std::make_shared<const Theorem<Not<ASubTheorem>>>(
     std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*m_son)[0],indexes)));
 }
 
-ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Boolean>::ruleApply(const IISubRuleFormula &, std::vector<size_t> &, const size_t &) const
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Boolean>::ruleApply(const IISubRuleFormula &, std::vector<Arity> &, const Action::Id&) const
 {
     throw std::runtime_error("Theorem Boolean connot call ruleApply method");
 }
 
-ptr<IISubTheoremFormula> N_DarkLogic::Theorem<ConstBoolean>::ruleApply(const IISubRuleFormula &, std::vector<size_t> &,
-                                                                       const size_t &) const
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<ConstBoolean>::ruleApply(const IISubRuleFormula &, std::vector<Arity> &,
+                                                                       const Action::Id&) const
 {
     throw std::runtime_error("Theorem ConstBoolean connot call ruleApply method");
 }
