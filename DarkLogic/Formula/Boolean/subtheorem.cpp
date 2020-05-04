@@ -660,6 +660,886 @@ const std::vector<std::vector<Arity> >& SubTheorem<Implication<ASubTheorem>>::co
 
 
 /**---------------------------------------------------------------
+ * initEval methods
+ * ---------------------------------------------------------------
+ */
+template<>
+void SubTheorem<And<ASubTheorem>>::initEval()
+{
+    const auto& leftProp = (*m_son)[0];
+    const auto& rightProp = (*m_son)[1];
+    if (leftProp->isEvaluated() && rightProp->isEvaluated())
+    {
+        m_eval->setValue(leftProp->evaluate() && rightProp->evaluate());
+    }
+    else if (leftProp->isEvaluated() && !leftProp->evaluate())
+    {
+        m_eval->setValue(false);
+    }
+    else if (rightProp->isEvaluated() && !rightProp->evaluate())
+    {
+        m_eval->setValue(false);
+    }
+    //else simulate with all possible values for variables
+    else
+    {
+        //m_eval->setExceptMsg(except.what());        
+
+        if (leftProp->canBeDemonstrated() && rightProp->canBeDemonstrated())
+        {
+            m_eval->setHiddenValue(leftProp->getHiddenValue() && rightProp->getHiddenValue());
+        }
+        else if (leftProp->canBeDemonstrated())
+        {
+            if (!leftProp->getHiddenValue())
+            {
+                m_eval->setHiddenValue(false);
+            }
+            else
+            {
+                const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configRight = rightProp->getConfigEvals();
+                for (const auto& config : configRight)
+                {
+                    m_eval->pushEvalConfig(config.first, config.second);
+                }
+            }
+        }
+        else if (rightProp->canBeDemonstrated())
+        {
+            if (!rightProp->getHiddenValue())
+            {
+                m_eval->setHiddenValue(false);
+            }
+            else
+            {
+                const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configLeft = leftProp->getConfigEvals();
+                for (const auto& config : configLeft)
+                {
+                    m_eval->pushEvalConfig(config.first, config.second);
+                }
+            }
+        }
+        else
+        {
+            const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configLeft = leftProp->getConfigEvals();
+            const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configRight = rightProp->getConfigEvals();
+            std::unordered_map<IDVar, IDVar> varToEvalLeft = leftProp->getVarToEval();
+            std::unordered_map<IDVar, IDVar> varToEvalRight = rightProp->getVarToEval();
+            std::unordered_map<IDVar, IDVar> remainVar;
+            std::unordered_map<IDVar, IDVar> commonVar;
+            if (configLeft.size() > configRight.size())
+            {
+                //get variables in right property except those from left property
+                for (const auto& idVar : varToEvalRight)
+                {
+                    if (varToEvalLeft.find(idVar.first) == varToEvalLeft.end())
+                    {
+                        remainVar[idVar.first] = idVar.first;
+                    }
+                    else
+                    {
+                        commonVar[idVar.first] = idVar.first;
+                    }
+                }
+
+                for (const auto& config : configLeft)
+                {
+                    //create commonConfig
+                    Evaluater::ConfigEval commonConfig;
+                    for (const auto& it : config.first)
+                    {
+                        if (commonVar.find(it.first) != commonVar.end())
+                        {
+                            commonConfig[it.first] = it.second;
+                        }
+                    }
+
+                    std::vector<Evaluater::ConfigEval> compatibleConfigs = rightProp->getCompatibleConfigs(commonConfig, remainVar);
+                    for (auto& compatibleConfig : compatibleConfigs)
+                    {
+                        Evaluater::ConfigEval newConfig = config.first;
+                        newConfig.merge(compatibleConfig);
+                        m_eval->pushEvalConfig(newConfig, leftProp->testEvaluate(config.first) && rightProp->testEvaluate(compatibleConfig));
+                    }
+                }
+            }
+            else
+            {
+                //get variables in left property except those from right property
+                for (const auto& idVar : varToEvalLeft)
+                {
+                    if (varToEvalRight.find(idVar.first) == varToEvalRight.end())
+                    {
+                        remainVar[idVar.first] = idVar.first;
+                    }
+                    else
+                    {
+                        commonVar[idVar.first] = idVar.first;
+                    }
+                }
+
+                for (const auto& config : configRight)
+                {
+                    //create commonConfig
+                    Evaluater::ConfigEval commonConfig;
+                    for (const auto& it : config.first)
+                    {
+                        if (commonVar.find(it.first) != commonVar.end())
+                        {
+                            commonConfig[it.first] = it.second;
+                        }
+                    }
+
+                    std::vector<Evaluater::ConfigEval> compatibleConfigs = leftProp->getCompatibleConfigs(commonConfig, remainVar);
+                    for (auto& compatibleConfig : compatibleConfigs)
+                    {
+                        Evaluater::ConfigEval newConfig = config.first;
+                        newConfig.merge(compatibleConfig);
+                        m_eval->pushEvalConfig(newConfig, leftProp->testEvaluate(compatibleConfig) && rightProp->testEvaluate(config.first));
+                    }
+                }
+            }
+        }
+    }
+
+    m_eval->endEval();
+}
+
+template<>
+void SubTheorem<Equivalent<ASubTheorem>>::initEval()
+{
+    //try to evaluate directly
+    const auto& leftProp = (*m_son)[0];
+    const auto& rightProp = (*m_son)[1];
+    if (leftProp->isEvaluated() && rightProp->isEvaluated())
+    {
+        m_eval->setValue(leftProp->evaluate() == rightProp->evaluate());
+    }
+    //else simulate with all possible values for variables
+    else
+    {
+        //m_eval->setExceptMsg(except.what());
+
+        if (leftProp->canBeDemonstrated() && rightProp->canBeDemonstrated())
+        {
+            m_eval->setHiddenValue(leftProp->getHiddenValue() == rightProp->getHiddenValue());
+        }
+        else if (leftProp->canBeDemonstrated())
+        {
+            bool var = leftProp->getHiddenValue();
+            const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configRight = rightProp->getConfigEvals();
+            for (const auto& config : configRight)
+            {
+                m_eval->pushEvalConfig(config.first, config.second == var);
+            }
+        }
+        else if (rightProp->canBeDemonstrated())
+        {
+            bool var = rightProp->getHiddenValue();
+            const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configLeft = leftProp->getConfigEvals();
+            for (const auto& config : configLeft)
+            {
+                m_eval->pushEvalConfig(config.first, config.second == var);
+            }
+        }
+        else
+        {
+            const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configLeft = leftProp->getConfigEvals();
+            const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configRight = rightProp->getConfigEvals();
+            std::unordered_map<IDVar, IDVar> varToEvalLeft = leftProp->getVarToEval();
+            std::unordered_map<IDVar, IDVar> varToEvalRight = rightProp->getVarToEval();
+            std::unordered_map<IDVar, IDVar> remainVar;
+            std::unordered_map<IDVar, IDVar> commonVar;
+            if (configLeft.size() > configRight.size())
+            {
+                //get variables in right property except those from left property
+                for (const auto& idVar : varToEvalRight)
+                {
+                    if (varToEvalLeft.find(idVar.first) == varToEvalLeft.end())
+                    {
+                        remainVar[idVar.first] = idVar.first;
+                    }
+                    else
+                    {
+                        commonVar[idVar.first] = idVar.first;
+                    }
+                }
+
+                for (const auto& config : configLeft)
+                {
+                    //create commonConfig
+                    Evaluater::ConfigEval commonConfig;
+                    for (const auto& it : config.first)
+                    {
+                        if (commonVar.find(it.first) != commonVar.end())
+                        {
+                            commonConfig[it.first] = it.second;
+                        }
+                    }
+
+                    std::vector<Evaluater::ConfigEval> compatibleConfigs = rightProp->getCompatibleConfigs(commonConfig, remainVar);
+                    for (auto& compatibleConfig : compatibleConfigs)
+                    {
+                        Evaluater::ConfigEval newConfig = config.first;
+                        newConfig.merge(compatibleConfig);
+                        m_eval->pushEvalConfig(newConfig, leftProp->testEvaluate(config.first) == rightProp->testEvaluate(compatibleConfig));
+                    }
+                }
+            }
+            else
+            {
+                //get variables in left property except those from right property
+                for (const auto& idVar : varToEvalLeft)
+                {
+                    if (varToEvalRight.find(idVar.first) == varToEvalRight.end())
+                    {
+                        remainVar[idVar.first] = idVar.first;
+                    }
+                    else
+                    {
+                        commonVar[idVar.first] = idVar.first;
+                    }
+                }
+
+                for (const auto& config : configRight)
+                {
+                    //create commonConfig
+                    Evaluater::ConfigEval commonConfig;
+                    for (const auto& it : config.first)
+                    {
+                        if (commonVar.find(it.first) != commonVar.end())
+                        {
+                            commonConfig[it.first] = it.second;
+                        }
+                    }
+
+                    std::vector<Evaluater::ConfigEval> compatibleConfigs = leftProp->getCompatibleConfigs(commonConfig, remainVar);
+                    for (auto& compatibleConfig : compatibleConfigs)
+                    {
+                        Evaluater::ConfigEval newConfig = config.first;
+                        newConfig.merge(compatibleConfig);
+                        m_eval->pushEvalConfig(newConfig, leftProp->testEvaluate(compatibleConfig) == rightProp->testEvaluate(config.first));
+                    }
+                }
+            }
+        }
+    }
+
+    m_eval->endEval();
+}
+
+template<>
+void SubTheorem<Implication<ASubTheorem>>::initEval()
+{
+    //try to evaluate directly 
+    const auto& leftProp = (*m_son)[0];
+    const auto& rightProp = (*m_son)[1];
+    if (leftProp->isEvaluated() && rightProp->isEvaluated())
+    {
+        m_eval->setValue(!leftProp->evaluate() || rightProp->evaluate());
+    }
+    else if (leftProp->isEvaluated() && !leftProp->evaluate())
+    {
+        m_eval->setValue(true);
+    }
+    else if (rightProp->isEvaluated() && rightProp->evaluate())
+    {
+        m_eval->setValue(true);
+    }
+    //else simulate with all possible values for variables
+    else
+    {
+        //m_eval->setExceptMsg(except.what());       
+
+        if (leftProp->canBeDemonstrated() && rightProp->canBeDemonstrated())
+        {
+            m_eval->setHiddenValue(!leftProp->getHiddenValue() || rightProp->getHiddenValue());
+        }
+        else if (leftProp->canBeDemonstrated())
+        {
+            if (!leftProp->getHiddenValue())
+            {
+                m_eval->setHiddenValue(true);
+            }
+            else
+            {
+                const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configRight = rightProp->getConfigEvals();
+                for (const auto& config : configRight)
+                {
+                    m_eval->pushEvalConfig(config.first, config.second);
+                }
+            }
+        }
+        else if (rightProp->canBeDemonstrated())
+        {
+            if (!rightProp->getHiddenValue())
+            {
+                m_eval->setHiddenValue(true);
+            }
+            else
+            {
+                const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configLeft = leftProp->getConfigEvals();
+                for (const auto& config : configLeft)
+                {
+                    m_eval->pushEvalConfig(config.first, config.second);
+                }
+            }
+        }
+        else
+        {
+            const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configLeft = leftProp->getConfigEvals();
+            const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configRight = rightProp->getConfigEvals();
+            std::unordered_map<IDVar, IDVar> varToEvalLeft = leftProp->getVarToEval();
+            std::unordered_map<IDVar, IDVar> varToEvalRight = rightProp->getVarToEval();
+            std::unordered_map<IDVar, IDVar> remainVar;
+            std::unordered_map<IDVar, IDVar> commonVar;
+            if (configLeft.size() > configRight.size())
+            {
+                //get variables in right property except those from left property
+                for (const auto& idVar : varToEvalRight)
+                {
+                    if (varToEvalLeft.find(idVar.first) == varToEvalLeft.end())
+                    {
+                        remainVar[idVar.first] = idVar.first;
+                    }
+                    else
+                    {
+                        commonVar[idVar.first] = idVar.first;
+                    }
+                }
+
+                for (const auto& config : configLeft)
+                {
+                    //create commonConfig
+                    Evaluater::ConfigEval commonConfig;
+                    for (const auto& it : config.first)
+                    {
+                        if (commonVar.find(it.first) != commonVar.end())
+                        {
+                            commonConfig[it.first] = it.second;
+                        }
+                    }
+
+                    std::vector<Evaluater::ConfigEval> compatibleConfigs = rightProp->getCompatibleConfigs(commonConfig, remainVar);
+                    for (auto& compatibleConfig : compatibleConfigs)
+                    {
+                        Evaluater::ConfigEval newConfig = config.first;
+                        newConfig.merge(compatibleConfig);
+                        m_eval->pushEvalConfig(newConfig, !leftProp->testEvaluate(config.first) || rightProp->testEvaluate(compatibleConfig));
+                    }
+                }
+            }
+            else
+            {
+                //get variables in left property except those from right property
+                for (const auto& idVar : varToEvalLeft)
+                {
+                    if (varToEvalRight.find(idVar.first) == varToEvalRight.end())
+                    {
+                        remainVar[idVar.first] = idVar.first;
+                    }
+                    else
+                    {
+                        commonVar[idVar.first] = idVar.first;
+                    }
+                }
+
+                for (const auto& config : configRight)
+                {
+                    //create commonConfig
+                    Evaluater::ConfigEval commonConfig;
+                    for (const auto& it : config.first)
+                    {
+                        if (commonVar.find(it.first) != commonVar.end())
+                        {
+                            commonConfig[it.first] = it.second;
+                        }
+                    }
+
+                    std::vector<Evaluater::ConfigEval> compatibleConfigs = leftProp->getCompatibleConfigs(commonConfig, remainVar);
+                    for (auto& compatibleConfig : compatibleConfigs)
+                    {
+                        Evaluater::ConfigEval newConfig = config.first;
+                        newConfig.merge(compatibleConfig);
+                        m_eval->pushEvalConfig(newConfig, !leftProp->testEvaluate(compatibleConfig) || rightProp->testEvaluate(config.first));
+                    }
+                }
+            }
+        }
+        m_eval->endEval();
+    }
+    
+}
+
+template<>
+void SubTheorem<Or<ASubTheorem>>::initEval()
+{
+    //try to evaluate directly 
+    const auto& leftProp = (*m_son)[0];
+    const auto& rightProp = (*m_son)[1];
+    if (leftProp->isEvaluated() && leftProp->evaluate())
+    {
+        m_eval->setValue(true);
+    }
+    else if (rightProp->isEvaluated() && rightProp->evaluate())
+    {
+        m_eval->setValue(true);
+    }
+    //else simulate with all possible values for variables
+    else
+    {
+        //m_eval->setExceptMsg(except.what());
+
+        if (leftProp->canBeDemonstrated() && rightProp->canBeDemonstrated())
+        {
+            m_eval->setHiddenValue(leftProp->getHiddenValue() || rightProp->getHiddenValue());
+        }
+        else if (leftProp->canBeDemonstrated())
+        {
+            if (leftProp->getHiddenValue())
+            {
+                m_eval->setHiddenValue(true);
+            }
+            else
+            {
+                const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configRight = rightProp->getConfigEvals();
+                for (const auto& config : configRight)
+                {
+                    m_eval->pushEvalConfig(config.first, config.second);
+                }
+            }
+        }
+        else if (rightProp->canBeDemonstrated())
+        {
+            if (rightProp->getHiddenValue())
+            {
+                m_eval->setHiddenValue(true);
+            }
+            else
+            {
+                const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configLeft = leftProp->getConfigEvals();
+                for (const auto& config : configLeft)
+                {
+                    m_eval->pushEvalConfig(config.first, config.second);
+                }
+            }
+        }
+        else
+        {
+            const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configLeft = leftProp->getConfigEvals();
+            const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configRight = rightProp->getConfigEvals();
+            std::unordered_map<IDVar, IDVar> varToEvalLeft = leftProp->getVarToEval();
+            std::unordered_map<IDVar, IDVar> varToEvalRight = rightProp->getVarToEval();
+            std::unordered_map<IDVar, IDVar> remainVar;
+            std::unordered_map<IDVar, IDVar> commonVar;
+            if (configLeft.size() > configRight.size())
+            {
+                //get variables in right property except those from left property
+                for (const auto& idVar : varToEvalRight)
+                {
+                    if (varToEvalLeft.find(idVar.first) == varToEvalLeft.end())
+                    {
+                        remainVar[idVar.first] = idVar.first;
+                    }
+                    else
+                    {
+                        commonVar[idVar.first] = idVar.first;
+                    }
+                }
+
+                for (const auto& config : configLeft)
+                {
+                    //create commonConfig
+                    Evaluater::ConfigEval commonConfig;
+                    for (const auto& it : config.first)
+                    {
+                        if (commonVar.find(it.first) != commonVar.end())
+                        {
+                            commonConfig[it.first] = it.second;
+                        }
+                    }
+
+                    std::vector<Evaluater::ConfigEval> compatibleConfigs = rightProp->getCompatibleConfigs(commonConfig, remainVar);
+                    for (auto& compatibleConfig : compatibleConfigs)
+                    {
+                        Evaluater::ConfigEval newConfig = config.first;
+                        newConfig.merge(compatibleConfig);
+                        m_eval->pushEvalConfig(newConfig, leftProp->testEvaluate(config.first) || rightProp->testEvaluate(compatibleConfig));
+                    }
+                }
+            }
+            else
+            {
+                //get variables in left property except those from right property
+                for (const auto& idVar : varToEvalLeft)
+                {
+                    if (varToEvalRight.find(idVar.first) == varToEvalRight.end())
+                    {
+                        remainVar[idVar.first] = idVar.first;
+                    }
+                    else
+                    {
+                        commonVar[idVar.first] = idVar.first;
+                    }
+                }
+
+                for (const auto& config : configRight)
+                {
+                    //create commonConfig
+                    Evaluater::ConfigEval commonConfig;
+                    for (const auto& it : config.first)
+                    {
+                        if (commonVar.find(it.first) != commonVar.end())
+                        {
+                            commonConfig[it.first] = it.second;
+                        }
+                    }
+
+                    std::vector<Evaluater::ConfigEval> compatibleConfigs = leftProp->getCompatibleConfigs(commonConfig, remainVar);
+                    for (auto& compatibleConfig : compatibleConfigs)
+                    {
+                        Evaluater::ConfigEval newConfig = config.first;
+                        newConfig.merge(compatibleConfig);
+                        m_eval->pushEvalConfig(newConfig, leftProp->testEvaluate(compatibleConfig) || rightProp->testEvaluate(config.first));
+                    }
+                }
+            }
+        }
+        m_eval->endEval();
+    }
+    
+}
+
+void SubTheorem<Hyp<ASubTheorem>>::initEval()
+{
+    //try to evaluate directly 
+    std::unique_ptr<bool> value = std::make_unique<bool>(true);
+    if ((*m_son)[arity() - 1]->isEvaluated() && (*m_son)[arity() - 1]->evaluate())
+    {
+        m_eval->setValue(true);
+        return;
+    }
+    else
+    {
+        for (size_t k = 0; k < arity() - 1; k++)
+        {
+            if ((*m_son)[k]->isEvaluated())
+            {
+                if (!(*m_son)[k]->evaluate())
+                {
+                    m_eval->setValue(true);
+                    return;
+                }
+            }
+            else
+            {
+                value = nullptr;
+            }
+        }
+        if (value != nullptr)
+        {
+            if ((*m_son)[arity() - 1]->isEvaluated() && !(*m_son)[arity() - 1]->evaluate())
+            {
+                m_eval->setValue(false);
+                return;
+            }
+            else
+            {
+                value = nullptr;
+            }
+        }
+    }
+
+    //else simulate with all possible values for variables
+    if(value == nullptr)
+    {
+        //m_eval->setExceptMsg(except.what());
+        if ((*m_son)[arity() - 1]->canBeDemonstrated() && (*m_son)[arity() - 1]->getHiddenValue())
+        {
+            m_eval->setHiddenValue(true);
+        }
+        else
+        {
+            std::vector<std::pair<Evaluater::ConfigEval, bool>> configsDone;
+            std::map<Evaluater::ConfigEval, bool> configsDoneHash;
+            std::unordered_map<IDVar, IDVar> varToEvalDone;            
+            std::unordered_map<IDVar, IDVar> remainVar;
+            std::unordered_map<IDVar, IDVar> commonVar;
+            std::unique_ptr<bool> hiddenValue = std::make_unique<bool>(true);
+
+            //first sub-property
+            if ((*m_son)[0]->canBeDemonstrated())
+            {
+                if (!(*m_son)[0]->getHiddenValue())
+                {
+                    m_eval->setHiddenValue(true);
+                    return;
+                }
+            }
+            else
+            {
+                const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configToDo = (*m_son)[0]->getConfigEvals();
+                for (const auto& config : configToDo)
+                {
+                    configsDoneHash[config.first] = config.second;
+                    configsDone.push_back({ config.first, config.second });
+                }
+            }
+
+            for (size_t k = 1; k < arity() - 1; k++)
+            {
+                const auto& subProp = (*m_son)[k];
+                if (hiddenValue != nullptr && subProp->canBeDemonstrated())
+                {
+                    if (!subProp->getHiddenValue())
+                    {
+                        m_eval->setHiddenValue(true);
+                        return;
+                    }
+                }
+                //general case (it is no use to do anything if subProp is true
+                else if(!(subProp->canBeDemonstrated() && subProp->getHiddenValue()))
+                {
+                    hiddenValue = nullptr;
+                    std::vector<std::pair<Evaluater::ConfigEval, bool>> newConfigsDone;
+                    std::map<Evaluater::ConfigEval, bool> newConfigsDoneHash;
+                    const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configToDo = subProp->getConfigEvals();
+                    std::unordered_map<IDVar, IDVar> varToEvalToDo = subProp->getVarToEval();
+                    if (configsDone.size() > configToDo.size())
+                    {
+                        //get variables in right property except those from left property
+                        for (const auto& idVar : varToEvalToDo)
+                        {
+                            if (varToEvalDone.find(idVar.first) == varToEvalDone.end())
+                            {
+                                remainVar[idVar.first] = idVar.first;
+                            }
+                            else
+                            {
+                                commonVar[idVar.first] = idVar.first;
+                            }
+                        }
+
+                        for (const auto& config : configsDone)
+                        {
+                            //create commonConfig
+                            Evaluater::ConfigEval commonConfig;
+                            for (const auto& it : config.first)
+                            {
+                                if (commonVar.find(it.first) != commonVar.end())
+                                {
+                                    commonConfig[it.first] = it.second;
+                                }
+                            }
+
+                            std::vector<Evaluater::ConfigEval> compatibleConfigs = subProp->getCompatibleConfigs(commonConfig, remainVar);
+                            for (auto& compatibleConfig : compatibleConfigs)
+                            {
+                                Evaluater::ConfigEval newConfig = config.first;
+                                newConfig.merge(compatibleConfig);
+                                bool var = configsDoneHash[config.first] && subProp->testEvaluate(compatibleConfig);
+                                newConfigsDone.push_back({ newConfig,  var});
+                                newConfigsDoneHash[config.first] = var;
+                            }
+                        }
+                    }
+                    else if (configsDone.size() == 0)
+                    {
+                        newConfigsDone = configToDo;
+                        for (const auto& config : configToDo)
+                        {
+                            newConfigsDoneHash[config.first] = config.second;
+                        }
+                    }
+                    else
+                    {
+                        //get variables in left property except those from right property
+                        for (const auto& idVar : varToEvalDone)
+                        {
+                            if (varToEvalToDo.find(idVar.first) == varToEvalToDo.end())
+                            {
+                                remainVar[idVar.first] = idVar.first;
+                            }
+                            else
+                            {
+                                commonVar[idVar.first] = idVar.first;
+                            }
+                        }
+
+                        for (const auto& config : configToDo)
+                        {
+                            //create commonConfig
+                            Evaluater::ConfigEval commonConfig;
+                            for (const auto& it : config.first)
+                            {
+                                if (commonVar.find(it.first) != commonVar.end())
+                                {
+                                    commonConfig[it.first] = it.second;
+                                }
+                            }
+
+                            std::vector<Evaluater::ConfigEval> compatibleConfigs = Evaluater::getCompatibleConfigs(configsDoneHash, 
+                                commonConfig, remainVar);
+                            for (auto& compatibleConfig : compatibleConfigs)
+                            {
+                                Evaluater::ConfigEval newConfig = config.first;
+                                newConfig.merge(compatibleConfig);
+                                bool var = configsDoneHash[compatibleConfig] && subProp->testEvaluate(config.first);
+                                newConfigsDone.push_back({ newConfig , var });                                
+                                newConfigsDoneHash[newConfig] = var;
+                            }
+                        }
+                    }
+
+                    //update configsDone
+                    configsDone = newConfigsDone;
+                    configsDoneHash = newConfigsDoneHash;
+                }                
+
+            }
+
+            //conclusion case
+            const auto& subProp = (*m_son)[arity() - 1];
+            //if conclusion can be demonstrated and we come until here, conclusion is necessary false
+            if (subProp->canBeDemonstrated())
+            {
+                if (configsDone.size())
+                {
+                    for (const auto& config : configsDone)
+                    {
+                        m_eval->pushEvalConfig(config.first, !config.second);
+                    }
+                }
+                else
+                {
+                    m_eval->setHiddenValue(*hiddenValue);
+                }
+                
+            }
+            else
+            {
+                const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configToDo = subProp->getConfigEvals();
+                std::unordered_map<IDVar, IDVar> varToEvalToDo = subProp->getVarToEval();
+                if (configsDone.size() > configToDo.size())
+                {
+                    //get variables in right property except those from left property
+                    for (const auto& idVar : varToEvalToDo)
+                    {
+                        if (varToEvalDone.find(idVar.first) == varToEvalDone.end())
+                        {
+                            remainVar[idVar.first] = idVar.first;
+                        }
+                        else
+                        {
+                            commonVar[idVar.first] = idVar.first;
+                        }
+                    }
+
+                    for (const auto& config : configsDone)
+                    {
+                        //create commonConfig
+                        Evaluater::ConfigEval commonConfig;
+                        for (const auto& it : config.first)
+                        {
+                            if (commonVar.find(it.first) != commonVar.end())
+                            {
+                                commonConfig[it.first] = it.second;
+                            }
+                        }
+
+                        std::vector<Evaluater::ConfigEval> compatibleConfigs = subProp->getCompatibleConfigs(commonConfig, remainVar);
+                        for (auto& compatibleConfig : compatibleConfigs)
+                        {
+                            Evaluater::ConfigEval newConfig = config.first;
+                            newConfig.merge(compatibleConfig);
+                            bool var = !configsDoneHash[config.first] || subProp->testEvaluate(compatibleConfig);
+                            m_eval->pushEvalConfig(newConfig, var);
+                        }
+                    }
+                }
+                else
+                {
+                    //get variables in left property except those from right property
+                    for (const auto& idVar : varToEvalDone)
+                    {
+                        if (varToEvalToDo.find(idVar.first) == varToEvalToDo.end())
+                        {
+                            remainVar[idVar.first] = idVar.first;
+                        }
+                        else
+                        {
+                            commonVar[idVar.first] = idVar.first;
+                        }
+                    }
+
+                    for (const auto& config : configToDo)
+                    {
+                        //create commonConfig
+                        Evaluater::ConfigEval commonConfig;
+                        for (const auto& it : config.first)
+                        {
+                            if (commonVar.find(it.first) != commonVar.end())
+                            {
+                                commonConfig[it.first] = it.second;
+                            }
+                        }
+
+                        std::vector<Evaluater::ConfigEval> compatibleConfigs = Evaluater::getCompatibleConfigs(configsDoneHash,
+                            commonConfig, remainVar);
+                        for (auto& compatibleConfig : compatibleConfigs)
+                        {
+                            Evaluater::ConfigEval newConfig = config.first;
+                            newConfig.merge(compatibleConfig);
+                            bool var = !configsDoneHash[compatibleConfig] || subProp->testEvaluate(config.first);
+                            m_eval->pushEvalConfig(newConfig, var);
+                        }
+                    }
+                }
+            }            
+        }
+    }
+
+    m_eval->endEval();
+}
+
+void SubTheorem<Not<ASubTheorem>>::initEval()
+{
+    //try to evaluate directly
+    const auto& subProp = (*m_son)[0];
+    if(subProp->isEvaluated())
+    {
+        m_eval->setValue(!subProp->evaluate());
+    }
+    //else simulate with all possible values for variables
+    else
+    {
+        //m_eval->setExceptMsg(except.what());
+        
+        if (subProp->canBeDemonstrated())
+        {
+            m_eval->setHiddenValue(!subProp->getHiddenValue());
+        }
+        else
+        {
+            const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configSub = subProp->getConfigEvals();
+            for (const auto& config : configSub)
+            {
+                m_eval->pushEvalConfig(config.first, !config.second);
+            }
+        }
+    }
+
+    m_eval->endEval();
+}
+
+void SubTheorem<Boolean>::initEval()
+{
+    //m_eval->setExceptMsg(except.what());
+    m_eval->pushEvalConfig({ {m_son->id(),false} }, false);
+    m_eval->pushEvalConfig({ {m_son->id(),true} }, true);
+}
+
+/**---------------------------------------------------------------
  * Constructor methods from a vector of subProperties
  * ---------------------------------------------------------------
  */
@@ -667,57 +1547,67 @@ template<>
 SubTheorem<And<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& leftSubProp,
                                          const ptr<ASubTheorem>& rightSubProp):
     m_son(std::make_unique<And<ASubTheorem>>(leftSubProp,rightSubProp)),
-    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars())
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars()), m_eval(std::make_unique<Evaluater>())
 {
     computeAllPaths();
+    initEval();
 }
 
 template<>
 SubTheorem<Equivalent<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& leftSubProp,
                                                 const ptr<ASubTheorem>& rightSubProp):
     m_son(std::make_unique<Equivalent<ASubTheorem>>(leftSubProp,rightSubProp)),
-    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars())
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars()), m_eval(std::make_unique<Evaluater>())
 {
     computeAllPaths();
+    initEval();
 }
 
 SubTheorem<Hyp<ASubTheorem>>::SubTheorem(const std::vector<ptr<ASubTheorem>>& subProps):
-    m_son(std::make_unique<Hyp<ASubTheorem>>(subProps)), m_extVars(getDbVarFromTheorems(subProps))
+    m_son(std::make_unique<Hyp<ASubTheorem>>(subProps)), m_extVars(getDbVarFromTheorems(subProps)), 
+    m_eval(std::make_unique<Evaluater>())
 {
     computeAllPaths();
     computeImplPaths();
+    initEval();
 }
 
 template<>
 SubTheorem<Implication<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& leftSubProp,
                                                  const ptr<ASubTheorem>& rightSubProp):
     m_son(std::make_unique<Implication<ASubTheorem>>(leftSubProp,rightSubProp)), 
-    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars())
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars()), m_eval(std::make_unique<Evaluater>())
 {
     computeAllPaths();
     computeImplPaths();
+    initEval();
 }
 
 SubTheorem<Not<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& subProp):
-    m_son(std::make_unique<Not<ASubTheorem>>(subProp)), m_extVars(subProp->getExtVars())
+    m_son(std::make_unique<Not<ASubTheorem>>(subProp)), m_extVars(subProp->getExtVars()), 
+    m_eval(std::make_unique<Evaluater>())
 {
     computeAllPaths();
     computeImplPaths();
+    initEval();
 }
 
 template<>
 SubTheorem<Or<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& leftSubProp, const ptr<ASubTheorem>& rightSubProp):
-    m_son(std::make_unique<Or<ASubTheorem>>(leftSubProp,rightSubProp)), m_extVars(leftSubProp->getExtVars(),rightSubProp->getExtVars())
+    m_son(std::make_unique<Or<ASubTheorem>>(leftSubProp,rightSubProp)), m_extVars(leftSubProp->getExtVars(),rightSubProp->getExtVars()), 
+    m_eval(std::make_unique<Evaluater>())
 {
     computeAllPaths();
     computeImplPaths();
+    initEval();
 }
 
 SubTheorem<Boolean>::SubTheorem(const std::shared_ptr<Boolean>& son):
-    m_son(son), m_extVars(son)
+    m_son(son), m_extVars(son), m_eval(std::make_unique<Evaluater>())
 {
     computeAllPaths();
     computeImplPaths();
+    initEval();
 }
 
 SubTheorem<ConstBoolean>::SubTheorem(const bool& val):
@@ -811,6 +1701,33 @@ const DbVar* SubTheorem<ConstBoolean>::getExtVars() const
     return nullptr;
 }
 
+
+/**---------------------------------------------------------------
+ * getConfigEvals methods
+ * ---------------------------------------------------------------
+ */
+template<SubTheoremProperty SubPropertyType>
+std::vector<std::pair<Evaluater::ConfigEval, bool>> SubTheorem<SubPropertyType>::getConfigEvals() const
+{
+    return m_eval->getConfigEvals();
+}
+
+std::vector<std::pair<Evaluater::ConfigEval, bool>> SubTheorem<Hyp<ASubTheorem>>::getConfigEvals() const
+{
+    return m_eval->getConfigEvals();
+}
+
+std::vector<std::pair<Evaluater::ConfigEval, bool>> SubTheorem<Not<ASubTheorem>>::getConfigEvals() const
+{
+    return m_eval->getConfigEvals();
+}
+
+std::vector<std::pair<Evaluater::ConfigEval, bool>> SubTheorem<Boolean>::getConfigEvals() const
+{
+    return m_eval->getConfigEvals();
+}
+
+
 /**---------------------------------------------------------------
  * evaluate methods
  * ---------------------------------------------------------------
@@ -818,17 +1735,17 @@ const DbVar* SubTheorem<ConstBoolean>::getExtVars() const
 template<SubTheoremProperty SubPropertyType>
 bool SubTheorem<SubPropertyType>::evaluate() const
 {
-    return m_son->evaluate();
+    return m_eval->evaluate();
 }
 
 bool SubTheorem<Hyp<ASubTheorem>>::evaluate() const
 {
-    return m_son->evaluate();
+    return m_eval->evaluate();
 }
 
 bool SubTheorem<Not<ASubTheorem>>::evaluate() const
 {
-    return m_son->evaluate();
+    return m_eval->evaluate();
 }
 
 bool SubTheorem<Boolean>::evaluate() const
@@ -842,9 +1759,44 @@ bool SubTheorem<ConstBoolean>::evaluate() const
 }
 
 /**---------------------------------------------------------------
+ * testEvaluate methods
+ * ---------------------------------------------------------------
+ */
+bool SubTheorem<Hyp<ASubTheorem>>::testEvaluate(const Evaluater::ConfigEval& configEval) const
+{
+    return m_eval->evalWithConfig(configEval);
+}
+
+bool SubTheorem<Not<ASubTheorem>>::testEvaluate(const Evaluater::ConfigEval& configEval) const
+{
+    return m_eval->evalWithConfig(configEval);
+}
+
+bool SubTheorem<Boolean>::testEvaluate(const Evaluater::ConfigEval& configEval) const
+{
+    return m_eval->evalWithConfig(configEval);
+}
+
+/**---------------------------------------------------------------
  * canBeDemonstrated methods
  * ---------------------------------------------------------------
  */
+template<SubTheoremProperty SubPropertyType>
+bool SubTheorem<SubPropertyType>::canBeDemonstrated() const
+{
+    return m_eval->canBeDemonstrated();
+}
+
+bool SubTheorem<Hyp<ASubTheorem>>::canBeDemonstrated() const
+{
+    return m_eval->canBeDemonstrated();
+}
+
+bool SubTheorem<Not<ASubTheorem>>::canBeDemonstrated() const
+{
+    return m_eval->canBeDemonstrated();
+}
+
 bool SubTheorem<Boolean>::canBeDemonstrated() const
 {
     return false;
@@ -856,9 +1808,77 @@ bool SubTheorem<ConstBoolean>::canBeDemonstrated() const
 }
 
 /**---------------------------------------------------------------
+ * getHiddenValue methods
+ * ---------------------------------------------------------------
+ */
+template<SubTheoremProperty SubPropertyType>
+bool SubTheorem<SubPropertyType>::getHiddenValue() const
+{
+    return m_eval->getHiddenValue();
+}
+
+bool SubTheorem<Hyp<ASubTheorem>>::getHiddenValue() const
+{
+    return m_eval->getHiddenValue();
+}
+
+bool SubTheorem<Not<ASubTheorem>>::getHiddenValue() const
+{
+    return m_eval->getHiddenValue();
+}
+
+bool SubTheorem<Boolean>::getHiddenValue() const
+{
+    return m_eval->getHiddenValue();
+}
+
+/**---------------------------------------------------------------
+ * getVarToEval methods
+ * ---------------------------------------------------------------
+ */
+std::unordered_map<IDVar, IDVar> SubTheorem<Hyp<ASubTheorem>>::getVarToEval() const
+{
+    return m_eval->getVarToEval();
+}
+
+std::unordered_map<IDVar, IDVar> SubTheorem<Not<ASubTheorem>>::getVarToEval() const
+{
+    return m_eval->getVarToEval();
+}
+
+std::unordered_map<IDVar, IDVar> SubTheorem<Boolean>::getVarToEval() const
+{
+    return m_eval->getVarToEval();
+}
+
+/**---------------------------------------------------------------
+ * getCompatibleConfigs methods
+ * ---------------------------------------------------------------
+ */
+inline std::vector<Evaluater::ConfigEval> SubTheorem<Hyp<ASubTheorem>>::getCompatibleConfigs(const Evaluater::ConfigEval& commonConfig,
+    const std::unordered_map<IDVar, IDVar>& internalVars) const
+{
+    return m_eval->getCompatibleConfigs(commonConfig, internalVars);
+}
+
+inline std::vector<Evaluater::ConfigEval> SubTheorem<Not<ASubTheorem>>::getCompatibleConfigs(const Evaluater::ConfigEval& commonConfig,
+    const std::unordered_map<IDVar, IDVar>& internalVars) const
+{
+    return m_eval->getCompatibleConfigs(commonConfig, internalVars);
+}
+
+inline std::vector<Evaluater::ConfigEval> SubTheorem<Boolean>::getCompatibleConfigs(const Evaluater::ConfigEval& commonConfig,
+    const std::unordered_map<IDVar, IDVar>& internalVars) const
+{
+    return m_eval->getCompatibleConfigs(commonConfig, internalVars);
+}
+
+
+/**---------------------------------------------------------------
  * operator== methods
  * ---------------------------------------------------------------
  */
+
 template<SubTheoremProperty SubPropertyType>
 bool SubTheorem<SubPropertyType>::isEqual(const ASubTheorem &prop) const
 {
@@ -956,6 +1976,31 @@ isEqual(const ASubRule &prop) const
     {
         return false;
     }
+}
+
+
+/**---------------------------------------------------------------
+ * isEvaluated methods
+ * ---------------------------------------------------------------
+ */
+bool SubTheorem<Hyp<ASubTheorem>>::isEvaluated() const
+{
+    return m_eval->isEvaluated();
+}
+
+bool SubTheorem<Not<ASubTheorem>>::isEvaluated() const
+{
+    return m_eval->isEvaluated();
+}
+
+bool SubTheorem<Boolean>::isEvaluated() const
+{
+    return m_eval->isEvaluated();
+}
+
+bool SubTheorem<ConstBoolean>::isEvaluated() const
+{
+    return true;
 }
 
 

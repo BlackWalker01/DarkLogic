@@ -18,6 +18,8 @@
 #include <complex>
 #include <concepts>
 #include <vector>
+#include <unordered_map>
+#include <map>
 
 namespace  N_DarkLogic
 {
@@ -34,6 +36,8 @@ namespace  N_DarkLogic
     //using Rational = rational<Int>; //Rational
     using Real = double; //Real
     using Complex = std::complex<Real>;
+
+
 
     template<typename T>
     concept BoolType = std::is_same_v<T, bool>;
@@ -65,7 +69,7 @@ namespace  N_DarkLogic
       * Define Variable for DarkLogic
       ---------------------------------------------------------------
       */
-    using IDVar = unsigned int; //identifiant type for variable
+    using IDVar = unsigned short int; //identifiant type for variable
     template<SetDerived SetType>
     class Variable;
     class Boolean;

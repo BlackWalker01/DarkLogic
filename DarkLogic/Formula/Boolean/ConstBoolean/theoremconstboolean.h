@@ -30,8 +30,6 @@ public:
     ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule,
                                        std::vector<Arity>& indexes, const Action::Id& actionKey) const override final;
 
-    bool isEvaluated() const override final;
-
     ~Theorem() override = default;
 };
 }

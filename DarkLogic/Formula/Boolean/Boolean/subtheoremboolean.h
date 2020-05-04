@@ -25,12 +25,19 @@ public:
 
     SubTheorem(const std::shared_ptr<Boolean>& val);
 
-    bool evaluate() const override;
+    bool isEvaluated() const override final;
+    bool evaluate() const override final;
+    bool canBeDemonstrated() const override final;
+    bool testEvaluate(const Evaluater::ConfigEval& configEval) const override final;
+    bool getHiddenValue() const override final;
+    std::unordered_map<IDVar, IDVar> getVarToEval() const override final;
+    std::vector<std::pair<Evaluater::ConfigEval, bool>> getConfigEvals() const override final;
+    std::vector<Evaluater::ConfigEval> getCompatibleConfigs(const Evaluater::ConfigEval& commonConfig,
+        const std::unordered_map<IDVar, IDVar>& internalVars) const override final;
     constexpr PropType type() const override final
     {
         return PropType::VAR_PROP;
     }
-    bool canBeDemonstrated() const override;
 
     bool isEqual(const ASubTheorem& prop) const override final;
     bool operator==(const SubTheorem& prop) const;
@@ -55,11 +62,14 @@ protected:
     const std::vector<std::vector<Arity> > &computeAllPaths() override final;
     const std::vector<std::vector<Arity>>& computeImplPaths() override final;
 
+private:
+    void initEval();
 protected:
     size_t arity() const override final;
 
     const std::shared_ptr<SubPropertyType> m_son;
     const DbVar m_extVars;
+    const std::unique_ptr<Evaluater> m_eval;
 };
 }
 #endif // DARK_LOGIC_SUBTHEOREMBOOLEAN_H

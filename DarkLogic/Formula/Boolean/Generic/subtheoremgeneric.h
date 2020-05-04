@@ -24,7 +24,17 @@ class SubTheorem: public ASubPureTheorem
 public:
     SubTheorem(const ptr<ASubTheorem>& leftSubProp, const ptr<ASubTheorem>& rightSubProp);    
 
-    bool evaluate() const override;
+    //evaluation methods
+    bool isEvaluated() const override final;
+    bool evaluate() const override final;
+    bool canBeDemonstrated() const override final;
+    bool testEvaluate(const Evaluater::ConfigEval& configEval) const override final;
+    bool getHiddenValue() const override final;
+    std::unordered_map<IDVar, IDVar> getVarToEval() const override final;
+    std::vector<std::pair<Evaluater::ConfigEval, bool>> getConfigEvals() const override final;
+    std::vector<Evaluater::ConfigEval> getCompatibleConfigs(const Evaluater::ConfigEval& commonConfig,
+        const std::unordered_map<IDVar, IDVar>& internalVars) const override final;
+    
     constexpr PropType type() const override final
     {
         if constexpr (std::is_same_v<SubPropertyType, And<ASubTheorem>>)
@@ -54,7 +64,7 @@ public:
     bool isEqual(const ASubRule& prop) const override final;
     bool operator==(const SubRule<ToRuleOpe<SubPropertyType>>& prop) const;
 
-    std::string toString(unsigned short priorityParent=1000) const override final;
+    std::string toString(unsigned short priorityParent=1000) const override final;    
 
     size_t arity() const override final;
     ptr<ASubTheorem> copyTheorem() const override final;
@@ -67,11 +77,15 @@ protected:
     const std::vector<std::vector<Arity> > &computeAllPaths() override final;
     const std::vector<std::vector<Arity>>& computeImplPaths() override final;
 
+private:
+    void initEval();
+
 protected:
     const ptr<ASubTheorem>& operator[](const size_t& index) const override final;
 
     const std::unique_ptr<const SubPropertyType> m_son;
     const DbVar m_extVars;
+    const std::unique_ptr<Evaluater> m_eval;
 };
 
 template<SubTheoremProperty SubPropertyType>
@@ -112,6 +126,31 @@ const std::vector<std::vector<Arity> >& SubTheorem<SubPropertyType>::computeAllP
         }
     }
     return m_allPaths;
+}
+
+template<SubTheoremProperty SubPropertyType>
+bool SubTheorem<SubPropertyType>::testEvaluate(const Evaluater::ConfigEval& configEval) const
+{
+    return m_eval->evalWithConfig(configEval);
+}
+
+template<SubTheoremProperty SubPropertyType>
+bool N_DarkLogic::SubTheorem<SubPropertyType>::isEvaluated() const
+{
+    return m_eval->isEvaluated();
+}
+
+template<SubTheoremProperty SubPropertyType>
+std::unordered_map<IDVar, IDVar> SubTheorem<SubPropertyType>::getVarToEval() const
+{
+    return m_eval->getVarToEval();
+}
+
+template<SubTheoremProperty SubPropertyType>
+inline std::vector<Evaluater::ConfigEval> SubTheorem<SubPropertyType>::getCompatibleConfigs(const Evaluater::ConfigEval& commonConfig, 
+    const std::unordered_map<IDVar, IDVar>& internalVars) const
+{
+    return m_eval->getCompatibleConfigs(commonConfig,internalVars);
 }
 
 /**

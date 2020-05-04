@@ -30,6 +30,22 @@ bool N_DarkLogic::ASubTheorem::canBeDemonstrated() const
     return testCanBeDemonstrated(getExtVars()->getVars(), eval);    
 }
 
+std::vector<std::pair<Evaluater::ConfigEval, bool>> N_DarkLogic::ASubTheorem::getConfigEvals() const
+{
+    return std::vector<std::pair<Evaluater::ConfigEval, bool>>();
+}
+
+std::unordered_map<IDVar,IDVar> N_DarkLogic::ASubTheorem::getVarToEval() const
+{
+    return std::unordered_map<IDVar, IDVar>();
+}
+
+std::vector<Evaluater::ConfigEval> ASubTheorem::getCompatibleConfigs(const Evaluater::ConfigEval& commonConfig,
+    const std::unordered_map<IDVar,IDVar>& internalVars) const
+{
+    return std::vector<Evaluater::ConfigEval>();
+}
+
 /**
  * return true if the theorem has one crtValue
  * crtValue is the current evaluation of the theorem
@@ -42,12 +58,12 @@ bool N_DarkLogic::ASubTheorem::testCanBeDemonstrated(const std::vector<ptr<AVari
     {
         if (crtValue)
         {
-            bool newValue = testEvaluate();
+            bool newValue = getHiddenValue();
             return (*crtValue) == newValue;
         }
         else
         {
-            crtValue = std::make_unique<bool>(testEvaluate());
+            crtValue = std::make_unique<bool>(getHiddenValue());
             return true;
         }    
     }

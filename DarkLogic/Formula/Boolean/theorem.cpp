@@ -172,20 +172,15 @@ ptr<ASubTheorem> N_DarkLogic::createTheorem(const std::string &name, const std::
  * ---------------------------------------------------------------
  */
 Theorem<Hyp<ASubTheorem>>::Theorem(const std::vector<ptr<ASubTheorem>> &subProps):
-    SubTheorem<SubPropertyType>(subProps),
-    m_value(std::make_unique<std::unique_ptr<bool>>()), m_canBeDemonstrated(std::make_unique<std::unique_ptr<bool>>())
+    SubTheorem<SubPropertyType>(subProps)
 {
-    _evaluate();
-    _canBeDemonstrated();
+
 }
 
 Theorem<Not<ASubTheorem>>::Theorem(const ptr<ASubTheorem> &subProp):
-    SubTheorem<SubPropertyType>(subProp),
-    m_value(std::make_unique<std::unique_ptr<bool>>()), 
-    m_canBeDemonstrated(std::make_unique<std::unique_ptr<bool>>())
+    SubTheorem<SubPropertyType>(subProp)
 {
-    _evaluate();
-    _canBeDemonstrated();
+    
 }
 
 Theorem<Boolean>::Theorem(const std::shared_ptr<Boolean>& son):
@@ -270,117 +265,6 @@ ptr<IISubTheoremFormula> N_DarkLogic::Theorem<ConstBoolean>::ruleApply(const IIS
                                                                        const Action::Id&) const
 {
     throw std::runtime_error("Theorem ConstBoolean connot call ruleApply method");
-}
-
-
-/**---------------------------------------------------------------
- * isEvaluated methods
- * ---------------------------------------------------------------
- */
-inline bool Theorem<Hyp<ASubTheorem>>::isEvaluated() const
-{
-    return (*m_value)!=nullptr;
-}
-
-inline bool Theorem<Not<ASubTheorem>>::isEvaluated() const
-{
-    return (*m_value) != nullptr;
-}
-
-inline bool Theorem<Boolean>::isEvaluated() const
-{
-    return false;
-}
-
-inline bool Theorem<ConstBoolean>::isEvaluated() const
-{
-    return true;
-}
-
-/**---------------------------------------------------------------
- * evaluate methods
- * ---------------------------------------------------------------
- */
-inline bool Theorem<Hyp<ASubTheorem>>::evaluate() const
-{
-    return **m_value;
-}
-
-inline bool Theorem<Not<ASubTheorem>>::evaluate() const
-{
-    return **m_value;
-}
-
-/**---------------------------------------------------------------
- * testEvaluate methods
- * ---------------------------------------------------------------
- */
-inline bool Theorem<Hyp<ASubTheorem>>::testEvaluate() const
-{
-    return SubTheorem<Hyp<ASubTheorem>>::evaluate();
-}
-
-inline bool Theorem<Not<ASubTheorem>>::testEvaluate() const
-{
-    return SubTheorem<Not<ASubTheorem>>::evaluate();
-}
-
-/**---------------------------------------------------------------
- * canBeDemonstrated methods
- * ---------------------------------------------------------------
- */
-inline bool Theorem<Hyp<ASubTheorem>>::canBeDemonstrated() const
-{
-    return **m_canBeDemonstrated;
-}
-
-inline bool Theorem<Not<ASubTheorem>>::canBeDemonstrated() const
-{
-    return **m_canBeDemonstrated;
-}
-
-
-/**---------------------------------------------------------------
- * _evaluate methods
- * ---------------------------------------------------------------
- */
-inline void Theorem<Hyp<ASubTheorem>>::_evaluate() const
-{
-    try
-    {
-        (*m_value) = std::make_unique<bool>(m_son->evaluate());
-    }
-    catch (VariableException&)
-    {
-
-    }
-}
-
-inline void Theorem<Not<ASubTheorem>>::_evaluate() const
-{
-    try
-    {
-        (*m_value) = std::make_unique<bool>(m_son->evaluate());
-    }
-    catch (VariableException&)
-    {
-
-    }
-}
-
-
-/**---------------------------------------------------------------
- * _canBeDemonstrated methods
- * ---------------------------------------------------------------
- */
-inline void Theorem<Hyp<ASubTheorem>>::_canBeDemonstrated() const
-{
-    *m_canBeDemonstrated = std::make_unique<bool>(ASubTheorem::canBeDemonstrated());
-}
-
-inline void Theorem<Not<ASubTheorem>>::_canBeDemonstrated() const
-{
-    *m_canBeDemonstrated = std::make_unique<bool>(ASubTheorem::canBeDemonstrated());
 }
 
 

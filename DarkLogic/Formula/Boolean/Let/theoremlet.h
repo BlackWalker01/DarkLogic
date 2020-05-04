@@ -31,7 +31,6 @@ public:
     bool isEvaluated() const override final;
     bool canBeDemonstrated() const override final;
     bool evaluate() const override final;
-    bool testEvaluate() const override final;
 
 private:
     void _evaluate() const;
@@ -75,12 +74,6 @@ template<typename SubTheoremType>
 bool Theorem<Let<SubTheoremType, ASubTheorem> >::evaluate() const
 {
     return **m_value;
-}
-
-template<typename SubTheoremType>
-bool Theorem<Let<SubTheoremType, ASubTheorem> >::testEvaluate() const
-{
-    return SubTheorem<Let<SubTheoremType, ASubTheorem> >::evaluate();
 }
 
 template<typename SubTheoremType>
