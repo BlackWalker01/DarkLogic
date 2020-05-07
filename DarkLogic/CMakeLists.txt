@@ -49,6 +49,7 @@ add_library(DarkLogic SHARED
     Utils/action.cpp
     Variable/variableexception.cpp
     Formula/evaluater.cpp
+    darklogic.cpp
 
     logic_global.h
     logic.h
@@ -163,7 +164,9 @@ add_library(DarkLogic SHARED
     Utils/action.h
     Utils/exception.h
     Variable/variableexception.h
-    Formula/evaluater.h)
+    Formula/evaluater.h
+    darklogic.h
+    )
 
 target_compile_definitions(DarkLogic PRIVATE DARK_LOGIC_LIBRARY)
 add_compile_definitions(_SILENCE_CLANG_CONCEPTS_MESSAGE)

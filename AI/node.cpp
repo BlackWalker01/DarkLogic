@@ -1,6 +1,6 @@
 #include "node.hpp"
 #include "node.hpp"
-#include "logic.h"
+#include "darklogic.h"
 #include "ai.h"
 #include <ctime>
 #include <random>

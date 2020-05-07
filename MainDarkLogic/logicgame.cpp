@@ -1,10 +1,11 @@
 #include "logicgame.h"
-#include "logic.h"
+#include "darklogic.h"
 #include "Human/human.h"
 #include "AI/ai.h"
-#include "action.h"
+#include <memory>
 #include <thread>
 #include <iostream>
+#include "MainDarkLogic/action.h"
 
 LogicGame::LogicGame():
     m_mode(NoMode), m_player(nullptr)
@@ -14,7 +15,7 @@ LogicGame::LogicGame():
 
 void LogicGame::start()
 {
-    std::cout << "Welcome in LogicGame (v1.0.0)!" << std::endl;
+    std::cout << "Welcome in LogicGame (v1.1.0)!" << std::endl;
     
     //create player and init logic
     askPlayer();
@@ -35,7 +36,7 @@ void LogicGame::test()
     /*std::cout << "Test AIDeep Mode" << std::endl;
     m_mode = AIMode;
     auto nbInstance = (std::thread::hardware_concurrency()) + 1; //opti for th moment
-    N_DarkLogic::DarkLogic::init(nbInstance);
+    N_DarkLogic::DarkLogic::DarkLogic::init(nbInstance);
     m_player = std::make_unique<AI>(AI::DEEP, nbInstance);*/
 
     //Start tests
@@ -188,7 +189,7 @@ void LogicGame::createTheorem()
             std::cout << "-> popAction : to cancel the latest action" << std::endl;
         }        
         /*std::cout << "[DEBUG] content: " << std::endl;
-        N_DarkLogic::DarkLogic::printTheorem(0);*/
+        N_DarkLogic::DarkLogic::DarkLogic::printTheorem(0);*/
     }
 }
 
@@ -227,10 +228,10 @@ bool LogicGame::pushAction(const std::string &action)
     }
     if(foundAction)
     {
-        N_DarkLogic::DarkLogic::apply(0,id);
+        N_DarkLogic::DarkLogic::apply(id);
         std::cout << m_player->name() << " use " << ruleName << std::endl;
         std::cout<<"Current theorem is"<<std::endl;
-        N_DarkLogic::DarkLogic::printTheorem(0);
+        N_DarkLogic::DarkLogic::printTheorem();
     }
     else
     {
@@ -241,11 +242,11 @@ bool LogicGame::pushAction(const std::string &action)
 
 bool LogicGame::popAction()
 {
-    if(N_DarkLogic::DarkLogic::hasAlreadyPlayed(0))
+    if(N_DarkLogic::DarkLogic::hasAlreadyPlayed())
     {
-        N_DarkLogic::DarkLogic::unapply(0);
+        N_DarkLogic::DarkLogic::unapply();
         std::cout<<"Current theorem is"<<std::endl;
-        N_DarkLogic::DarkLogic::printTheorem(0);
+        N_DarkLogic::DarkLogic::printTheorem();
         return true;
     }
     else
@@ -267,7 +268,7 @@ void LogicGame::askPlayer()
             std::cout << "Human Mode" << std::endl;
             m_mode = HumanMode;
             //Init Logic
-            N_DarkLogic::DarkLogic::init(1);
+            N_DarkLogic::DarkLogic::init(0);
             m_player = std::make_unique<Human>();
             ok = true;
         }
@@ -276,7 +277,7 @@ void LogicGame::askPlayer()
             std::cout << "AI Mode" << std::endl;
             m_mode = AIMode;
             //Init Logic
-            auto nbInstance = (std::thread::hardware_concurrency()/2) + 1; //opti for the moment
+            auto nbInstance = std::thread::hardware_concurrency(); //opti for the moment
             N_DarkLogic::DarkLogic::init(nbInstance);
             m_player = std::make_unique<AI>(AI::MCTS,nbInstance);
             ok = true;
@@ -287,7 +288,7 @@ void LogicGame::askPlayer()
             m_mode = AIMode;
             //Init Logic
             //auto nbInstance = 1 + 1;
-            auto nbInstance = (std::thread::hardware_concurrency()) + 1; //opti for the moment
+            auto nbInstance = (std::thread::hardware_concurrency()); //opti for the moment
             N_DarkLogic::DarkLogic::init(nbInstance);
             m_player = std::make_unique<AI>(AI::DEEP, nbInstance);
             ok = true;
@@ -301,37 +302,37 @@ void LogicGame::askPlayer()
 
 bool LogicGame::isOver()
 {
-    return N_DarkLogic::DarkLogic::isOver(0);
+    return N_DarkLogic::DarkLogic::isOver();
 }
 
 bool LogicGame::isDemonstrated()
 {
-    return N_DarkLogic::DarkLogic::isDemonstrated(0);
+    return N_DarkLogic::DarkLogic::isDemonstrated();
 }
 
 bool LogicGame::isAlreadyPlayed()
 {
-    return N_DarkLogic::DarkLogic::isAlreadyPlayed(0);
+    return N_DarkLogic::DarkLogic::isAlreadyPlayed();
 }
 
 bool LogicGame::hasAlreadyPlayed()
 {
-    return N_DarkLogic::DarkLogic::hasAlreadyPlayed(0);
+    return N_DarkLogic::DarkLogic::hasAlreadyPlayed();
 }
 
 bool LogicGame::canBeDemonstrated()
 {
-    return N_DarkLogic::DarkLogic::canBeDemonstrated(0);
+    return N_DarkLogic::DarkLogic::canBeDemonstrated();
 }
 
 bool LogicGame::appliedRuleSymetric()
 {
-    return N_DarkLogic::DarkLogic::appliedRuleSymetric(0);
+    return N_DarkLogic::DarkLogic::appliedRuleSymetric();
 }
 
 bool LogicGame::isEvaluated()
 {
-    return N_DarkLogic::DarkLogic::isEvaluated(0);
+    return N_DarkLogic::DarkLogic::isEvaluated();
 }
 
 void LogicGame::game()
@@ -348,9 +349,9 @@ void LogicGame::game()
             }
             case PUSH_ACTION:
             {
-                N_DarkLogic::DarkLogic::getActions(0);
-                N_DarkLogic::DarkLogic::apply(0,action->id());
-                N_DarkLogic::DarkLogic::printTheorem(0);
+                N_DarkLogic::DarkLogic::getActions();
+                N_DarkLogic::DarkLogic::apply(action->id());
+                N_DarkLogic::DarkLogic::printTheorem();
                 break;
             }
             case POP_ACTION:
