@@ -27,6 +27,7 @@ public:
     SubTheorem(const bool& son);
     SubTheorem(const SubRule<ConstBoolean>& prop);
 
+    bool isEvaluated() const override final;
     bool evaluate() const override final;
     constexpr PropType type() const override final
     {

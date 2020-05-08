@@ -1,3 +1,16 @@
+/*===--- logic.cpp - include for Logic library --------------*- C++ -*-===*
+*
+*   Part of the Logic Project, under the CC0 license.
+*   See https://creativecommons.org/publicdomain/zero/1.0/deed.fr for license information.
+*
+*===----------------------------------------------------------------------===*
+*
+*   This file implements Logic class for Logic Library
+*   Author: BlackWalker
+*   Date: april 12 2020
+*
+*===----------------------------------------------------------------------===*/
+
 #include "logic.h"
 #include "Formula/Boolean/theorem.h"
 #include "Formula/Boolean/rule.h"
@@ -56,11 +69,12 @@ const std::string LetStr::s_symbol="let ";
 const std::string LetStr::s_symbol2=" in ";
 const std::string BelongsToStr::s_symbol="€";
 
-std::vector<std::unique_ptr<DarkLogic>> DarkLogic::s_instances = {};
+std::unique_ptr<Logic > Logic::s_masterInstance = nullptr;
+std::vector<std::unique_ptr<Logic>> Logic::s_instances = {};
 
-DarkLogic::DarkLogic(): m_theorem(nullptr), m_isLastRuleSymetric(true)
+Logic::Logic(): m_theorem(nullptr), m_isLastRuleSymetric(true)
 {
-    //set up rules of the DarkLogic
+    //set up rules of the Logic
     //AXIOME Rule
     auto ax = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("ax", "true<=>({p,HYP}p)"));
     insert(ax);
@@ -134,22 +148,29 @@ DarkLogic::DarkLogic(): m_theorem(nullptr), m_isLastRuleSymetric(true)
     insert(doubleNot);
 }
 
-void DarkLogic::init(const size_t& nbInstances)
+void Logic::init(const size_t& nbInstances)
 {
     s_instances.clear();
+    Log::Info("Logic creation...");
+    s_masterInstance = std::make_unique<Logic>();
     for (size_t k = 0; k < nbInstances; k++)
     {
-        s_instances.push_back(std::make_unique<DarkLogic>());
+        s_instances.push_back(std::make_unique<Logic>());
     }
-    Log::Debug("DarkLogic Instantiated");
+    Log::Info("Logic Instantiated");
 }
 
-bool N_DarkLogic::DarkLogic::isOver(const size_t& instanceIdx)
+bool N_DarkLogic::Logic::isOver()
+{
+    return s_masterInstance->_isOver();
+}
+
+bool N_DarkLogic::Logic::isOver(const size_t& instanceIdx)
 {
     return s_instances[instanceIdx]->_isOver();
 }
 
-void N_DarkLogic::DarkLogic::clearAll()
+void N_DarkLogic::Logic::clearAll()
 {
     for (auto& instance : s_instances)
     {
@@ -157,43 +178,79 @@ void N_DarkLogic::DarkLogic::clearAll()
     }
 }
 
-void N_DarkLogic::DarkLogic::clear(const size_t& instanceIdx)
+void N_DarkLogic::Logic::clear()
+{
+    s_masterInstance->_clear();
+}
+
+void N_DarkLogic::Logic::clear(const size_t& instanceIdx)
 {
     s_instances[instanceIdx]->_clear();
 }
 
-bool DarkLogic::isDemonstrated(const size_t& instanceIdx)
+bool N_DarkLogic::Logic::isDemonstrated()
+{
+    return s_masterInstance->_isDemonstrated();
+}
+
+bool Logic::isDemonstrated(const size_t& instanceIdx)
 {
     return s_instances[instanceIdx]->_isDemonstrated();
 }
 
-bool N_DarkLogic::DarkLogic::isAlreadyPlayed(const size_t& instanceIdx)
+bool N_DarkLogic::Logic::isAlreadyPlayed()
+{
+    return s_masterInstance->_isAlreadyPlayed();
+}
+
+bool N_DarkLogic::Logic::isAlreadyPlayed(const size_t& instanceIdx)
 {
     return s_instances[instanceIdx]->_isAlreadyPlayed();
 }
 
-bool N_DarkLogic::DarkLogic::canBeDemonstrated(const size_t& instanceIdx)
+bool N_DarkLogic::Logic::canBeDemonstrated()
+{
+    return s_masterInstance->_canBeDemonstrated();
+}
+
+bool N_DarkLogic::Logic::canBeDemonstrated(const size_t& instanceIdx)
 {
     return s_instances[instanceIdx]->_canBeDemonstrated();
 }
 
-bool DarkLogic::evaluate(const size_t& instanceIdx)
+bool N_DarkLogic::Logic::evaluate()
+{
+    return s_masterInstance->_evaluate();
+}
+
+bool Logic::evaluate(const size_t& instanceIdx)
 {
     return s_instances[instanceIdx]->_evaluate();
 }
 
-bool N_DarkLogic::DarkLogic::isEvaluated(const size_t& instanceIdx)
+bool N_DarkLogic::Logic::isEvaluated()
+{
+    return s_masterInstance->_isEvaluated();
+}
+
+bool N_DarkLogic::Logic::isEvaluated(const size_t& instanceIdx)
 {
     return s_instances[instanceIdx]->_isEvaluated();
 }
 
-bool N_DarkLogic::DarkLogic::appliedRuleSymetric(const size_t& instanceIdx)
+bool N_DarkLogic::Logic::appliedRuleSymetric()
+{
+    return s_masterInstance->_appliedRuleSymetric();
+}
+
+bool N_DarkLogic::Logic::appliedRuleSymetric(const size_t& instanceIdx)
 {
     return s_instances[instanceIdx]->_appliedRuleSymetric();
 }
 
-bool DarkLogic::makeTheorem(const std::string& name, const std::string& cont)
+bool Logic::makeTheorem(const std::string& name, const std::string& cont)
 {
+    s_masterInstance->_makeTheorem(name, cont);
     for (size_t instanceIdx = 0; instanceIdx < s_instances.size(); instanceIdx++)
     {
         if (!s_instances[instanceIdx]->_makeTheorem(name, cont))
@@ -204,7 +261,7 @@ bool DarkLogic::makeTheorem(const std::string& name, const std::string& cont)
     return true;
 }
 
-bool N_DarkLogic::DarkLogic::learnRule()
+bool N_DarkLogic::Logic::learnRule()
 {
     if (isDemonstrated(0))
     {
@@ -217,59 +274,94 @@ bool N_DarkLogic::DarkLogic::learnRule()
     return false;
 }
 
+void N_DarkLogic::Logic::printTheorem()
+{
+    s_masterInstance->_printTheorem();
+}
 
-void DarkLogic::printTheorem(const size_t& instanceIdx)
+
+void Logic::printTheorem(const size_t& instanceIdx)
 {
     s_instances[instanceIdx]->_printTheorem();
 }
 
-std::string N_DarkLogic::DarkLogic::theoremName()
+std::string N_DarkLogic::Logic::toStrTheorem()
+{
+    return s_masterInstance->_toStrTheorem();
+}
+
+std::string N_DarkLogic::Logic::toStrTheorem(const size_t& instanceIdx)
+{
+    return s_instances[instanceIdx]->_toStrTheorem();
+}
+
+std::string N_DarkLogic::Logic::theoremName()
 {
     return s_instances[0]->m_theoremName;
 }
 
-const std::vector<Action::Id>& DarkLogic::getActions(const size_t& instanceIdx)
+const std::vector<Action::Id>& N_DarkLogic::Logic::getActions()
+{
+    return s_masterInstance->_getActions();
+}
+
+const std::vector<Action::Id>& Logic::getActions(const size_t& instanceIdx)
 {
     return s_instances[instanceIdx]->_getActions();
 }
 
-std::vector<Action> N_DarkLogic::DarkLogic::getDemonstration()
+std::vector<Action> N_DarkLogic::Logic::getDemonstration()
 {
     return s_instances[0]->_getDemonstration();
 }
 
-std::vector<Action> DarkLogic::getHumanActions()
+std::vector<Action> Logic::getHumanActions()
 {
     return s_instances[0]->_getHumanActions();
 }
 
-void DarkLogic::apply(const size_t& instanceIdx, const Action::Id& actionKey)
+void N_DarkLogic::Logic::apply(const Action::Id& actionKey)
+{
+    s_masterInstance->_apply(actionKey);
+}
+
+void Logic::apply(const size_t& instanceIdx, const Action::Id& actionKey)
 {
     s_instances[instanceIdx]->_apply(actionKey);
 }
 
-void DarkLogic::unapply(const size_t& instanceIdx)
+void N_DarkLogic::Logic::unapply()
+{
+    s_masterInstance->_unapply();
+}
+
+void Logic::unapply(const size_t& instanceIdx)
 {
     s_instances[instanceIdx]->_unapply();
 }
 
-bool DarkLogic::hasAlreadyPlayed(const size_t& instanceIdx)
+bool N_DarkLogic::Logic::hasAlreadyPlayed()
+{
+    return s_masterInstance->_hasAlreadyPlayed();
+}
+
+bool Logic::hasAlreadyPlayed(const size_t& instanceIdx)
 {
     return s_instances[instanceIdx]->_hasAlreadyPlayed();
 }
 
 template<typename OpeType>
-void DarkLogic::insert(const ptr<Rule<OpeType> > &rule)
+void Logic::insert(const ptr<Rule<OpeType> > &rule)
 {
     m_rules.insert(rule);
 }
 
-bool N_DarkLogic::DarkLogic::_isOver()
+bool N_DarkLogic::Logic::_isOver()
 {
     return _isDemonstrated() || !_canBeDemonstrated() || _isAlreadyPlayed();
 }
 
-void N_DarkLogic::DarkLogic::_clear()
+void N_DarkLogic::Logic::_clear()
 {
     m_theorem = nullptr;
     m_antecedents.clear();
@@ -277,7 +369,7 @@ void N_DarkLogic::DarkLogic::_clear()
     m_rules.clear();
 }
 
-bool N_DarkLogic::DarkLogic::_isDemonstrated()
+bool N_DarkLogic::Logic::_isDemonstrated()
 {
     if(m_theorem->isEvaluated())
     {
@@ -294,7 +386,7 @@ bool N_DarkLogic::DarkLogic::_isDemonstrated()
 
 }
 
-bool N_DarkLogic::DarkLogic::_isAlreadyPlayed()
+bool N_DarkLogic::Logic::_isAlreadyPlayed()
 {
     for (const auto& antecedent : m_antecedents)
     {
@@ -307,27 +399,27 @@ bool N_DarkLogic::DarkLogic::_isAlreadyPlayed()
     return false;
 }
 
-bool N_DarkLogic::DarkLogic::_canBeDemonstrated()
+bool N_DarkLogic::Logic::_canBeDemonstrated()
 {    
     return m_theorem->canBeDemonstrated();    
 }
 
-bool N_DarkLogic::DarkLogic::_evaluate()
+bool N_DarkLogic::Logic::_evaluate()
 {
     return m_theorem->evaluate();
 }
 
-bool N_DarkLogic::DarkLogic::_isEvaluated()
+bool N_DarkLogic::Logic::_isEvaluated()
 {
     return m_theorem->isEvaluated();
 }
 
-bool N_DarkLogic::DarkLogic::_appliedRuleSymetric()
+bool N_DarkLogic::Logic::_appliedRuleSymetric()
 {
     return m_isLastRuleSymetric;
 }
 
-bool N_DarkLogic::DarkLogic::_makeTheorem(const std::string& name, const std::string& cont)
+bool N_DarkLogic::Logic::_makeTheorem(const std::string& name, const std::string& cont)
 {
     try
     {
@@ -346,28 +438,33 @@ bool N_DarkLogic::DarkLogic::_makeTheorem(const std::string& name, const std::st
     return false;
 }
 
-void N_DarkLogic::DarkLogic::_learnRule()
+void N_DarkLogic::Logic::_learnRule()
 {
     
 }
 
-void N_DarkLogic::DarkLogic::_printTheorem()
+void N_DarkLogic::Logic::_printTheorem()
 {
     m_theorem->print();
 }
 
-const std::vector<Action::Id>& N_DarkLogic::DarkLogic::_getActions()
+std::string N_DarkLogic::Logic::_toStrTheorem() const
+{
+    return m_theorem->toString();
+}
+
+const std::vector<Action::Id>& N_DarkLogic::Logic::_getActions()
 {
     return m_rules.getActions(m_theorem);
 }
 
-std::vector<Action> N_DarkLogic::DarkLogic::_getHumanActions()
+std::vector<Action> N_DarkLogic::Logic::_getHumanActions()
 {
     _getActions();
     return m_rules.getHumanActions();
 }
 
-std::vector<Action> N_DarkLogic::DarkLogic::_getDemonstration()
+std::vector<Action> N_DarkLogic::Logic::_getDemonstration()
 {
     std::vector<Action> ret;
     if (_isDemonstrated())
@@ -389,7 +486,7 @@ std::vector<Action> N_DarkLogic::DarkLogic::_getDemonstration()
     return ret;
 }
 
-void N_DarkLogic::DarkLogic::_apply(const Action::Id& actionKey)
+void N_DarkLogic::Logic::_apply(const Action::Id& actionKey)
 {
     auto antecedent = m_theorem;
     m_antecedents.push_back(Antecedent(actionKey, antecedent, m_isLastRuleSymetric ));
@@ -398,7 +495,7 @@ void N_DarkLogic::DarkLogic::_apply(const Action::Id& actionKey)
     m_isLastRuleSymetric = m_isLastRuleSymetric && couple.second;
 }
 
-void N_DarkLogic::DarkLogic::_unapply()
+void N_DarkLogic::Logic::_unapply()
 {    
     auto antecedent = m_antecedents.back().theorem;
     m_isLastRuleSymetric = m_antecedents.back().isSymmetric;
@@ -407,7 +504,7 @@ void N_DarkLogic::DarkLogic::_unapply()
     m_antecedents.pop_back();
 }
 
-bool N_DarkLogic::DarkLogic::_hasAlreadyPlayed()
+bool N_DarkLogic::Logic::_hasAlreadyPlayed()
 {
     return m_antecedents.size();
 }

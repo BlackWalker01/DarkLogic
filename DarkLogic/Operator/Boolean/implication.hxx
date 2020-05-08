@@ -40,14 +40,14 @@ bool ImplFun<SubPropertyType>::operator()() const
 {
     try
     {
-        if (!std::get<0>(m_sonProps)->testEvaluate())
+        if (!std::get<0>(m_sonProps)->evaluate())
         {
             return true;
         }
     }
     catch (VariableException& e)
     {
-        if (std::get<1>(m_sonProps)->testEvaluate())
+        if (std::get<1>(m_sonProps)->evaluate())
         {
             return true;
         }
@@ -57,7 +57,7 @@ bool ImplFun<SubPropertyType>::operator()() const
         }
     }
 
-    return std::get<1>(m_sonProps)->testEvaluate();
+    return std::get<1>(m_sonProps)->evaluate();
 }
 
 template<Proposition SubPropertyType>

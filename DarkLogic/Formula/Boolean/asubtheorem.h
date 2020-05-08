@@ -17,6 +17,7 @@
 #include "iproposition.h"
 #include "Formula/isubtheoremformula.h"
 #include "Utils/action.h"
+#include "Formula/evaluater.h"
 
 namespace N_DarkLogic
 {
@@ -35,10 +36,19 @@ public:
     virtual const std::vector<std::vector<Arity>>& computeImplPaths() = 0; //method to compute all possible paths to terms of this subtheorem
     virtual bool isEvaluated() const;
     virtual bool canBeDemonstrated() const;
-    virtual inline bool testEvaluate() const
+    virtual inline bool testEvaluate(const Evaluater::ConfigEval& /*configEval*/) const
     {
         return evaluate();
     }
+    virtual inline bool getHiddenValue() const
+    {
+        return evaluate();
+    }
+    virtual std::vector<Evaluater::ConfigEval> getCompatibleConfigs(const Evaluater::ConfigEval& commonConfig, 
+        const std::unordered_map<IDVar, IDVar>& internalVars) const;
+    virtual std::vector<std::pair<Evaluater::ConfigEval, bool>> getConfigEvals() const;
+    virtual std::unordered_map<IDVar, IDVar> getVarToEval() const;
+
 
     //apply rule on subtheorem of this theorem following path from indexes
     virtual ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<Arity>& indexes,

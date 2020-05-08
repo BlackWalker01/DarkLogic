@@ -5,6 +5,7 @@
 #include <mutex>
 #include <sstream>
 #include <vector>
+#include <climits>
 #include "Utils/action.h"
 #define MAX_DEPTH 50
 #define VAL_INIT std::numeric_limits<unsigned short>::max()-1

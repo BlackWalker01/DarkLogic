@@ -30,7 +30,6 @@ public:
     bool isEvaluated() const override final;
     bool canBeDemonstrated() const override final;
     bool evaluate() const override final;
-    bool testEvaluate() const override final;
 
 private:
     void _evaluate() const;
@@ -75,12 +74,6 @@ template<typename ValueType1, typename ValueType2>
 bool Theorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::evaluate() const
 {
     return **m_value;
-}
-
-template<typename ValueType1, typename ValueType2>
-bool Theorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::testEvaluate() const
-{
-    return SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::evaluate();
 }
 
 template<typename ValueType1, typename ValueType2>

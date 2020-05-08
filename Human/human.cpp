@@ -1,5 +1,5 @@
 #include "human.h"
-#include "logic.h"
+#include "darklogic.h"
 #include "MainDarkLogic/action.h"
 #include "MainDarkLogic/EnumFun.h"
 #include <sstream>
@@ -90,7 +90,7 @@ std::shared_ptr<const Action> Human::play()
                 std::stringstream ss;
                 ss << args;
                 ss >> id;
-                auto actions = N_DarkLogic::DarkLogic::getActions(0);
+                auto actions = N_DarkLogic::DarkLogic::getActions();
                 for (const auto& actionId : actions)
                 {
                     if (id == actionId)

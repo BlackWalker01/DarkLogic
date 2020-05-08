@@ -1,6 +1,6 @@
 #include "aithread.h"
 #include "ai.h"
-#include "logic.h"
+#include "darklogic.h"
 #include <iostream>
 
 AIThread::AIThread(const size_t& instanceId, AI& ai) : m_instanceId(instanceId), 

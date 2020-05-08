@@ -26,7 +26,17 @@ public:
 
     SubTheorem(const std::vector<ptr<ASubTheorem>>& subProps);
 
-    bool evaluate() const override;
+    //evaluation methods
+    bool isEvaluated() const override final;
+    bool evaluate() const override final;
+    bool canBeDemonstrated() const override final;
+    bool testEvaluate(const Evaluater::ConfigEval& configEval) const override final;
+    bool getHiddenValue() const override final;
+    std::unordered_map<IDVar, IDVar> getVarToEval() const override final;
+    std::vector<std::pair<Evaluater::ConfigEval, bool>> getConfigEvals() const override final;
+    std::vector<Evaluater::ConfigEval> getCompatibleConfigs(const Evaluater::ConfigEval& commonConfig,
+        const std::unordered_map<IDVar, IDVar>& internalVars) const override final;
+
     constexpr PropType type() const override final
     {
         return PropType::HYP_PROP;
@@ -46,6 +56,8 @@ public:
     ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<Arity>& indexes, const Action::Id& actionKey) const override;
 
     ~SubTheorem() override = default;
+private:
+    void initEval();
 protected:
     const std::vector<std::vector<Arity> > &computeAllPaths() override final;
     const std::vector<std::vector<Arity>>& computeImplPaths() override final;
@@ -53,6 +65,7 @@ protected:
 
     const std::unique_ptr<const SubPropertyType> m_son;
     const DbVar m_extVars;
+    const std::unique_ptr<Evaluater> m_eval;
 };
 }
 

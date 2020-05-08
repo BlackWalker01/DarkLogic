@@ -1,14 +1,14 @@
 #include "masteraithread.h"
-#include "logic.h"
+#include "darklogic.h"
 #include "ai.h"
 #include <iostream>
 
 MasterAIThread::MasterAIThread(const size_t& maxInstanceIdx_, AI& ai_): 
     m_ai(ai_), m_maxInstanceIdx(maxInstanceIdx_), m_hasEvents(false), m_thread(runMaster, this), m_lock(m_mutex)
 {
-    if (maxInstanceIdx_ < 2)
+    if (maxInstanceIdx_ < 1)
     {
-        throw std::runtime_error("AI needs at least one instance (maxInstanceIdx must be at least 2)!");
+        throw std::runtime_error("AI needs at least one instance!");
     }	
 }
 
@@ -30,7 +30,7 @@ void MasterAIThread::updateLogic(const size_t& actionid)
 
 bool MasterAIThread::mustStop(const unsigned char threadIdx) const
 {
-    return m_slaveThreads[threadIdx-1]->mustStop();
+    return m_slaveThreads[threadIdx]->mustStop();
 }
 
 void MasterAIThread::start()
@@ -57,7 +57,7 @@ void MasterAIThread::init()
 {
     if (m_slaveThreads.size() == 0)
     {
-        for (size_t k = 1; k < m_maxInstanceIdx; k++)
+        for (size_t k = 0; k < m_maxInstanceIdx; k++)
         {
             m_slaveThreads.push_back(std::make_unique<AIThread>(k, m_ai));
         }
@@ -92,7 +92,7 @@ void MasterAIThread::incrRootNbSimu(const size_t& instanceIdx)
 void MasterAIThread::_start()
 {
     //dispatch actions between slave threads
-    auto actions = N_DarkLogic::DarkLogic::getActions(0);
+    auto actions = N_DarkLogic::DarkLogic::getActions();
     for (size_t k = 0; k < actions.size(); k++)
     {
         m_slaveThreads[k % m_slaveThreads.size()]->pushAction(actions[k]);
@@ -148,9 +148,9 @@ void MasterAIThread::_stopFromThread(const unsigned char threadIdx)
     {
         for (const auto& threadIdx : m_threadAlive)
         {
-            if (!m_slaveThreads[threadIdx.second - 1]->mustStop())
+            if (!m_slaveThreads[threadIdx.second ]->mustStop())
             {
-                m_slaveThreads[threadIdx.second - 1]->stop();
+                m_slaveThreads[threadIdx.second]->stop();
             }
         }
     }
