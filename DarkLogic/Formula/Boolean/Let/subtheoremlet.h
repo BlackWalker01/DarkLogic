@@ -48,7 +48,7 @@ public:
     const ptr<IISubTheoremFormula>& operator[](const size_t& index) const override final;
 
     ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule,
-                                       std::vector<size_t>& indexes, const size_t& actionKey) const override;
+                                       std::vector<Arity>& indexes, const Action::Id& actionKey) const override;
 
     ~SubTheorem() override = default;
 
@@ -158,7 +158,7 @@ operator==(const SubRule<Let<SubRuleType,ASubRule>> &prop) const
 
 template<typename SubTheoremType>
 ptr<IISubTheoremFormula> SubTheorem<Let<SubTheoremType, ASubTheorem > >::
-ruleApply(const IISubRuleFormula &/*rule*/, std::vector<size_t> &indexes, const size_t &/*actionKey*/) const
+ruleApply(const IISubRuleFormula &/*rule*/, std::vector<Arity> &indexes, const Action::Id&/*actionKey*/) const
 {
     Arity index=indexes[0];
     indexes.erase(indexes.begin());

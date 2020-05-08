@@ -16,6 +16,7 @@
 #include "Operator/ioperator.h"
 #include "iproposition.h"
 #include "Formula/isubtheoremformula.h"
+#include "Utils/action.h"
 
 namespace N_DarkLogic
 {
@@ -40,8 +41,8 @@ public:
     }
 
     //apply rule on subtheorem of this theorem following path from indexes
-    virtual ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<size_t>& indexes,
-                                               const size_t& actionKey) const =0;
+    virtual ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<Arity>& indexes,
+                                               const Action::Id& actionKey) const =0;
 
     virtual ~ASubTheorem() = default;
 

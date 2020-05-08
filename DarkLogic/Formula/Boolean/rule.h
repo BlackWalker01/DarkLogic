@@ -30,9 +30,9 @@ template<SubRuleProperty SubPropertyType>
 class Rule: public SubRule<SubPropertyType>
 {
 public:
-    using DbVarPropMap = std::unordered_map<size_t, std::shared_ptr<DbVarProp>>;
+    using DbVarPropMap = std::unordered_map<Action::Id, std::shared_ptr<DbVarProp>>;
     using DbVarPropMapPtr = std::shared_ptr<DbVarPropMap>;
-    using ArityMap = std::unordered_map<size_t, std::vector<Arity>>;
+    using ArityMap = std::unordered_map<Action::Id, std::vector<Arity>>;
     using ArityMapPtr = std::shared_ptr<ArityMap>;
     using LastActionList = std::vector<std::pair<ArityMapPtr, DbVarPropMapPtr>>;
 
@@ -42,13 +42,13 @@ public:
     std::string  name() const override final;
 
     //getAction methods
-    std::vector<size_t> getActions(const ptr<ASubTheorem>& prop, size_t& lastActionIndex) const
+    std::vector<Action::Id> getActions(const ptr<ASubTheorem>& prop, Action::Id& lastActionIndex) const
     override final;
     std::vector<Action> getHumanActions() const override final;
 
     //inference methods
-    std::pair<ptr<ASubTheorem>,bool> apply(const size_t& actionKey, const ptr<ASubTheorem> &theorem) const override final;
-    ptr<IISubTheoremFormula> applyAnnexe(const size_t& actionKey, const ptr<IISubTheoremFormula>& theorem, std::vector<Arity>& indexes) const override final;
+    std::pair<ptr<ASubTheorem>,bool> apply(const Action::Id& actionKey, const ptr<ASubTheorem> &theorem) const override final;
+    ptr<IISubTheoremFormula> applyAnnexe(const Action::Id& actionKey, const ptr<IISubTheoremFormula>& theorem, std::vector<Arity>& indexes) const override final;
 
     //reciprocity methods
     bool isSymetric() const override;
@@ -97,9 +97,9 @@ inline std::string Rule<SubPropertyType>::name() const
 }
 
 template<SubRuleProperty SubPropertyType>
-std::vector<size_t> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem> &prop, size_t &lastActionIndex) const
+std::vector<Action::Id> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem> &prop, Action::Id &lastActionIndex) const
 {
-    std::vector<size_t> ret;
+    std::vector<Action::Id> ret;
 
     //clear identifications associated with last property
     clearIdentifications();
@@ -149,7 +149,7 @@ std::vector<Action> Rule<SubPropertyType>::getHumanActions() const
 }
 
 template<SubRuleProperty SubPropertyType>
-std::pair<ptr<ASubTheorem>,bool> Rule<SubPropertyType>::apply(const size_t &actionKey, const ptr<ASubTheorem> &theorem) const
+std::pair<ptr<ASubTheorem>,bool> Rule<SubPropertyType>::apply(const Action::Id& actionKey, const ptr<ASubTheorem> &theorem) const
 {  
     //apply rule
     std::vector<Arity> indexes=(*m_crtActions)->at(actionKey);
@@ -164,7 +164,7 @@ std::pair<ptr<ASubTheorem>,bool> Rule<SubPropertyType>::apply(const size_t &acti
 }
 
 template<SubRuleProperty SubPropertyType>
-ptr<IISubTheoremFormula> Rule<SubPropertyType>::applyAnnexe(const size_t &actionKey, const ptr<IISubTheoremFormula> &theorem,
+ptr<IISubTheoremFormula> Rule<SubPropertyType>::applyAnnexe(const Action::Id& actionKey, const ptr<IISubTheoremFormula> &theorem,
                                                     std::vector<Arity> &indexes) const
 {
     if(indexes.size()==0)

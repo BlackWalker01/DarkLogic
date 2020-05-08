@@ -24,7 +24,7 @@ std::string N_DarkLogic::ASubRule::name() const
     throw std::runtime_error("SubRule cannot call name method");
 }
 
-ptr<IISubTheoremFormula> ASubRule::applyAnnexe(const size_t &, const ptr<IISubTheoremFormula> &, std::vector<Arity> &) const
+ptr<IISubTheoremFormula> ASubRule::applyAnnexe(const Action::Id &, const ptr<IISubTheoremFormula> &, std::vector<Arity> &) const
 {
     throw std::runtime_error("SubRule cannot call applyAnnexe method");
 }

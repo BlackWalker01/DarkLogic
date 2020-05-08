@@ -22,19 +22,20 @@ namespace N_DarkLogic
 class LOGICSHARED_EXPORT Action
 {
 public:
-    Action(const size_t& _id, const std::string& _ruleName, const std::string& _ruleStr, const std::vector<size_t>& _path);
+    using Id = unsigned short int;
+    Action(const Id& _id, const std::string& _ruleName, const std::string& _ruleStr, const std::vector<Id>& _path);
 
-    size_t id() const;
+    Id id() const;
     std::string ruleName() const;
     std::string ruleStr() const;
-    std::vector<size_t> path() const;
+    std::vector<Id> path() const;
     std::string toString() const;
 
 private:
-    size_t m_id;
+    Id m_id;
     std::string m_ruleName;
     std::string m_ruleStr;
-    std::vector<size_t> m_path;
+    std::vector<Id> m_path;
 };
 }
 #endif // DARK_LOGIC_ACTION_H

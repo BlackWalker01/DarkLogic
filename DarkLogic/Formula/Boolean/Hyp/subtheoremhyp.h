@@ -43,7 +43,7 @@ public:
 
     ptr<ASubTheorem> copyTheorem() const override final;
     const SubPropertyType& getSon() const;
-    ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<size_t>& indexes, const size_t& actionKey) const override;
+    ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<Arity>& indexes, const Action::Id& actionKey) const override;
 
     ~SubTheorem() override = default;
 protected:

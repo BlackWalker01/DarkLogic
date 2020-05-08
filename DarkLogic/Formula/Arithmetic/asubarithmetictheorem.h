@@ -18,8 +18,6 @@
 
 namespace N_DarkLogic
 {
-typedef size_t Arity;
-
 template<ArithmeticType ValueType>
 class ASubArithmeticTheorem: public AArithMeticFormula<ValueType>, public ISubTheoremFormula<ASubArithmeticTheorem<ValueType>>
 {

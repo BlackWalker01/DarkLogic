@@ -160,7 +160,7 @@ namespace  N_DarkLogic
         PLUS,
     };
 
-    using Arity = size_t;
+    using Arity = unsigned short int;
 
     enum class Associativity
     {

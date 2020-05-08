@@ -7,6 +7,7 @@
 #include <vector>
 #include <stack>
 #include <atomic>
+#include "Utils/action.h"
 
 class AI;
 
@@ -47,7 +48,7 @@ private:
 	std::shared_ptr<MasterAIThread> m_master;
 	bool m_hasStarted;
 	std::thread m_thread;
-	std::vector<size_t> m_crtActions;
+	std::vector<N_DarkLogic::Action::Id> m_crtActions;
 	size_t m_rootNbSimu;
 
 	//Handling events

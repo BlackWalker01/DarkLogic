@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include "iisubruleformula.h"
 #include "Utils/utils.h"
+#include "Utils/action.h"
 #include "Boolean/asubtheorem.h"
 
 namespace N_DarkLogic
@@ -41,8 +42,8 @@ public:
     ISubRuleFormula() = default;
 
     //method used by DarkLogic
-    virtual std::pair<ptr<ATheoremType>,bool> apply(const size_t& actionKey, const ptr<ATheoremType>& theorem) const;
-    virtual std::vector<size_t> getActions(const ptr<ATheoremType>& prop, size_t& lastActionIndex) const;
+    virtual std::pair<ptr<ATheoremType>,bool> apply(const Action::Id& actionKey, const ptr<ATheoremType>& theorem) const;
+    virtual std::vector<Action::Id> getActions(const ptr<ATheoremType>& prop, Action::Id& lastActionIndex) const;
     virtual std::vector<Action> getHumanActions() const;
 
     //create equivalent subRuleFormulas
@@ -62,13 +63,13 @@ public:
 
 
 template<SubTheoremType ATheoremType>
-std::pair<ptr<ATheoremType>,bool> ISubRuleFormula<ATheoremType>::apply(const size_t &/*actionKey*/, const ptr<ATheoremType> &/*thName*/) const
+std::pair<ptr<ATheoremType>,bool> ISubRuleFormula<ATheoremType>::apply(const Action::Id &/*actionKey*/, const ptr<ATheoremType> &/*thName*/) const
 {
     throw std::runtime_error("Cannot apply subrule formula");
 }
 
 template<SubTheoremType ATheoremType>
-std::vector<size_t> ISubRuleFormula<ATheoremType>::getActions(const ptr<ATheoremType> &, size_t &) const
+std::vector<Action::Id> ISubRuleFormula<ATheoremType>::getActions(const ptr<ATheoremType> &, Action::Id &) const
 {
     throw std::runtime_error("Cannot get possible actions from a subrule formula");
 }

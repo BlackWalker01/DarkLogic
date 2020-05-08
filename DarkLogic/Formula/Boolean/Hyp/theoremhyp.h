@@ -27,7 +27,7 @@ public:
 
 
     ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule,
-                                       std::vector<size_t>& indexes, const size_t& actionKey) const override final;
+                                       std::vector<Arity>& indexes, const Action::Id& actionKey) const override final;
 
     ~Theorem() override = default;
 

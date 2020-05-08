@@ -46,7 +46,7 @@ public:
     const ptr<IISubTheoremFormula>& operator[](const size_t& index) const override final;
 
     ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule,
-                                       std::vector<size_t>& indexes, const size_t& actionKey) const override;
+                                       std::vector<Arity>& indexes, const Action::Id& actionKey) const override;
 
     ~SubTheorem() override = default;
 
@@ -152,7 +152,7 @@ operator==(const SubRule<Equal<ASubArithmeticRule<ValueType1>,ASubArithmeticRule
 
 template<typename ValueType1, typename ValueType2>
 ptr<IISubTheoremFormula> N_DarkLogic::SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::
-ruleApply(const IISubRuleFormula &/*rule*/, std::vector<size_t> &indexes, const size_t &/*actionKey*/) const
+ruleApply(const IISubRuleFormula &/*rule*/, std::vector<Arity> &indexes, const Action::Id&/*actionKey*/) const
 {
     Arity index=indexes[0];
     indexes.erase(indexes.begin());

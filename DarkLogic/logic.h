@@ -55,12 +55,12 @@ public:
 
     //operator access methods
     static std::string theoremName();
-    static const std::vector<size_t>& getActions(const size_t& instanceIdx);
+    static const std::vector<Action::Id>& getActions(const size_t& instanceIdx);
     static std::vector<Action> getHumanActions();
     static std::vector<Action> getDemonstration();
 
     //demonstration methods
-    static void apply(const size_t& instanceIdx, const size_t& actionKey);
+    static void apply(const size_t& instanceIdx, const Action::Id& actionKey);
     static void unapply(const size_t& instanceIdx);
     static bool hasAlreadyPlayed(const size_t& instanceIdx);
 
@@ -69,11 +69,11 @@ public:
 private:
     struct Antecedent
     {
-        Antecedent(const size_t& nextAction_, const ptr<ASubTheorem>& theorem_, bool isSymmetric_):
+        Antecedent(const Action::Id& nextAction_, const ptr<ASubTheorem>& theorem_, bool isSymmetric_):
             nextAction(nextAction_), theorem(theorem_), isSymmetric(isSymmetric_)
         {}
 
-        size_t nextAction;
+        Action::Id nextAction;
         ptr<ASubTheorem> theorem;
         bool isSymmetric;
     };    
@@ -97,12 +97,12 @@ private:
     void _printTheorem();
 
     //operator access methods
-    const std::vector<size_t>& _getActions();
+    const std::vector<Action::Id>& _getActions();
     std::vector<Action> _getHumanActions();
     std::vector<Action> _getDemonstration();
 
     //demonstration methods
-    void _apply(const size_t& actionKey);
+    void _apply(const Action::Id& actionKey);
     void _unapply();
     bool _hasAlreadyPlayed();
 

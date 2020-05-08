@@ -228,7 +228,7 @@ std::string N_DarkLogic::DarkLogic::theoremName()
     return s_instances[0]->m_theoremName;
 }
 
-const std::vector<size_t>& DarkLogic::getActions(const size_t& instanceIdx)
+const std::vector<Action::Id>& DarkLogic::getActions(const size_t& instanceIdx)
 {
     return s_instances[instanceIdx]->_getActions();
 }
@@ -243,7 +243,7 @@ std::vector<Action> DarkLogic::getHumanActions()
     return s_instances[0]->_getHumanActions();
 }
 
-void DarkLogic::apply(const size_t& instanceIdx, const size_t &actionKey)
+void DarkLogic::apply(const size_t& instanceIdx, const Action::Id& actionKey)
 {
     s_instances[instanceIdx]->_apply(actionKey);
 }
@@ -356,7 +356,7 @@ void N_DarkLogic::DarkLogic::_printTheorem()
     m_theorem->print();
 }
 
-const std::vector<size_t>& N_DarkLogic::DarkLogic::_getActions()
+const std::vector<Action::Id>& N_DarkLogic::DarkLogic::_getActions()
 {
     return m_rules.getActions(m_theorem);
 }
@@ -389,7 +389,7 @@ std::vector<Action> N_DarkLogic::DarkLogic::_getDemonstration()
     return ret;
 }
 
-void N_DarkLogic::DarkLogic::_apply(const size_t& actionKey)
+void N_DarkLogic::DarkLogic::_apply(const Action::Id& actionKey)
 {
     auto antecedent = m_theorem;
     m_antecedents.push_back(Antecedent(actionKey, antecedent, m_isLastRuleSymetric ));

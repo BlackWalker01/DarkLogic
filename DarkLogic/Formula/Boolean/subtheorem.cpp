@@ -1039,7 +1039,7 @@ IDVar SubTheorem<Boolean>::variableId() const
  */
 template<SubTheoremProperty SubPropertyType>
 ptr<IISubTheoremFormula> SubTheorem<SubPropertyType>::ruleApply(const IISubRuleFormula &rule,
-                                                                std::vector<size_t> &indexes, const size_t &actionKey) const
+                                                                std::vector<Arity> &indexes, const Action::Id& actionKey) const
 {
     Arity index=indexes[0];
     indexes.erase(indexes.begin());
@@ -1056,7 +1056,7 @@ ptr<IISubTheoremFormula> SubTheorem<SubPropertyType>::ruleApply(const IISubRuleF
 }
 
 ptr<IISubTheoremFormula> SubTheorem<Hyp<ASubTheorem>>::ruleApply(const IISubRuleFormula &rule,
-                                                                 std::vector<size_t> &indexes, const size_t &actionKey) const
+                                                                 std::vector<Arity> &indexes, const Action::Id& actionKey) const
 {
     Arity index=indexes[0];
     indexes.erase(indexes.begin());
@@ -1077,19 +1077,19 @@ ptr<IISubTheoremFormula> SubTheorem<Hyp<ASubTheorem>>::ruleApply(const IISubRule
 }
 
 ptr<IISubTheoremFormula> SubTheorem<Not<ASubTheorem>>::ruleApply(const IISubRuleFormula &rule,
-                                                                 std::vector<size_t> &indexes, const size_t &actionKey) const
+                                                                 std::vector<Arity> &indexes, const Action::Id& actionKey) const
 {
     indexes.erase(indexes.begin());
     return std::make_shared<const SubTheorem<Not<ASubTheorem>>>(
     std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*m_son)[0],indexes)));
 }
 
-ptr<IISubTheoremFormula> SubTheorem<Boolean>::ruleApply(const IISubRuleFormula &, std::vector<size_t> &, const size_t &) const
+ptr<IISubTheoremFormula> SubTheorem<Boolean>::ruleApply(const IISubRuleFormula &, std::vector<Arity> &, const Action::Id&) const
 {
     throw std::runtime_error("SubTheorem Boolean cannot call ruleApply method");
 }
 
-ptr<IISubTheoremFormula> SubTheorem<ConstBoolean>::ruleApply(const IISubRuleFormula &, std::vector<size_t> &, const size_t &) const
+ptr<IISubTheoremFormula> SubTheorem<ConstBoolean>::ruleApply(const IISubRuleFormula &, std::vector<Arity> &, const Action::Id&) const
 {
     throw std::runtime_error("SubTheorem ConstBoolean cannot call ruleApply method");
 }
@@ -1109,7 +1109,7 @@ const std::vector<std::vector<Arity> >& SubTheorem<Hyp<ASubTheorem>>::computeAll
     if(!m_allPaths.size())
     {
         m_allPaths.push_back({});
-        for(size_t i=0;i<m_son->arity();i++)
+        for(Action::Id i=0;i<m_son->arity();i++)
         {
             std::vector<std::vector<Arity>> sonPath=(*m_son)[i]->getAllPaths();
             if(sonPath.size())
@@ -1176,7 +1176,7 @@ const std::vector<std::vector<Arity> >& SubTheorem<Hyp<ASubTheorem>>::computeImp
     if (!m_implPaths.size())
     {
         m_implPaths.push_back({});
-        auto implIdx = arity() - 1;
+        auto implIdx = static_cast<Action::Id>(arity() - 1);
         std::vector<std::vector<Arity>> sonPath = (*m_son)[implIdx]->getImplPaths();
         if (sonPath.size())
         {
