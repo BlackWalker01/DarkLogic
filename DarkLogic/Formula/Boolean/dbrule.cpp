@@ -100,15 +100,27 @@ const std::vector<Action::Id>& DbRule::getActions(const ptr<ASubTheorem> &prop, 
     return m_actions;
 }
 
-std::vector<Action> DbRule::getHumanActions(const ptr<ASubTheorem>& prop) const
+std::vector<Action> DbRule::getHumanActions(const ptr<ASubTheorem>& prop)
 {
     std::vector<Action> ret;
     Action::Id lastActionIndex = 0;
+    m_actions.clear();
     for(const auto& rule: m_db)
     {
         std::vector<Action> actions=rule->getHumanActions(prop, lastActionIndex);
         ret.insert(ret.end(),actions.begin(),actions.end());
+        for (auto action : actions)
+        {
+            m_actionKeyToRule[action.id()] = rule;
+            m_actions.push_back(action.id());
+        }
     }
+
+    if ((*m_nbGetActionCalls) == m_oldActions.size())
+    {
+        (*m_nbGetActionCalls)++;                
+    }
+
     return ret;
 }
 
@@ -132,6 +144,59 @@ std::shared_ptr<Action> N_DarkLogic::DbRule::getHumanAction(const ptr<ASubTheore
 bool DbRule::isLastRuleSymetric(const Action::Id& actionKey) const
 {
     return m_actionKeyToRule.at(actionKey)->isSymetric();
+}
+
+std::unordered_map<std::string, RuleContent> N_DarkLogic::DbRule::getRuleContents() const
+{
+    std::unordered_map<std::string, RuleContent> ret;
+    for (const auto& rule : m_db)
+    {
+        ret[rule->name()] = RuleContent(rule->name(), rule->toString());
+    }
+	return ret;
+}
+
+std::tuple<ptr<ASubTheorem>, bool, Action::Id> DbRule::apply(const ptr<ASubTheorem>& prop, const std::string& _ruleName,
+    const std::vector<Action::Id>& _path)
+{
+    auto actions = getHumanActions(prop);
+    for (const auto& action : actions)
+    {
+        if ((action.ruleName() == _ruleName) && (action.path() == _path))
+        {
+            auto couple = apply(action.id());
+
+            //store last actions
+            m_oldActions.push_back({ m_actions,m_actionKeyToRule });
+            for (const auto& rule : m_db)
+            {
+                rule->storeActions();
+            }
+
+            //clear last state
+            m_actionKeyToRule.clear();
+            m_actions.clear();
+
+            return { couple.first, couple.second, action.id() };
+        }
+    }
+
+    auto tabToString = [](const std::vector<Action::Id>& tab)
+    {
+        std::string ret = "[";
+        if (tab.size() > 0)
+        {
+            for (size_t k = 0; k < tab.size() - 1; k++)
+            {
+                ret += sizeToString(tab[k]) + ",";
+            }
+            ret += sizeToString(tab[tab.size() - 1]);
+        }
+        ret += "]";
+        return ret;
+    };
+
+    throw std::runtime_error("Action {RuleName: "+_ruleName+", path: "+tabToString(_path)+"}");
 }
 
 void N_DarkLogic::DbRule::clear()

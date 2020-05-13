@@ -15,7 +15,9 @@
 #include "logic_global.h"
 #include <vector>
 #include <string>
+#include <unordered_map>
 #include "Utils/action.h"
+#include "Utils/rulecontent.h"
 
 namespace N_DarkLogic
 {
@@ -31,11 +33,14 @@ namespace N_DarkLogic
 		//demonstration functions
 		static void apply(const Action::Id& actionKey);
 		static void apply(const size_t& instanceIdx, const Action::Id& actionKey);
+		static bool applyStr(const std::string& actionStr);
+		static bool apply(const std::string& _ruleName, const std::vector<Action::Id>& _path = std::vector<Action::Id>());
 		static void unapply();
 		static void unapply(const size_t& instanceIdx);
 		static const std::vector<Action::Id>& getActions();
 		static const std::vector<Action::Id>& getActions(const size_t& instanceIdx);
 		static std::vector<Action> getHumanActions();
+		static std::unordered_map<std::string, RuleContent> getRuleContents();
 
 		//get information on theorem state
 		static bool isOver();

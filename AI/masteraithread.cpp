@@ -50,7 +50,7 @@ void MasterAIThread::stopFromThread(const unsigned char threadIdx)
 
 void MasterAIThread::stopThread(const unsigned char threadIdx)
 {    
-    m_slaveThreads[threadIdx-1]->stop();
+    m_slaveThreads[threadIdx]->stop();
 }
 
 void MasterAIThread::init()
@@ -76,17 +76,17 @@ size_t MasterAIThread::getTotalRootNbSimu() const
 
 void MasterAIThread::setRootNbSimu(const size_t& instanceIdx, const size_t& nbSimu)
 {
-    m_slaveThreads[instanceIdx - 1]->setRootNbSimu(nbSimu);
+    m_slaveThreads[instanceIdx]->setRootNbSimu(nbSimu);
 }
 
 size_t MasterAIThread::getRootNbSimu(const size_t& instanceIdx) const
 {
-    return m_slaveThreads[instanceIdx - 1]->getRootNbSimu();
+    return m_slaveThreads[instanceIdx]->getRootNbSimu();
 }
 
 void MasterAIThread::incrRootNbSimu(const size_t& instanceIdx)
 {
-    m_slaveThreads[instanceIdx - 1]->incrRootNbSimu();
+    m_slaveThreads[instanceIdx]->incrRootNbSimu();
 }
 
 void MasterAIThread::_start()

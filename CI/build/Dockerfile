@@ -10,5 +10,10 @@ RUN cd DarkLogic && \
     make && \
     make install
 
+# run Tests
+RUN cd DarkLogic/Lib && \
+    chmod +x ../CI/build/runTests.sh && \
+    ../CI/build/runTests.sh
+
 # expose port
 EXPOSE 5000

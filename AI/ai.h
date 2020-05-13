@@ -16,10 +16,11 @@ public:
 		DEEP
 	};
 
-	AI(const AIMode type_, const size_t& maxInstanceIdx);
+	AI(const AIMode type_, const size_t& maxInstanceIdx, const size_t& timeoutScds);
 
 	std::shared_ptr<const Action> play() override;
 	AIMode type() const;
+	size_t timeout() const;
 
 	~AI() = default;
 
@@ -39,6 +40,7 @@ private:
 
 	//Attributes
 	const AIMode m_type;
+	const size_t m_secondTimeout;
 	const std::shared_ptr<MasterAIThread> m_masterThread;
 	std::unique_ptr<Node> m_crtNode;
 	

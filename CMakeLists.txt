@@ -20,6 +20,7 @@ add_executable(LogicGame
   AI/aithread.cpp
   AI/event.cpp
   AI/node.cpp
+  Tests/test.cpp
 
   MainDarkLogic/logicgame.h
   MainDarkLogic/player.h
@@ -31,7 +32,8 @@ add_executable(LogicGame
   AI/aithread.h
   AI/event.h
   AI/node.hpp
-)
+  Tests/test.h
+ )
 
 target_link_directories(LogicGame PUBLIC ${LIB_DIR})
 

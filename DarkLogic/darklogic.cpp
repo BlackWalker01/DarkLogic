@@ -1,6 +1,7 @@
 #include "darklogic.h"
 #include "darklogic.h"
 #include "darklogic.h"
+#include "darklogic.h"
 #include "logic.h"
 
 using namespace N_DarkLogic;
@@ -135,6 +136,11 @@ std::vector<Action>N_DarkLogic::DarkLogic::getHumanActions()
 	return Logic::getHumanActions();
 }
 
+std::unordered_map<std::string, RuleContent> N_DarkLogic::DarkLogic::getRuleContents()
+{
+	return Logic::getRuleContents();
+}
+
 void N_DarkLogic::DarkLogic::apply(const Action::Id& actionKey)
 {
 	return Logic::apply(actionKey);
@@ -143,6 +149,16 @@ void N_DarkLogic::DarkLogic::apply(const Action::Id& actionKey)
 void N_DarkLogic::DarkLogic::apply(const size_t& instanceIdx, const Action::Id& actionKey)
 {
 	return Logic::apply(instanceIdx,actionKey);
+}
+
+bool N_DarkLogic::DarkLogic::applyStr(const std::string& actionStr)
+{
+	return Logic::apply(actionStr);
+}
+
+bool N_DarkLogic::DarkLogic::apply(const std::string& _ruleName, const std::vector<Action::Id>& _path)
+{
+	return Logic::apply(_ruleName, _path);
 }
 
 void N_DarkLogic::DarkLogic::unapply()

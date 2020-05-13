@@ -15,7 +15,7 @@ LogicGame::LogicGame():
 
 void LogicGame::start()
 {
-    std::cout << "Welcome in LogicGame (v1.1.0)!" << std::endl;
+    std::cout << "Welcome in LogicGame (v1.2.0)!" << std::endl;
     
     //create player and init logic
     askPlayer();
@@ -184,8 +184,10 @@ void LogicGame::createTheorem()
         if (m_mode == Mode::HumanMode)
         {            
             std::cout << "Choose between :" << std::endl;
-            std::cout << "-> getAction : to print all possible actions" << std::endl;
-            std::cout << "-> pushAction : to make an action" << std::endl;
+            std::cout << "-> getAction() : to print all possible actions" << std::endl;
+            std::cout << "-> pushAction(id) : to make action identified by id" << std::endl;
+            std::cout << "-> pushAction(ruleName, path) : to make action identified by ruleName (name of the rule to apply) and path" 
+                " (list of indexes [id1, id2, ..., idn]) in theorem " << std::endl;
             std::cout << "-> popAction : to cancel the latest action" << std::endl;
         }        
         /*std::cout << "[DEBUG] content: " << std::endl;
@@ -279,7 +281,7 @@ void LogicGame::askPlayer()
             //Init Logic
             auto nbInstance = std::thread::hardware_concurrency(); //opti for the moment
             N_DarkLogic::DarkLogic::init(nbInstance);
-            m_player = std::make_unique<AI>(AI::MCTS,nbInstance);
+            m_player = std::make_unique<AI>(AI::MCTS,nbInstance, AI_TIMEOUT);
             ok = true;
         }
         else if (mode == "aideep" || mode == "AIDEEP" || mode == "AiDeep" || mode == "AIDeep")
@@ -290,7 +292,7 @@ void LogicGame::askPlayer()
             //auto nbInstance = 1 + 1;
             auto nbInstance = (std::thread::hardware_concurrency()); //opti for the moment
             N_DarkLogic::DarkLogic::init(nbInstance);
-            m_player = std::make_unique<AI>(AI::DEEP, nbInstance);
+            m_player = std::make_unique<AI>(AI::DEEP, nbInstance, AI_TIMEOUT);
             ok = true;
         }
         else
@@ -350,6 +352,7 @@ void LogicGame::game()
             case PUSH_ACTION:
             {
                 N_DarkLogic::DarkLogic::getActions();
+                std::cout << m_player->name() << " plays action with id " << action->id() << std::endl;
                 N_DarkLogic::DarkLogic::apply(action->id());
                 N_DarkLogic::DarkLogic::printTheorem();
                 break;

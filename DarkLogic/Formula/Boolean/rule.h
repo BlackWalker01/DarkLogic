@@ -306,10 +306,10 @@ std::vector<ptr<ASubRule>> Rule<SubPropertyType>::getEquivalentRules() const
         {
             if constexpr (std::is_same_v<SubPropertyType, Equivalent<ASubRule>>)
             {
-                ret.push_back(std::make_shared<const Rule>("'"+m_name+"'_Annexe_"+sizeToString(idx),subRuleRight, subRuleLeft)); //symmetric case
+                ret.push_back(std::make_shared<const Rule>(m_name+"_Annexe_"+sizeToString(idx),subRuleRight, subRuleLeft)); //symmetric case
                 idx++;
             }
-            ret.push_back(std::make_shared<const Rule>("'" + m_name + "'_Annexe_" + sizeToString(idx),subRuleLeft, subRuleRight)); //direct case
+            ret.push_back(std::make_shared<const Rule>(m_name + "_Annexe_" + sizeToString(idx),subRuleLeft, subRuleRight)); //direct case
             idx++;
         }
     }

@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include "Utils/utils.h"
 #include "Utils/action.h"
+#include "Utils/rulecontent.h"
 
 namespace N_DarkLogic {
 
@@ -35,13 +36,19 @@ public:
     void insert(const ptr<ruleType>& rule);
 
 
+    //Automatic methods
     std::pair<ptr<ASubTheorem>,bool> apply(const Action::Id& actionKey);
     void unapply();
     const std::vector<Action::Id>& getActions(const ptr<ASubTheorem>& prop);
-    const std::vector<Action::Id>& getActions(const ptr<ASubTheorem> &prop, const size_t& logicIdx);
-    std::vector<Action> getHumanActions(const ptr<ASubTheorem>& prop) const;
-    std::shared_ptr<Action> getHumanAction(const ptr<ASubTheorem>& prop, const Action::Id& actionKey);
+    const std::vector<Action::Id>& getActions(const ptr<ASubTheorem> &prop, const size_t& logicIdx);    
     bool isLastRuleSymetric(const Action::Id& actionKey) const;
+
+    //Human methods
+    std::vector<Action> getHumanActions(const ptr<ASubTheorem>& prop);
+    std::shared_ptr<Action> getHumanAction(const ptr<ASubTheorem>& prop, const Action::Id& actionKey);
+    std::unordered_map<std::string, RuleContent> getRuleContents() const;
+    std::tuple<ptr<ASubTheorem>, bool, Action::Id> apply(const ptr<ASubTheorem>& prop, const std::string& _ruleName, 
+        const std::vector<Action::Id>& _path);
 
     void clear();
 
