@@ -15,6 +15,7 @@
 #define DARK_LOGIC_VARIABLERULEFORMULA_H
 #include "Formula/Arithmetic/subarithmeticrule.h"
 #include "Formula/dbvarprop.h"
+#include "logic.h"
 
 namespace N_DarkLogic
 {
@@ -38,6 +39,8 @@ public:
     bool identifyPriv(const ptr<ATheoremType>& prop, DbVarProp& dbVarProp) const override final;
     ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp) const override final;
     ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const override final;
+    ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const override final;
 
     const VarType& getSon() const;
 
@@ -123,6 +126,22 @@ applyPriv(DbVarProp &dbVarProp) const
 template<SubRuleFormula VarType>
 ptr<typename SubArithmeticRule<VarType>::ATheoremType>
 SubArithmeticRule<VarType>::applyFirstPriv(DbVarProp &dbVarProp) const
+{
+    return std::static_pointer_cast<const ATheoremType>(dbVarProp[m_son->id()]);
+}
+
+template<SubRuleFormula VarType>
+ptr<typename SubArithmeticRule<VarType>::ATheoremType>
+SubArithmeticRule<VarType>::
+applyPriv(DbVarProp& dbVarProp, const size_t&) const
+{
+    return std::static_pointer_cast<const ATheoremType>(dbVarProp[m_son->id()]);
+}
+
+
+template<SubRuleFormula VarType>
+ptr<typename SubArithmeticRule<VarType>::ATheoremType>
+SubArithmeticRule<VarType>::applyFirstPriv(DbVarProp& dbVarProp, const size_t&) const
 {
     return std::static_pointer_cast<const ATheoremType>(dbVarProp[m_son->id()]);
 }

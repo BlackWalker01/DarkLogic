@@ -15,6 +15,7 @@
 #include "theorem.h"
 #include "Formula/Arithmetic/allarithformula.h"
 #include "allproposition.h"
+#include "logic.h"
 
 using namespace N_DarkLogic;
 
@@ -1029,26 +1030,6 @@ bool SubRule<ConstBoolean>::identifyPriv(const ptr<ASubTheorem> &prop, DbVarProp
  * applyPriv methods
  * ---------------------------------------------------------------
  */
-template<>
-ptr<ASubTheorem> SubRule<And<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
-{
-    return std::make_shared<const SubTheorem<And<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
-            (*m_son)[1]->applyPriv(dbVarProp));
-}
-
-template<>
-ptr<ASubTheorem> SubRule<Equivalent<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
-{
-    return std::make_shared<const SubTheorem<Equivalent<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
-                                                           (*m_son)[1]->applyPriv(dbVarProp));
-}
-
-template<>
-ptr<ASubTheorem> SubRule<Implication<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
-{
-    return std::make_shared<const SubTheorem<Implication<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
-            (*m_son)[1]->applyPriv(dbVarProp));
-}
 
 ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
 {
@@ -1074,7 +1055,7 @@ ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
     if(ret.size()>0)
     {
         ret.push_back((*m_son)[m_son->arity()-1]->applyPriv(dbVarProp));
-        return std::make_shared<const SubTheorem<Hyp<ASubTheorem>>>(ret);
+        return Logic::make_theorem_formula<SubTheorem<Hyp<ASubTheorem>>>(ret);
     }
     else
     {
@@ -1082,16 +1063,46 @@ ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
     }
 }
 
-ptr<ASubTheorem> SubRule<Not<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
 {
-    return std::make_shared<SubTheorem<Not<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp));
+    std::vector<ptr<ASubTheorem>> ret;
+    //Handle all variable in Hyp operator before implication
+    for (size_t k = 0; k < m_son->arity() - 1; k++)
+    {
+        if ((*m_son)[k]->isHypProp())
+        {
+            IDVar idHypVar = (*m_son)[k]->variableId();
+            std::vector<ptr<ASubTheorem>> hypAssoc = dbVarProp.getHypAssoc(idHypVar);
+            for (size_t k = 0; k < hypAssoc.size(); k++)
+            {
+                ret.push_back(hypAssoc[k]);
+            }
+        }
+        else
+        {
+            ret.push_back((*m_son)[k]->applyPriv(dbVarProp, logicIdx));
+        }
+    }
+
+    if (ret.size() > 0)
+    {
+        ret.push_back((*m_son)[m_son->arity() - 1]->applyPriv(dbVarProp, logicIdx));
+        return Logic::make_theorem_formula<SubTheorem<Hyp<ASubTheorem>>>(logicIdx, ret);
+    }
+    else
+    {
+        return (*m_son)[m_son->arity() - 1]->applyPriv(dbVarProp, logicIdx);
+    }
 }
 
-template<>
-ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Not<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
 {
-    return std::make_shared<const SubTheorem<Or<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
-            (*m_son)[1]->applyPriv(dbVarProp));
+    return Logic::make_theorem_formula<SubTheorem<Not<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp));
+}
+
+ptr<ASubTheorem> SubRule<Not<ASubRule>>::applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<SubTheorem<Not<ASubTheorem>>>(logicIdx, (*m_son)[0]->applyPriv(dbVarProp, logicIdx));
 }
 
 ptr<ASubTheorem> SubRule<Boolean>::applyPriv(DbVarProp& dbVarProp) const
@@ -1099,9 +1110,19 @@ ptr<ASubTheorem> SubRule<Boolean>::applyPriv(DbVarProp& dbVarProp) const
     return std::static_pointer_cast<const ASubTheorem>(dbVarProp[m_son->id()]);
 }
 
+ptr<ASubTheorem> SubRule<Boolean>::applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return std::static_pointer_cast<const ASubTheorem>(dbVarProp[m_son->id()]);
+}
+
 ptr<ASubTheorem> SubRule<ConstBoolean>::applyPriv(DbVarProp&) const
 {
-    return std::make_shared<const SubTheorem<ConstBoolean>>(*this);
+    return Logic::make_theorem_formula<SubTheorem<ConstBoolean>>(this->evaluate());
+}
+
+ptr<ASubTheorem> SubRule<ConstBoolean>::applyPriv(DbVarProp&, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<SubTheorem<ConstBoolean>>(logicIdx, this->evaluate());
 }
 
 
@@ -1109,26 +1130,7 @@ ptr<ASubTheorem> SubRule<ConstBoolean>::applyPriv(DbVarProp&) const
  * applyFirstPriv methods
  * ---------------------------------------------------------------
  */
-template<>
-ptr<ASubTheorem> SubRule<And<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const
-{
-    return std::make_shared<const Theorem<And<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
-            (*m_son)[1]->applyPriv(dbVarProp));
-}
 
-template<>
-ptr<ASubTheorem> SubRule<Equivalent<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const
-{
-    return std::make_shared<const Theorem<Equivalent<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
-            (*m_son)[1]->applyPriv(dbVarProp));
-}
-
-template<>
-ptr<ASubTheorem> SubRule<Implication<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const
-{
-    return std::make_shared<const Theorem<Implication<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
-            (*m_son)[1]->applyPriv(dbVarProp));
-}
 
 ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const
 {
@@ -1154,7 +1156,7 @@ ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) co
     if(ret.size()>0)
     {
         ret.push_back((*m_son)[m_son->arity()-1]->applyPriv(dbVarProp));
-        return std::make_shared<const Theorem<Hyp<ASubTheorem>>>(ret);
+        return Logic::make_theorem_formula<SubTheorem<Hyp<ASubTheorem>>>(ret);
     }
     else
     {
@@ -1162,16 +1164,48 @@ ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) co
     }
 }
 
-ptr<ASubTheorem> SubRule<Not<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const
+ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
 {
-    return std::make_shared<const Theorem<Not<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp));
+    std::vector<ptr<ASubTheorem>> ret;
+    //Handle all variable in Hyp operator before HYP variable
+    for (size_t k = 0; k < m_son->arity() - 1; k++)
+    {
+        if ((*m_son)[k]->isHypProp())
+        {
+            IDVar idHypVar = (*m_son)[k]->variableId();
+            std::vector<ptr<ASubTheorem>> hypAssoc = dbVarProp.getHypAssoc(idHypVar);
+            for (size_t k = 0; k < hypAssoc.size(); k++)
+            {
+                ret.push_back(hypAssoc[k]);
+            }
+        }
+        else
+        {
+            ret.push_back((*m_son)[k]->applyPriv(dbVarProp, logicIdx));
+        }
+    }
+
+    if (ret.size() > 0)
+    {
+        ret.push_back((*m_son)[m_son->arity() - 1]->applyPriv(dbVarProp, logicIdx));
+        return Logic::make_theorem_formula<Theorem<Hyp<ASubTheorem>> > (logicIdx, ret);
+    }
+    else
+    {
+        return (*m_son)[m_son->arity() - 1]->applyFirstPriv(dbVarProp, logicIdx);
+    }
 }
 
-template<>
-ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const
+
+
+ptr<ASubTheorem> SubRule<Not<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const
 {
-    return std::make_shared<const Theorem<Or<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp),
-            (*m_son)[1]->applyPriv(dbVarProp));
+    return Logic::make_theorem_formula<Theorem<Not<ASubTheorem>>>((*m_son)[0]->applyPriv(dbVarProp));
+}
+
+ptr<ASubTheorem> SubRule<Not<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<Theorem<Not<ASubTheorem>>>(logicIdx, (*m_son)[0]->applyPriv(dbVarProp, logicIdx));
 }
 
 ptr<ASubTheorem> SubRule<Boolean>::applyFirstPriv(DbVarProp& dbVarProp) const
@@ -1179,9 +1213,19 @@ ptr<ASubTheorem> SubRule<Boolean>::applyFirstPriv(DbVarProp& dbVarProp) const
     return std::static_pointer_cast<const ASubTheorem>(dbVarProp[m_son->id()])->copyTheorem();
 }
 
+ptr<ASubTheorem> SubRule<Boolean>::applyFirstPriv(DbVarProp& dbVarProp, const size_t&) const
+{
+    return std::static_pointer_cast<const ASubTheorem>(dbVarProp[m_son->id()])->copyTheorem();
+}
+
 ptr<ASubTheorem> SubRule<ConstBoolean>::applyFirstPriv(DbVarProp&) const
 {
-    return std::make_shared<const Theorem<ConstBoolean>>(*this);
+    return Logic::make_theorem_formula<Theorem<ConstBoolean>>(this->evaluate());
+}
+
+ptr<ASubTheorem> SubRule<ConstBoolean>::applyFirstPriv(DbVarProp&, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<Theorem<ConstBoolean>>(logicIdx, this->evaluate());
 }
 
 /**---------------------------------------------------------------
@@ -1559,7 +1603,7 @@ template<typename ValueType1, typename ValueType2>
 ptr<ASubTheorem> SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::
 applyPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
+    return Logic::make_theorem_formula<SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
     get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
@@ -1567,10 +1611,25 @@ template<typename ValueType1, typename ValueType2>
 ptr<ASubTheorem> SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::
 applyFirstPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const Theorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
+    return Logic::make_theorem_formula<Theorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
     get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
+template<typename ValueType1, typename ValueType2>
+ptr<ASubTheorem> SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::
+applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
+        logicIdx, get<0>(*m_son)->applyPriv(dbVarProp, logicIdx), get<1>(*m_son)->applyPriv(dbVarProp, logicIdx));
+}
+
+template<typename ValueType1, typename ValueType2>
+ptr<ASubTheorem> SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::
+applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<Theorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
+        logicIdx, get<0>(*m_son)->applyPriv(dbVarProp, logicIdx), get<1>(*m_son)->applyPriv(dbVarProp, logicIdx));
+}
 
 /**----------------------------------------------------------------
  *  BelongsTo operator case
@@ -1594,7 +1653,7 @@ template<typename SetType>
 ptr<ASubTheorem> SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>, ASubArithmeticRule<SetType> > >::
 applyPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>>>>
+    return Logic::make_theorem_formula<SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>>>>
             (get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
@@ -1602,12 +1661,28 @@ template<typename SetType>
 ptr<ASubTheorem> SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>> >::
 applyFirstPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const Theorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>>>>
+    return Logic::make_theorem_formula<Theorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>>>>
                                     (get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
+template<typename SetType>
+ptr<ASubTheorem> SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>, ASubArithmeticRule<SetType> > >::
+applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>, ASubArithmeticTheorem<SetType>>>>
+        (logicIdx, get<0>(*m_son)->applyPriv(dbVarProp, logicIdx), get<1>(*m_son)->applyPriv(dbVarProp, logicIdx));
+}
+
+template<typename SetType>
+ptr<ASubTheorem> SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>, ASubArithmeticRule<SetType>> >::
+applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<Theorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>, ASubArithmeticTheorem<SetType>>>>
+        (logicIdx, get<0>(*m_son)->applyPriv(dbVarProp, logicIdx), get<1>(*m_son)->applyPriv(dbVarProp, logicIdx));
+}
+
 /**----------------------------------------------------------------
- *  Let operator case
+ *  Let BelongsTo operator case
  * ----------------------------------------------------------------
  */
 template<>
@@ -1628,18 +1703,39 @@ template<>
 ptr<ASubTheorem> SubRule<Let<ASubArithmeticRule<void>, ASubRule > >::
 applyPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubTheorem<Let<ASubArithmeticTheorem<void>, ASubTheorem> >>(
+    return Logic::make_theorem_formula<SubTheorem<Let<ASubArithmeticTheorem<void>, ASubTheorem> >>(
     get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
 template<>
 ptr<ASubTheorem> SubRule<Let<ASubArithmeticRule<void>, ASubRule > >::
-applyFirstPriv( DbVarProp &dbVarProp) const
+applyFirstPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const Theorem<Let<ASubArithmeticTheorem<void>, ASubTheorem>>>(
+    return Logic::make_theorem_formula<Theorem<Let<ASubArithmeticTheorem<void>, ASubTheorem>>>(
     get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
+template<>
+ptr<ASubTheorem> SubRule<Let<ASubArithmeticRule<void>, ASubRule > >::
+applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<SubTheorem<Let<ASubArithmeticTheorem<void>, ASubTheorem> >>(
+        logicIdx, get<0>(*m_son)->applyPriv(dbVarProp, logicIdx), get<1>(*m_son)->applyPriv(dbVarProp, logicIdx));
+}
+
+template<>
+ptr<ASubTheorem> SubRule<Let<ASubArithmeticRule<void>, ASubRule > >::
+applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<Theorem<Let<ASubArithmeticTheorem<void>, ASubTheorem>>>(
+        logicIdx, get<0>(*m_son)->applyPriv(dbVarProp, logicIdx), get<1>(*m_son)->applyPriv(dbVarProp, logicIdx));
+}
+
+
+/**----------------------------------------------------------------
+ *  Let SetEqual operator case
+ * ----------------------------------------------------------------
+ */
 
 template<>
 bool SubRule<Let<ASubRule, ASubRule > >::
@@ -1659,7 +1755,7 @@ template<>
 ptr<ASubTheorem> SubRule<Let<ASubRule, ASubRule > >::
 applyPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubTheorem<Let<ASubTheorem, ASubTheorem> >>(
+    return Logic::make_theorem_formula<SubTheorem<Let<ASubTheorem, ASubTheorem> >>(
     get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
@@ -1667,6 +1763,22 @@ template<>
 ptr<ASubTheorem> SubRule<Let<ASubRule, ASubRule > >::
 applyFirstPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const Theorem<Let<ASubTheorem, ASubTheorem>>>(
+    return Logic::make_theorem_formula<Theorem<Let<ASubTheorem, ASubTheorem>>>(
     get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
+}
+
+template<>
+ptr<ASubTheorem> SubRule<Let<ASubRule, ASubRule > >::
+applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<SubTheorem<Let<ASubTheorem, ASubTheorem> >>(
+        logicIdx, get<0>(*m_son)->applyPriv(dbVarProp, logicIdx), get<1>(*m_son)->applyPriv(dbVarProp, logicIdx));
+}
+
+template<>
+ptr<ASubTheorem> SubRule<Let<ASubRule, ASubRule > >::
+applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<Theorem<Let<ASubTheorem, ASubTheorem>>>(
+        logicIdx, get<0>(*m_son)->applyPriv(dbVarProp, logicIdx), get<1>(*m_son)->applyPriv(dbVarProp, logicIdx));
 }

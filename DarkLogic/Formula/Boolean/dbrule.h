@@ -35,11 +35,12 @@ public:
     void insert(const ptr<ruleType>& rule);
 
 
-    std::pair<ptr<ASubTheorem>,bool> apply(const Action::Id& actionKey, const ptr<ASubTheorem> &theorem);
-    void unapply(const ptr<ASubTheorem> &prop);
-    const std::vector<Action::Id>& getActions(const ptr<ASubTheorem> &prop);
-    std::vector<Action> getHumanActions() const;
-    std::shared_ptr<Action> getHumanAction(const Action::Id& actionKey);
+    std::pair<ptr<ASubTheorem>,bool> apply(const Action::Id& actionKey);
+    void unapply();
+    const std::vector<Action::Id>& getActions(const ptr<ASubTheorem>& prop);
+    const std::vector<Action::Id>& getActions(const ptr<ASubTheorem> &prop, const size_t& logicIdx);
+    std::vector<Action> getHumanActions(const ptr<ASubTheorem>& prop) const;
+    std::shared_ptr<Action> getHumanAction(const ptr<ASubTheorem>& prop, const Action::Id& actionKey);
     bool isLastRuleSymetric(const Action::Id& actionKey) const;
 
     void clear();

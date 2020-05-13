@@ -24,7 +24,7 @@ DbRule::DbRule(): m_nbGetActionCalls(std::make_unique<size_t>(0))
 {
 }
 
-std::pair<ptr<ASubTheorem>,bool> DbRule::apply(const Action::Id& actionKey, const ptr<ASubTheorem>& theorem)
+std::pair<ptr<ASubTheorem>,bool> DbRule::apply(const Action::Id& actionKey)
 {
     auto rule=m_actionKeyToRule[actionKey];
 
@@ -40,10 +40,10 @@ std::pair<ptr<ASubTheorem>,bool> DbRule::apply(const Action::Id& actionKey, cons
     m_actions.clear();
 
     //apply rule
-    return rule->apply(actionKey,theorem);
+    return rule->apply(actionKey);
 }
 
-void DbRule::unapply(const ptr<ASubTheorem> &prop)
+void DbRule::unapply()
 {
     for(auto& rule: m_db)
     {
@@ -60,10 +60,10 @@ void DbRule::unapply(const ptr<ASubTheorem> &prop)
     }
 }
 
-const std::vector<Action::Id>& DbRule::getActions(const ptr<ASubTheorem> &prop)
+const std::vector<Action::Id>& N_DarkLogic::DbRule::getActions(const ptr<ASubTheorem>& prop)
 {
     if ((*m_nbGetActionCalls) == m_oldActions.size())
-    {       
+    {
         m_actions.clear();
         Action::Id lastActionIndex = 0;
         for (auto& rule : m_db)
@@ -76,26 +76,48 @@ const std::vector<Action::Id>& DbRule::getActions(const ptr<ASubTheorem> &prop)
             m_actions.insert(m_actions.end(), crtActions.begin(), crtActions.end());
         }
         (*m_nbGetActionCalls)++;
+    }
+    return m_actions;
+}
+
+const std::vector<Action::Id>& DbRule::getActions(const ptr<ASubTheorem> &prop, const size_t& logicIdx)
+{
+    if ((*m_nbGetActionCalls) == m_oldActions.size())
+    {       
+        m_actions.clear();
+        Action::Id lastActionIndex = 0;
+        for (auto& rule : m_db)
+        {
+            std::vector<Action::Id> crtActions = rule->getActions(prop, lastActionIndex, logicIdx);
+            for (auto action : crtActions)
+            {
+                m_actionKeyToRule[action] = rule;
+            }
+            m_actions.insert(m_actions.end(), crtActions.begin(), crtActions.end());
+        }
+        (*m_nbGetActionCalls)++;
     }    
     return m_actions;
 }
 
-std::vector<Action> DbRule::getHumanActions() const
+std::vector<Action> DbRule::getHumanActions(const ptr<ASubTheorem>& prop) const
 {
     std::vector<Action> ret;
+    Action::Id lastActionIndex = 0;
     for(const auto& rule: m_db)
     {
-        std::vector<Action> actions=rule->getHumanActions();
+        std::vector<Action> actions=rule->getHumanActions(prop, lastActionIndex);
         ret.insert(ret.end(),actions.begin(),actions.end());
     }
     return ret;
 }
 
-std::shared_ptr<Action> N_DarkLogic::DbRule::getHumanAction(const Action::Id& actionKey)
+std::shared_ptr<Action> N_DarkLogic::DbRule::getHumanAction(const ptr<ASubTheorem>& prop, const Action::Id& actionKey)
 {
+    Action::Id lastActionIndex = 0;
     for (const auto& rule : m_db)
     {
-        std::vector<Action> actions = rule->getHumanActions();
+        std::vector<Action> actions = rule->getHumanActions(prop, lastActionIndex);
         for (auto& action : actions)
         {
             if (action.id() == actionKey)

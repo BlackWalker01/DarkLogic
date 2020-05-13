@@ -250,10 +250,13 @@ bool N_DarkLogic::Logic::appliedRuleSymetric(const size_t& instanceIdx)
 
 bool Logic::makeTheorem(const std::string& name, const std::string& cont)
 {
-    s_masterInstance->_makeTheorem(name, cont);
+    if (!s_masterInstance->_makeTheorem(name, cont))
+    {
+        return false;
+    }
     for (size_t instanceIdx = 0; instanceIdx < s_instances.size(); instanceIdx++)
     {
-        if (!s_instances[instanceIdx]->_makeTheorem(name, cont))
+        if (!s_instances[instanceIdx]->_makeTheorem(name, cont, instanceIdx))
         {
             return false;
         }
@@ -263,7 +266,7 @@ bool Logic::makeTheorem(const std::string& name, const std::string& cont)
 
 bool N_DarkLogic::Logic::learnRule()
 {
-    if (isDemonstrated(0))
+    if (isDemonstrated())
     {
         for (auto& instance : s_instances)
         {
@@ -297,7 +300,7 @@ std::string N_DarkLogic::Logic::toStrTheorem(const size_t& instanceIdx)
 
 std::string N_DarkLogic::Logic::theoremName()
 {
-    return s_instances[0]->m_theoremName;
+    return s_masterInstance->m_theoremName;
 }
 
 const std::vector<Action::Id>& N_DarkLogic::Logic::getActions()
@@ -307,17 +310,17 @@ const std::vector<Action::Id>& N_DarkLogic::Logic::getActions()
 
 const std::vector<Action::Id>& Logic::getActions(const size_t& instanceIdx)
 {
-    return s_instances[instanceIdx]->_getActions();
+    return s_instances[instanceIdx]->_getActions(instanceIdx);
 }
 
 std::vector<Action> N_DarkLogic::Logic::getDemonstration()
 {
-    return s_instances[0]->_getDemonstration();
+    return s_masterInstance->_getDemonstration();
 }
 
 std::vector<Action> Logic::getHumanActions()
 {
-    return s_instances[0]->_getHumanActions();
+    return s_masterInstance->_getHumanActions();
 }
 
 void N_DarkLogic::Logic::apply(const Action::Id& actionKey)
@@ -356,6 +359,7 @@ void Logic::insert(const ptr<Rule<OpeType> > &rule)
     m_rules.insert(rule);
 }
 
+
 bool N_DarkLogic::Logic::_isOver()
 {
     return _isDemonstrated() || !_canBeDemonstrated() || _isAlreadyPlayed();
@@ -367,6 +371,7 @@ void N_DarkLogic::Logic::_clear()
     m_antecedents.clear();
     m_isLastRuleSymetric = true;
     m_rules.clear();
+    m_theoremDb.clear();
 }
 
 bool N_DarkLogic::Logic::_isDemonstrated()
@@ -438,6 +443,25 @@ bool N_DarkLogic::Logic::_makeTheorem(const std::string& name, const std::string
     return false;
 }
 
+bool N_DarkLogic::Logic::_makeTheorem(const std::string& name, const std::string& cont, const size_t& logicIdx)
+{
+    try
+    {
+        m_theoremName = name;
+        m_theorem = createTheorem(name, cont);
+
+        //Compute actions
+        _getActions(logicIdx);
+
+        return true;
+    }
+    catch (std::runtime_error& e)
+    {
+        Log::Error(e.what());
+    }
+    return false;
+}
+
 void N_DarkLogic::Logic::_learnRule()
 {
     
@@ -458,10 +482,14 @@ const std::vector<Action::Id>& N_DarkLogic::Logic::_getActions()
     return m_rules.getActions(m_theorem);
 }
 
+const std::vector<Action::Id>& N_DarkLogic::Logic::_getActions(const size_t& logicIdx)
+{
+    return m_rules.getActions(m_theorem, logicIdx);
+}
+
 std::vector<Action> N_DarkLogic::Logic::_getHumanActions()
 {
-    _getActions();
-    return m_rules.getHumanActions();
+    return m_rules.getHumanActions(m_theorem);
 }
 
 std::vector<Action> N_DarkLogic::Logic::_getDemonstration()
@@ -479,7 +507,7 @@ std::vector<Action> N_DarkLogic::Logic::_getDemonstration()
         for (size_t k = 0; k < antecedents.size(); k++)
         {
             Antecedent antecedent = antecedents[k];
-            ret.push_back(*(m_rules.getHumanAction(antecedent.nextAction)));
+            ret.push_back(*(m_rules.getHumanAction(antecedent.theorem, antecedent.nextAction)));
             _apply(antecedent.nextAction);
         }
     }   
@@ -490,7 +518,7 @@ void N_DarkLogic::Logic::_apply(const Action::Id& actionKey)
 {
     auto antecedent = m_theorem;
     m_antecedents.push_back(Antecedent(actionKey, antecedent, m_isLastRuleSymetric ));
-    auto couple= m_rules.apply(actionKey, m_theorem);
+    auto couple= m_rules.apply(actionKey);
     m_theorem = couple.first;
     m_isLastRuleSymetric = m_isLastRuleSymetric && couple.second;
 }
@@ -499,7 +527,7 @@ void N_DarkLogic::Logic::_unapply()
 {    
     auto antecedent = m_antecedents.back().theorem;
     m_isLastRuleSymetric = m_antecedents.back().isSymmetric;
-    m_rules.unapply(antecedent);
+    m_rules.unapply();
     m_theorem = antecedent;
     m_antecedents.pop_back();
 }

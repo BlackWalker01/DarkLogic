@@ -27,8 +27,10 @@ public:
     Theorem(const SubRule<ConstBoolean>& prop);
 
 
-    ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule,
-                                       std::vector<Arity>& indexes, const Action::Id& actionKey) const override final;
+    ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+        std::vector<Arity>& indexes, const Action::Id& actionKey) const override final;
+    ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+        std::vector<Arity>& indexes, const Action::Id& actionKey, const size_t& logicIdx) const override final;
 
     ~Theorem() override = default;
 };

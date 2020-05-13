@@ -19,6 +19,8 @@
 #include "Operator/Boolean/equivalent.h"
 #include "Operator/Boolean/implication.h"
 #include "Operator/Boolean/or.h"
+#include "logic.h"
+#include "Formula/Boolean/Generic/theoremgeneric.h"
 
 namespace N_DarkLogic
 {
@@ -70,7 +72,9 @@ public:
 protected:
     bool identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp& dbVarProp) const override final;
     ptr<ASubTheorem> applyPriv(DbVarProp& dbVarProp) const override final;
-    ptr<ASubTheorem> applyFirstPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const override final;
+    ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const override final;
 
     const ptr<ASubRule>& operator[](const size_t& index) const override final;
     size_t arity() const override final;
@@ -99,35 +103,35 @@ template<>
 bool SubRule<Or<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp& dbVarProp) const;
 
 
-/**
- * applyPriv methods
- */
-template<>
-ptr<ASubTheorem> SubRule<And<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const;
 
-template<>
-ptr<ASubTheorem> SubRule<Equivalent<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const;
 
-template<>
-ptr<ASubTheorem> SubRule<Implication<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const;
+template<SubRuleProperty SubPropertyType>
+ptr<ASubTheorem> SubRule<SubPropertyType>::applyPriv(DbVarProp& dbVarProp) const
+{
+    return Logic::make_theorem_formula<SubTheorem<ToTheoremOpe<SubPropertyType>>>((*m_son)[0]->applyPriv(dbVarProp),
+        (*m_son)[1]->applyPriv(dbVarProp));
+}
 
-template<>
-ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const;
+template<SubRuleProperty SubPropertyType>
+ptr<ASubTheorem> SubRule<SubPropertyType>::applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<SubTheorem<ToTheoremOpe<SubPropertyType>>>(logicIdx, (*m_son)[0]->applyPriv(dbVarProp, logicIdx),
+        (*m_son)[1]->applyPriv(dbVarProp, logicIdx));
+}
 
-/**
- * applyFirstPriv methods
- */
-template<>
-ptr<ASubTheorem> SubRule<And<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const;
+template<SubRuleProperty SubPropertyType>
+ptr<ASubTheorem> SubRule<SubPropertyType>::applyFirstPriv(DbVarProp& dbVarProp) const
+{
+    return Logic::make_theorem_formula<Theorem<ToTheoremOpe<SubPropertyType>>>((*m_son)[0]->applyPriv(dbVarProp),
+        (*m_son)[1]->applyPriv(dbVarProp));
+}
 
-template<>
-ptr<ASubTheorem> SubRule<Equivalent<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const;
-
-template<>
-ptr<ASubTheorem> SubRule<Implication<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const;
-
-template<>
-ptr<ASubTheorem> SubRule<Or<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) const;
+template<SubRuleProperty SubPropertyType>
+ptr<ASubTheorem> SubRule<SubPropertyType>::applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<Theorem<ToTheoremOpe<SubPropertyType>>>(logicIdx, (*m_son)[0]->applyPriv(dbVarProp, logicIdx),
+        (*m_son)[1]->applyPriv(dbVarProp, logicIdx));
+}
 
 template<SubRuleProperty SubPropertyType>
 const DbVar* SubRule<SubPropertyType>::getExtVars() const

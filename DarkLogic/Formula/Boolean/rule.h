@@ -30,11 +30,9 @@ template<SubRuleProperty SubPropertyType>
 class Rule: public SubRule<SubPropertyType>
 {
 public:
-    using DbVarPropMap = std::unordered_map<Action::Id, std::shared_ptr<DbVarProp>>;
-    using DbVarPropMapPtr = std::shared_ptr<DbVarPropMap>;
-    using ArityMap = std::unordered_map<Action::Id, std::vector<Arity>>;
-    using ArityMapPtr = std::shared_ptr<ArityMap>;
-    using LastActionList = std::vector<std::pair<ArityMapPtr, DbVarPropMapPtr>>;
+    using ActionDb = std::unordered_map<Action::Id, ptr<ASubTheorem>>;
+    using ActionDbPtr = std::shared_ptr<ActionDb>;
+    using LastActionList = std::vector<ActionDbPtr>;
 
 
     Rule(const std::string& name_, const ptr<ASubRule>& leftSubProp, const ptr<ASubRule>& rightSubProp);
@@ -44,11 +42,21 @@ public:
     //getAction methods
     std::vector<Action::Id> getActions(const ptr<ASubTheorem>& prop, Action::Id& lastActionIndex) const
     override final;
-    std::vector<Action> getHumanActions() const override final;
+    std::vector<Action::Id> getActions(const ptr<ASubTheorem>& prop, Action::Id& lastActionIndex, const size_t& logicIdx) const
+    override final;
+    std::vector<Action> getHumanActions(const ptr<ASubTheorem>& prop, Action::Id& lastActionIndex) const override final;
 
     //inference methods
-    std::pair<ptr<ASubTheorem>,bool> apply(const Action::Id& actionKey, const ptr<ASubTheorem> &theorem) const override final;
-    ptr<IISubTheoremFormula> applyAnnexe(const Action::Id& actionKey, const ptr<IISubTheoremFormula>& theorem, std::vector<Arity>& indexes) const override final;
+    std::pair<ptr<ASubTheorem>, bool> apply(const Action::Id& actionKey) const override final;
+    ptr<ASubTheorem> apply(const Action::Id& actionKey, const ptr<ASubTheorem> &theorem, DbVarProp& dbVarProp, 
+        std::vector<Arity>& indexes) const override final;
+    ptr<ASubTheorem> apply(const Action::Id& actionKey, const ptr<ASubTheorem>& theorem, DbVarProp& dbVarProp, 
+        std::vector<Arity>& indexes, const size_t& logicIdx) const
+    override final;
+    ptr<IISubTheoremFormula> applyAnnexe(const Action::Id& actionKey, const ptr<IISubTheoremFormula>& theorem, DbVarProp& dbVarProp, 
+    std::vector<Arity>& indexes) const override final;
+    ptr<IISubTheoremFormula> applyAnnexe(const Action::Id& actionKey, const ptr<IISubTheoremFormula>& theorem, DbVarProp& dbVarProp, std::vector<Arity>& indexes,
+    const size_t& logicIdx) const override final;
 
     //reciprocity methods
     bool isSymetric() const override;
@@ -71,8 +79,7 @@ private:
     DbVarProp m_basicIdentifications;
 
     //extern attributes
-    const std::unique_ptr<DbVarPropMapPtr> m_actionToIdentifications;
-    const std::unique_ptr<ArityMapPtr> m_crtActions;
+    const std::unique_ptr<ActionDbPtr> m_crtActions;
     const std::unique_ptr<LastActionList> m_oldActions;
 };
 
@@ -83,8 +90,7 @@ template<SubRuleProperty SubPropertyType>
 Rule<SubPropertyType>::Rule(const std::string &name_, const ptr<ASubRule> &leftSubProp, const ptr<ASubRule> &rightSubProp):
     SubRule<SubPropertyType> (leftSubProp,rightSubProp), m_name(name_),
     m_basicIdentifications(this->getExtVars()->getVars()),
-    m_actionToIdentifications(std::make_unique<DbVarPropMapPtr>(std::make_shared<DbVarPropMap>())),
-    m_crtActions(std::make_unique<ArityMapPtr>(std::make_shared<ArityMap>())),
+    m_crtActions(std::make_unique<ActionDbPtr>(std::make_shared<ActionDb>())),
     m_oldActions(std::make_unique<LastActionList>())
 {
 
@@ -109,11 +115,11 @@ std::vector<Action::Id> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem>
     {
         for (const auto& path : prop->getAllPaths())
         {
-            auto dbVarProp = std::make_shared<DbVarProp>(m_basicIdentifications);
-            if (identify(prop, path, *dbVarProp))
+            auto dbVarProp = m_basicIdentifications;
+            auto crtPath = path;
+            if (identify(prop, path, dbVarProp))
             {
-                (**m_crtActions)[lastActionIndex] = path;
-                (**m_actionToIdentifications)[lastActionIndex] = dbVarProp;
+                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
                 ret.push_back(lastActionIndex);
                 lastActionIndex++;
             }
@@ -123,11 +129,11 @@ std::vector<Action::Id> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem>
     {
         for (const auto& path : prop->getImplPaths())
         {
-            auto dbVarProp = std::make_shared<DbVarProp>(m_basicIdentifications);
-            if (identify(prop, path, *dbVarProp))
+            auto dbVarProp = m_basicIdentifications;
+            auto crtPath = path;
+            if (identify(prop, path, dbVarProp))
             {
-                (**m_crtActions)[lastActionIndex] = path;
-                (**m_actionToIdentifications)[lastActionIndex] = dbVarProp;
+                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
                 ret.push_back(lastActionIndex);
                 lastActionIndex++;
             }
@@ -138,42 +144,149 @@ std::vector<Action::Id> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem>
 }
 
 template<SubRuleProperty SubPropertyType>
-std::vector<Action> Rule<SubPropertyType>::getHumanActions() const
+inline std::vector<Action::Id> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem>& prop, Action::Id& lastActionIndex, const size_t& logicIdx) const
 {
-    std::vector<Action> ret;
-    for(auto it=(*m_crtActions)->begin();it!=(*m_crtActions)->end();it++)
+    std::vector<Action::Id> ret;
+
+    //clear identifications associated with last property
+    clearIdentifications();
+
+    //get all possible paths from prop
+    if constexpr (std::is_same_v<SubPropertyType, Equivalent<ASubRule>>)
     {
-        ret.push_back(Action(it->first,this->m_name,this->toString(),it->second));
+        for (const auto& path : prop->getAllPaths())
+        {
+            auto dbVarProp = m_basicIdentifications;
+            auto crtPath = path;
+            if (identify(prop, path, dbVarProp))
+            {
+                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
+                ret.push_back(lastActionIndex);
+                lastActionIndex++;
+            }
+        }
     }
+    else
+    {
+        for (const auto& path : prop->getImplPaths())
+        {
+            auto dbVarProp = m_basicIdentifications;
+            auto crtPath = path;
+            if (identify(prop, path, dbVarProp))
+            {
+                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
+                ret.push_back(lastActionIndex);
+                lastActionIndex++;
+            }
+        }
+    }
+
     return ret;
 }
 
 template<SubRuleProperty SubPropertyType>
-std::pair<ptr<ASubTheorem>,bool> Rule<SubPropertyType>::apply(const Action::Id& actionKey, const ptr<ASubTheorem> &theorem) const
-{  
-    //apply rule
-    std::vector<Arity> indexes=(*m_crtActions)->at(actionKey);
-    if(indexes.size()==0)
+std::vector<Action> Rule<SubPropertyType>::getHumanActions(const ptr<ASubTheorem>& prop, Action::Id& lastActionIndex) const
+{
+    std::vector<Action> ret;
+
+    //clear identifications associated with last property
+    clearIdentifications();
+
+    //get all possible paths from prop
+    if constexpr (std::is_same_v<SubPropertyType, Equivalent<ASubRule>>)
     {
-        return { (*(this->m_son))[0]->applyFirstPriv(*((*m_actionToIdentifications)->at(actionKey))), isSymetric()};
+        for (const auto& path : prop->getAllPaths())
+        {
+            auto dbVarProp = m_basicIdentifications;
+            auto crtPath = path;
+            if (identify(prop, path, dbVarProp))
+            {
+                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
+                lastActionIndex++;
+            }
+        }
     }
     else
     {
-        return { std::static_pointer_cast<const ASubTheorem>(applyAnnexe(actionKey,theorem, indexes)), isSymetric()};
+        for (const auto& path : prop->getImplPaths())
+        {
+            auto dbVarProp = m_basicIdentifications;
+            auto crtPath = path;
+            if (identify(prop, path, dbVarProp))
+            {
+                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
+                lastActionIndex++;
+            }
+        }
+    }
+
+    return ret;
+}
+
+template<SubRuleProperty SubPropertyType>
+inline std::pair<ptr<ASubTheorem>, bool> Rule<SubPropertyType>::apply(const Action::Id& actionKey) const
+{
+    return { (**m_crtActions)[actionKey], isSymetric() };
+}
+
+template<SubRuleProperty SubPropertyType>
+ptr<ASubTheorem> Rule<SubPropertyType>::apply(const Action::Id& actionKey, const ptr<ASubTheorem>& theorem, DbVarProp& dbVarProp,
+    std::vector<Arity>& indexes) const
+{  
+    //apply rule
+    if(indexes.size()==0)
+    {
+        return (*(this->m_son))[0]->applyFirstPriv(dbVarProp);
+    }
+    else
+    {
+        return std::static_pointer_cast<const ASubTheorem>(applyAnnexe(actionKey, theorem, dbVarProp, indexes));
     }    
 }
 
 template<SubRuleProperty SubPropertyType>
-ptr<IISubTheoremFormula> Rule<SubPropertyType>::applyAnnexe(const Action::Id& actionKey, const ptr<IISubTheoremFormula> &theorem,
-                                                    std::vector<Arity> &indexes) const
+inline ptr<ASubTheorem> Rule<SubPropertyType>::apply(const Action::Id& actionKey, const ptr<ASubTheorem>& theorem, DbVarProp& dbVarProp,
+    std::vector<Arity>& indexes, const size_t& logicIdx) const
 {
-    if(indexes.size()==0)
+    //apply rule
+    if (indexes.size() == 0)
     {
-        return (*(this->m_son))[0]->applyPriv(*((*m_actionToIdentifications)->at(actionKey)));
+        return (*(this->m_son))[0]->applyFirstPriv(dbVarProp, logicIdx);
     }
     else
     {
-        return std::static_pointer_cast<const ASubTheorem>(theorem)->ruleApply(*this,indexes,actionKey); //?? cast not only to ASubTheorem
+        return std::static_pointer_cast<const ASubTheorem>(applyAnnexe(actionKey, theorem, dbVarProp, indexes, logicIdx));
+    }
+}
+
+template<SubRuleProperty SubPropertyType>
+ptr<IISubTheoremFormula> Rule<SubPropertyType>::applyAnnexe(const Action::Id& actionKey, const ptr<IISubTheoremFormula> &theorem, 
+DbVarProp& dbVarProp, std::vector<Arity> &indexes) const
+{
+    if(indexes.size()==0)
+    {
+        return (*(this->m_son))[0]->applyPriv(dbVarProp);
+    }
+    else
+    {
+        return std::static_pointer_cast<const ASubTheorem>(theorem)->ruleApply(*this, dbVarProp, indexes, actionKey); //?? cast not only to ASubTheorem
+    }
+}
+
+template<SubRuleProperty SubPropertyType>
+inline ptr<IISubTheoremFormula> Rule<SubPropertyType>::applyAnnexe(const Action::Id& actionKey, const ptr<IISubTheoremFormula>& theorem, 
+    DbVarProp& dbVarProp, std::vector<Arity>& indexes, const size_t& logicIdx) const
+{
+    if (indexes.size() == 0)
+    {
+        return (*(this->m_son))[0]->applyPriv(dbVarProp, logicIdx);
+    }
+    else
+    {
+        return std::static_pointer_cast<const ASubTheorem>(theorem)->ruleApply(*this, dbVarProp, indexes, 
+            actionKey, logicIdx); //?? cast not only to ASubTheorem
     }
 }
 
@@ -225,15 +338,14 @@ template<SubRuleProperty SubPropertyType>
 inline void Rule<SubPropertyType>::storeActions() const
 {
     //keep crt actions in memory
-    m_oldActions->push_back({ *m_crtActions,*m_actionToIdentifications });
+    m_oldActions->push_back(*m_crtActions);
 }
 
 template<SubRuleProperty SubPropertyType>
 inline void Rule<SubPropertyType>::unstoreActions() const
 {
     //get latest actions
-    *m_crtActions = m_oldActions->back().first;
-    *m_actionToIdentifications = m_oldActions->back().second;
+    *m_crtActions = m_oldActions->back();
     m_oldActions->pop_back();
 }
 
@@ -241,7 +353,6 @@ template<SubRuleProperty SubPropertyType>
 inline void Rule<SubPropertyType>::clearAllIdentifications() const
 {
     (*m_crtActions)->clear();
-    (*m_actionToIdentifications)->clear();
     m_oldActions->clear();
 }
 
@@ -295,8 +406,7 @@ bool Rule<SubPropertyType>::identify(const ptr<ASubTheorem> &prop, const std::ve
 template<SubRuleProperty SubPropertyType>
 void Rule<SubPropertyType>::clearIdentifications() const
 {
-    (*m_crtActions) = std::make_shared<ArityMap>();
-    (*m_actionToIdentifications) = std::make_shared<DbVarPropMap>();
+    (*m_crtActions) = std::make_shared<ActionDb>();
 }
 
 }
