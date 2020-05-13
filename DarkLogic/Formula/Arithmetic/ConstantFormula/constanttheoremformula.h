@@ -23,6 +23,7 @@ class ConstSubArithmeticTheorem:
 {
 public:
     typedef VarType SubOperatorType;
+    using SubPropertyType = SubOperatorType;
     typedef typename SubOperatorType::ValueType ValueType;
 
     ConstSubArithmeticTheorem(const ValueType& var);

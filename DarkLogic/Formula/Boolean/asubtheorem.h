@@ -51,8 +51,10 @@ public:
 
 
     //apply rule on subtheorem of this theorem following path from indexes
-    virtual ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<Arity>& indexes,
+    virtual ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp, std::vector<Arity>& indexes,
                                                const Action::Id& actionKey) const =0;
+    virtual ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp, std::vector<Arity>& indexes,
+                                                const Action::Id& actionKey, const size_t& logicIdx) const = 0;
 
     virtual ~ASubTheorem() = default;
 

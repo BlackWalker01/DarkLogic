@@ -166,7 +166,7 @@ add_library(DarkLogic SHARED
     Variable/variableexception.h
     Formula/evaluater.h
     darklogic.h
-    )
+     "Formula/Boolean/dbtheorem.cpp")
 
 target_compile_definitions(DarkLogic PRIVATE DARK_LOGIC_LIBRARY)
 add_compile_definitions(_SILENCE_CLANG_CONCEPTS_MESSAGE)

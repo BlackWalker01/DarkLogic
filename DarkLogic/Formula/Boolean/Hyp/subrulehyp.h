@@ -48,8 +48,10 @@ public:
 
 protected:
     bool identifyPriv(const ptr<ASubTheorem>& prop, DbVarProp& dbVarProp) const override final;
-    ptr<ASubTheorem> applyPriv(DbVarProp& dbVarProp) const override final;
-    ptr<ASubTheorem> applyFirstPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const override final;
+    ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const override final;
     const ptr<ASubRule>& operator[](const size_t& index) const override final;    
 
 protected:

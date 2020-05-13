@@ -13,6 +13,7 @@
 
 #include "Formula/Boolean/allproposition.h"
 #include "Formula/Arithmetic/allarithformula.h"
+#include "logic.h"
 
 using namespace N_DarkLogic;
 
@@ -2083,25 +2084,47 @@ IDVar SubTheorem<Boolean>::variableId() const
  * ---------------------------------------------------------------
  */
 template<SubTheoremProperty SubPropertyType>
-ptr<IISubTheoremFormula> SubTheorem<SubPropertyType>::ruleApply(const IISubRuleFormula &rule,
-                                                                std::vector<Arity> &indexes, const Action::Id& actionKey) const
+ptr<IISubTheoremFormula> SubTheorem<SubPropertyType>::ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+    std::vector<Arity>& indexes, const Action::Id& actionKey) const
 {
     Arity index=indexes[0];
     indexes.erase(indexes.begin());
     if(index==0)
     {
-        return std::make_shared<const SubTheorem<SubPropertyType>>(
-        std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*m_son)[0],indexes)), (*m_son)[1]);
+        return Logic::make_theorem_formula<SubTheorem<SubPropertyType>>(
+        std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*m_son)[0],dbVarProp,indexes)), 
+            (*m_son)[1]);
     }
     else
     {
-        return std::make_shared<const SubTheorem<SubPropertyType>>(
-        (*m_son)[0], std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*m_son)[1],indexes)));
+        return Logic::make_theorem_formula<SubTheorem<SubPropertyType>>(
+        (*m_son)[0], std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*m_son)[1],dbVarProp,
+            indexes)));
     }
 }
 
-ptr<IISubTheoremFormula> SubTheorem<Hyp<ASubTheorem>>::ruleApply(const IISubRuleFormula &rule,
-                                                                 std::vector<Arity> &indexes, const Action::Id& actionKey) const
+template<SubTheoremProperty SubPropertyType>
+ptr<IISubTheoremFormula> SubTheorem<SubPropertyType>::ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+    std::vector<Arity>& indexes, const Action::Id& actionKey, const size_t& logicIdx) const
+{
+    Arity index = indexes[0];
+    indexes.erase(indexes.begin());
+    if (index == 0)
+    {
+        return Logic::make_theorem_formula<SubTheorem<SubPropertyType>>(logicIdx,
+            std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey, (*m_son)[0], dbVarProp, indexes, 
+                logicIdx)), (*m_son)[1]);
+    }
+    else
+    {
+        return Logic::make_theorem_formula<SubTheorem<SubPropertyType>>(logicIdx,
+            (*m_son)[0], std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey, (*m_son)[1], dbVarProp,
+                indexes, logicIdx)));
+    }
+}
+
+ptr<IISubTheoremFormula> SubTheorem<Hyp<ASubTheorem>>::ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+    std::vector<Arity>& indexes, const Action::Id& actionKey) const
 {
     Arity index=indexes[0];
     indexes.erase(indexes.begin());
@@ -2111,30 +2134,77 @@ ptr<IISubTheoremFormula> SubTheorem<Hyp<ASubTheorem>>::ruleApply(const IISubRule
         sons.push_back((*m_son)[k]);
     }
 
-    sons.push_back(std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,((*m_son)[index]),indexes)));
+    sons.push_back(std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,((*m_son)[index]),
+        dbVarProp,indexes)));
 
     for(size_t k=index+1;k<m_son->arity();k++)
     {
         sons.push_back((*m_son)[k]);
     }
 
-    return std::make_shared<const SubTheorem<SubPropertyType>>(sons);
+    return Logic::make_theorem_formula<SubTheorem<SubPropertyType>>(sons);
 }
 
-ptr<IISubTheoremFormula> SubTheorem<Not<ASubTheorem>>::ruleApply(const IISubRuleFormula &rule,
-                                                                 std::vector<Arity> &indexes, const Action::Id& actionKey) const
+ptr<IISubTheoremFormula> SubTheorem<Hyp<ASubTheorem>>::ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+    std::vector<Arity>& indexes, const Action::Id& actionKey, const size_t& logicIdx) const
+{
+    Arity index = indexes[0];
+    indexes.erase(indexes.begin());
+    std::vector<ptr<ASubTheorem>> sons;
+    for (size_t k = 0; k < index; k++)
+    {
+        sons.push_back((*m_son)[k]);
+    }
+
+    sons.push_back(std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey, ((*m_son)[index]),
+        dbVarProp, indexes, logicIdx)));
+
+    for (size_t k = index + 1; k < m_son->arity(); k++)
+    {
+        sons.push_back((*m_son)[k]);
+    }
+
+    return Logic::make_theorem_formula<SubTheorem<SubPropertyType>>(logicIdx, sons);
+}
+
+ptr<IISubTheoremFormula> SubTheorem<Not<ASubTheorem>>::ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+    std::vector<Arity>& indexes, const Action::Id& actionKey) const
 {
     indexes.erase(indexes.begin());
-    return std::make_shared<const SubTheorem<Not<ASubTheorem>>>(
-    std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*m_son)[0],indexes)));
+    return Logic::make_theorem_formula<SubTheorem<Not<ASubTheorem>>>(
+    std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*m_son)[0],
+        dbVarProp, indexes)));
 }
 
-ptr<IISubTheoremFormula> SubTheorem<Boolean>::ruleApply(const IISubRuleFormula &, std::vector<Arity> &, const Action::Id&) const
+ptr<IISubTheoremFormula> SubTheorem<Not<ASubTheorem>>::ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+    std::vector<Arity>& indexes, const Action::Id& actionKey, const size_t& logicIdx) const
+{
+    indexes.erase(indexes.begin());
+    return Logic::make_theorem_formula<SubTheorem<Not<ASubTheorem>>>(logicIdx,
+        std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey, (*m_son)[0], 
+            dbVarProp, indexes, logicIdx)));
+}
+
+ptr<IISubTheoremFormula> SubTheorem<Boolean>::ruleApply(const IISubRuleFormula&, DbVarProp&,
+    std::vector<Arity>&, const Action::Id&) const
 {
     throw std::runtime_error("SubTheorem Boolean cannot call ruleApply method");
 }
 
-ptr<IISubTheoremFormula> SubTheorem<ConstBoolean>::ruleApply(const IISubRuleFormula &, std::vector<Arity> &, const Action::Id&) const
+ptr<IISubTheoremFormula> SubTheorem<Boolean>::ruleApply(const IISubRuleFormula&, DbVarProp&,
+    std::vector<Arity>&, const Action::Id&, const size_t&) const
+{
+    throw std::runtime_error("SubTheorem Boolean cannot call ruleApply method");
+}
+
+ptr<IISubTheoremFormula> SubTheorem<ConstBoolean>::ruleApply(const IISubRuleFormula&, DbVarProp&,
+    std::vector<Arity>&, const Action::Id&) const
+{
+    throw std::runtime_error("SubTheorem ConstBoolean cannot call ruleApply method");
+}
+
+ptr<IISubTheoremFormula> SubTheorem<ConstBoolean>::ruleApply(const IISubRuleFormula&, DbVarProp&,
+    std::vector<Arity>&, const Action::Id&, const size_t&) const
 {
     throw std::runtime_error("SubTheorem ConstBoolean cannot call ruleApply method");
 }

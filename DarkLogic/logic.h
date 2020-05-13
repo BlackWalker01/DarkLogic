@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include "Operator/operator.h"
 #include "Formula/Boolean/dbrule.h"
+#include "Formula/Boolean/dbtheorem.h"
 #include "Utils/utils.h"
 #include "Utils/action.h"
 
@@ -78,6 +79,18 @@ public:
     static bool hasAlreadyPlayed();
     static bool hasAlreadyPlayed(const size_t& instanceIdx);
 
+    template<typename Type, typename ...Args>
+    static ptr<Type> make_theorem_formula(Args&& ...args)
+    {
+        return s_masterInstance->_make_theorem_formula<Type>(args...);
+    }
+    template<typename Type, typename ...Args>
+    static ptr<Type> make_theorem_formula(const size_t& logicIdx, Args&& ...args)
+    {
+        return s_instances[logicIdx]->_make_theorem_formula<Type>(args...);
+    }
+
+
     ~Logic() = default;
 
 private:
@@ -107,12 +120,14 @@ private:
     bool _appliedRuleSymetric();
 
     bool _makeTheorem(const std::string& name, const std::string& cont);
+    bool _makeTheorem(const std::string& name, const std::string& cont, const size_t& logicIdx);
     void _learnRule();
     void _printTheorem();
     std::string _toStrTheorem() const;
 
     //operator access methods
     const std::vector<Action::Id>& _getActions();
+    const std::vector<Action::Id>& _getActions(const size_t& logicIdx);
     std::vector<Action> _getHumanActions();
     std::vector<Action> _getDemonstration();
 
@@ -121,12 +136,20 @@ private:
     void _unapply();
     bool _hasAlreadyPlayed();
 
+    template<typename Type, typename ...Args>
+    ptr<Type> _make_theorem_formula(Args&& ...args)
+    {
+        return m_theoremDb.make_theorem_formula<Type>(args...);
+    }
+
+
     //Attributes
     std::string m_theoremName;
     ptr<ASubTheorem> m_theorem;
     std::vector<Antecedent> m_antecedents;
     DbRule m_rules;
     bool m_isLastRuleSymetric;
+    DbTheorem m_theoremDb;
 
     static std::unique_ptr<Logic> s_masterInstance;
     static std::vector<std::unique_ptr<Logic>> s_instances;

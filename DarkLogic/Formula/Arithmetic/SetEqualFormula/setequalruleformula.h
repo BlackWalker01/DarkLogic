@@ -16,6 +16,7 @@
 #include "Formula/Arithmetic/subarithmeticrule.h"
 #include "Operator/Arithmetic/setequal.h"
 #include "Formula/Arithmetic/inontermarithmetic.h"
+#include "logic.h"
 
 namespace N_DarkLogic
 {
@@ -29,6 +30,7 @@ public:
     typedef SubArithmeticRule<VariableType_> SubLeftFormula;
     typedef ASubArithmeticRule<typename VariableType_::ValueType> SubRightFormula;
     typedef SetEqual<SubArithmeticRule<VariableType_>> SubOperatorType;
+    using SubPropertyType = SubOperatorType;
     typedef void ValueType;
     typedef ASubArithmeticTheorem<void> ATheoremType;
     using ARuleType = ASubArithmeticRule<void>;
@@ -44,6 +46,8 @@ public:
     bool identifyPriv(const ptr<ATheoremType>& prop, DbVarProp& dbVarProp) const override final;
     ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp) const override final;
     ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const override final;
+    ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const override final;
 
     bool isEqual(const ASubArithmeticRule<ValueType>& prop) const override final;
     bool isEqual(const ASubArithmeticTheorem<ValueType>& prop) const override final;
@@ -151,7 +155,7 @@ ptr<typename SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>>>::ATheo
 SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::
 applyPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>>>>(
+    return Logic::make_theorem_formula<SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>>>>(
     std::static_pointer_cast<const SubArithmeticTheorem<VariableType>>(get<0>(*m_son)->applyPriv(dbVarProp)),
                                                 get<1>(*m_son)->applyPriv(dbVarProp));
 }
@@ -160,9 +164,28 @@ template<typename VariableType>
 ptr<typename SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::ATheoremType>
 SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::applyFirstPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>>>>(
+    return Logic::make_theorem_formula<SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>>>>(
     std::static_pointer_cast<const SubArithmeticTheorem<VariableType>>(get<0>(*m_son)->applyPriv(dbVarProp)),
                                                                 get<1>(*m_son)->applyPriv(dbVarProp));
+}
+
+template<typename VariableType>
+ptr<typename SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>>>::ATheoremType>
+SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::
+applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>>>>(
+        std::static_pointer_cast<const SubArithmeticTheorem<VariableType>>(get<0>(*m_son)->applyPriv(dbVarProp, logicIdx)),
+        get<1>(*m_son)->applyPriv(dbVarProp, logicIdx));
+}
+
+template<typename VariableType>
+ptr<typename SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::ATheoremType>
+SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>>>>(
+        std::static_pointer_cast<const SubArithmeticTheorem<VariableType>>(get<0>(*m_son)->applyPriv(dbVarProp, logicIdx)),
+        get<1>(*m_son)->applyPriv(dbVarProp, logicIdx));
 }
 
 

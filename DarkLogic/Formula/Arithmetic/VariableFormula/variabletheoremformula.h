@@ -23,6 +23,7 @@ class SubArithmeticTheorem:
 {
 public:
     typedef VarType SubOperatorType;
+    using SubPropertyType = SubOperatorType;
     typedef typename SubOperatorType::ValueType ValueType;
 
     SubArithmeticTheorem(const std::shared_ptr<VarType>& var);

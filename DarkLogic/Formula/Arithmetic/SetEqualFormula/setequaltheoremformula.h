@@ -28,6 +28,7 @@ public:
     typedef SubArithmeticTheorem<VariableType_> SubLeftFormula;
     typedef ASubArithmeticTheorem<typename VariableType_::ValueType> SubRightFormula;
     typedef SetEqual< SubLeftFormula> SubOperatorType;
+    using SubPropertyType = SubOperatorType;
     typedef typename SubOperatorType::ValueType ValueType;
 
     SubArithmeticTheorem(const ptr<SubLeftFormula>& leftFormula,

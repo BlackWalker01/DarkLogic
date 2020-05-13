@@ -16,6 +16,7 @@
 #include "Operator/operator.h"
 #include "Formula/Arithmetic/allarithformula.h"
 #include "Formula/Boolean/allproposition.h"
+#include "logic.h"
 
 using namespace N_DarkLogic;
 
@@ -211,25 +212,47 @@ Theorem<ConstBoolean>::Theorem(const SubRule<ConstBoolean>& prop):
  * ---------------------------------------------------------------
  */
 template<SubTheoremProperty SubPropertyType>
-ptr<IISubTheoremFormula> N_DarkLogic::Theorem<SubPropertyType>::ruleApply(const IISubRuleFormula &rule, std::vector<Arity> &indexes,
-                                                                  const Action::Id& actionKey) const
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<SubPropertyType>::ruleApply(const IISubRuleFormula &rule, DbVarProp& dbVarProp, 
+    std::vector<Arity> &indexes, const Action::Id& actionKey) const
 {
     Arity index=indexes[0];
     indexes.erase(indexes.begin());
     if(index==0)
     {
-        return std::make_shared<const Theorem<SubPropertyType>>(
-            std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*this->m_son)[0],indexes)), (*this->m_son)[1]);
+        return Logic::make_theorem_formula<Theorem<SubPropertyType>>(
+            std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,
+                (*this->m_son)[0], dbVarProp, indexes)), (*this->m_son)[1]);
     }
     else
     {
-        return std::make_shared<const Theorem<SubPropertyType>>(
-        (*this->m_son)[0], std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*this->m_son)[1],indexes)));
+        return Logic::make_theorem_formula<Theorem<SubPropertyType>>(
+        (*this->m_son)[0], std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,
+            (*this->m_son)[1], dbVarProp, indexes)));
     }
 }
 
-ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Hyp<ASubTheorem>>::ruleApply(const IISubRuleFormula &rule, std::vector<Arity> &indexes,
-                                                                   const Action::Id& actionKey) const
+template<SubTheoremProperty SubPropertyType>
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<SubPropertyType>::ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+    std::vector<Arity>& indexes, const Action::Id& actionKey, const size_t& logicIdx) const
+{
+    Arity index = indexes[0];
+    indexes.erase(indexes.begin());
+    if (index == 0)
+    {
+        return Logic::make_theorem_formula<Theorem<SubPropertyType>>(logicIdx,
+            std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,
+                (*this->m_son)[0], dbVarProp, indexes, logicIdx)), (*this->m_son)[1]);
+    }
+    else
+    {
+        return Logic::make_theorem_formula<Theorem<SubPropertyType>>(logicIdx,
+            (*this->m_son)[0], std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,
+                (*this->m_son)[1], dbVarProp, indexes, logicIdx)));
+    }
+}
+
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Hyp<ASubTheorem>>::ruleApply(const IISubRuleFormula &rule, DbVarProp& dbVarProp, 
+    std::vector<Arity> &indexes, const Action::Id& actionKey) const
 {
     Arity index=indexes[0];
     indexes.erase(indexes.begin());
@@ -238,31 +261,75 @@ ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Hyp<ASubTheorem>>::ruleApply(const
     {
         sons.push_back((*m_son)[k]);
     }
-    sons.push_back(std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,((*m_son)[index]),indexes)));
+    sons.push_back(std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,((*m_son)[index]),
+        dbVarProp,indexes)));
 
     for(size_t k=index+1;k<m_son->arity();k++)
     {
         sons.push_back((*m_son)[k]);
     }
 
-    return std::make_shared<const Theorem<SubPropertyType>>(sons);
+    return Logic::make_theorem_formula<Theorem<SubPropertyType>>(sons);
 }
 
-ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Not<ASubTheorem>>::ruleApply(const IISubRuleFormula &rule, std::vector<Arity> &indexes,
-                                                                           const Action::Id& actionKey) const
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Hyp<ASubTheorem>>::ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+    std::vector<Arity>& indexes, const Action::Id& actionKey, const size_t& logicIdx) const
+{
+    Arity index = indexes[0];
+    indexes.erase(indexes.begin());
+    std::vector<ptr<ASubTheorem>> sons;
+    for (size_t k = 0; k < index; k++)
+    {
+        sons.push_back((*m_son)[k]);
+    }
+    sons.push_back(std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey, ((*m_son)[index]),
+        dbVarProp, indexes, logicIdx)));
+
+    for (size_t k = index + 1; k < m_son->arity(); k++)
+    {
+        sons.push_back((*m_son)[k]);
+    }
+
+    return Logic::make_theorem_formula<Theorem<SubPropertyType>>(logicIdx, sons);
+}
+
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Not<ASubTheorem>>::ruleApply(const IISubRuleFormula &rule, DbVarProp& dbVarProp,
+    std::vector<Arity> &indexes, const Action::Id& actionKey) const
 {
     indexes.erase(indexes.begin());
-    return std::make_shared<const Theorem<Not<ASubTheorem>>>(
-    std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*m_son)[0],indexes)));
+    return Logic::make_theorem_formula<Theorem<Not<ASubTheorem>>>(
+    std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey,(*m_son)[0],
+        dbVarProp, indexes)));
 }
 
-ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Boolean>::ruleApply(const IISubRuleFormula &, std::vector<Arity> &, const Action::Id&) const
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Not<ASubTheorem>>::ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+    std::vector<Arity>& indexes, const Action::Id& actionKey, const size_t& logicIdx) const
+{
+    indexes.erase(indexes.begin());
+    return Logic::make_theorem_formula<Theorem<Not<ASubTheorem>>>(logicIdx,
+        std::static_pointer_cast<const ASubTheorem>(static_cast<const ASubRule*>(&rule)->applyAnnexe(actionKey, (*m_son)[0],
+            dbVarProp, indexes, logicIdx)));
+}
+
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Boolean>::ruleApply(const IISubRuleFormula &, DbVarProp&, std::vector<Arity> &, const Action::Id&) const
 {
     throw std::runtime_error("Theorem Boolean connot call ruleApply method");
 }
 
-ptr<IISubTheoremFormula> N_DarkLogic::Theorem<ConstBoolean>::ruleApply(const IISubRuleFormula &, std::vector<Arity> &,
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<Boolean>::ruleApply(const IISubRuleFormula&, DbVarProp&, std::vector<Arity>&, 
+    const Action::Id&, const size_t&) const
+{
+    throw std::runtime_error("Theorem Boolean connot call ruleApply method");
+}
+
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<ConstBoolean>::ruleApply(const IISubRuleFormula &, DbVarProp&, std::vector<Arity> &,
                                                                        const Action::Id&) const
+{
+    throw std::runtime_error("Theorem ConstBoolean connot call ruleApply method");
+}
+
+ptr<IISubTheoremFormula> N_DarkLogic::Theorem<ConstBoolean>::ruleApply(const IISubRuleFormula&, DbVarProp&, std::vector<Arity>&,
+    const Action::Id&, const size_t&) const
 {
     throw std::runtime_error("Theorem ConstBoolean connot call ruleApply method");
 }

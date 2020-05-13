@@ -55,7 +55,10 @@ public:
     }
     IDVar variableId() const override final;
 
-    ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, std::vector<Arity>& indexes, const Action::Id& actionKey) const override;
+    ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+        std::vector<Arity>& indexes, const Action::Id& actionKey) const override;
+    ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+        std::vector<Arity>& indexes, const Action::Id& actionKey, const size_t& logicIdx) const override;
 
     ~SubTheorem() override = default;
 protected:

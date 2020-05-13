@@ -16,6 +16,7 @@
 #include "Formula/Arithmetic/subarithmeticrule.h"
 #include "Operator/Arithmetic/plus.h"
 #include "Formula/Arithmetic/inontermarithmetic.h"
+#include "logic.h"
 
 namespace N_DarkLogic
 {
@@ -29,6 +30,7 @@ public:
     typedef ASubArithmeticRule<ValueType1> SubLeftFormula;
     typedef ASubArithmeticRule<ValueType2> SubRightFormula;
     typedef Plus< SubLeftFormula,SubRightFormula> SubOperatorType;
+    using SubPropertyType = SubOperatorType;
     typedef typename SubOperatorType::ValueType ValueType;
     typedef typename
     ASubArithmeticRule<typename Plus< ASubArithmeticRule<ValueType1>,ASubArithmeticRule<ValueType2>>::ValueType>::ATheoremType ATheoremType;
@@ -44,6 +46,8 @@ public:
     bool identifyPriv(const ptr<ATheoremType>& prop, DbVarProp& dbVarProp) const override final;
     ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp) const override final;
     ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const override final;
+    ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const override final;
 
     bool isEqual(const ASubArithmeticRule<ValueType>& prop) const override final;
     bool isEqual(const ASubArithmeticTheorem<ValueType>& prop) const override final;
@@ -153,7 +157,7 @@ ptr<typename SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmet
 SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::
 applyPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
+    return Logic::make_theorem_formula<SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
     get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
 }
 
@@ -162,8 +166,26 @@ ptr<typename SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmet
 SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::
 applyFirstPriv(DbVarProp &dbVarProp) const
 {
-    return std::make_shared<const SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
+    return Logic::make_theorem_formula<SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
     get<0>(*m_son)->applyPriv(dbVarProp),get<1>(*m_son)->applyPriv(dbVarProp));
+}
+
+template<typename ValueType1, typename ValueType2>
+ptr<typename SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::ATheoremType>
+SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::
+applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
+        get<0>(*m_son)->applyPriv(dbVarProp, logicIdx), get<1>(*m_son)->applyPriv(dbVarProp, logicIdx));
+}
+
+template<typename ValueType1, typename ValueType2>
+ptr<typename SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::ATheoremType>
+SubArithmeticRule<Plus<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::
+applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>>(
+        get<0>(*m_son)->applyPriv(dbVarProp, logicIdx), get<1>(*m_son)->applyPriv(dbVarProp, logicIdx));
 }
 
 template<typename ValueType1, typename ValueType2>

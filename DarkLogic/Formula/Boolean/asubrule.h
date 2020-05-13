@@ -32,7 +32,10 @@ public:
 
     virtual std::string name() const;
     virtual ptr<IISubTheoremFormula> applyAnnexe(const Action::Id& actionKey,
-                                                        const ptr<IISubTheoremFormula> &theorem, std::vector<Arity>& indexes) const;
+                                                const ptr<IISubTheoremFormula> &theorem, DbVarProp& dbVarProp, 
+                                                std::vector<Arity>& indexes) const;
+    virtual ptr<IISubTheoremFormula> applyAnnexe(const Action::Id& actionKey, const ptr<IISubTheoremFormula>& theorem, 
+        DbVarProp& dbVarProp, std::vector<Arity>& indexes, const size_t& logicIdx) const;
     virtual bool isSymetric() const;
     virtual void clearAllIdentifications() const;
     bool testEvaluate() const;

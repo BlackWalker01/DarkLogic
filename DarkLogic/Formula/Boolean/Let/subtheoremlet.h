@@ -47,8 +47,10 @@ public:
     const DbVar* getExtVars() const override final;
     const ptr<IISubTheoremFormula>& operator[](const size_t& index) const override final;
 
-    ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule,
-                                       std::vector<Arity>& indexes, const Action::Id& actionKey) const override;
+    ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+        std::vector<Arity>& indexes, const Action::Id& actionKey) const override;
+    ptr<IISubTheoremFormula> ruleApply(const IISubRuleFormula& rule, DbVarProp& dbVarProp,
+        std::vector<Arity>& indexes, const Action::Id& actionKey, const size_t& logicIdx) const override;
 
     ~SubTheorem() override = default;
 
@@ -158,11 +160,31 @@ operator==(const SubRule<Let<SubRuleType,ASubRule>> &prop) const
 
 template<typename SubTheoremType>
 ptr<IISubTheoremFormula> SubTheorem<Let<SubTheoremType, ASubTheorem > >::
-ruleApply(const IISubRuleFormula &/*rule*/, std::vector<Arity> &indexes, const Action::Id&/*actionKey*/) const
+ruleApply(const IISubRuleFormula &/*rule*/, DbVarProp& /*dbVarProp*/, std::vector<Arity> &indexes, const Action::Id&/*actionKey*/) const
 {
     Arity index=indexes[0];
     indexes.erase(indexes.begin());
     if(index==0)
+    {
+        /*return new SubTheorem<SubPropertyType>(name(),
+        {rule.applyAnnexe(actionKey,(*(*m_son)[0]),indexes), (*m_son)[1]->copy()});*/
+    }
+    else
+    {
+        /*return new SubTheorem<SubPropertyType>(name(),
+        {(*m_son)[0]->copy(),rule.applyAnnexe(actionKey,(*(*m_son)[1]),indexes)});*/
+    }
+    return nullptr;
+}
+
+template<typename SubTheoremType>
+ptr<IISubTheoremFormula> SubTheorem<Let<SubTheoremType, ASubTheorem > >::
+ruleApply(const IISubRuleFormula&/*rule*/, DbVarProp& /*dbVarProp*/, std::vector<Arity>& indexes, const Action::Id&/*actionKey*/, 
+    const size_t& /*logicIdx*/) const
+{
+    Arity index = indexes[0];
+    indexes.erase(indexes.begin());
+    if (index == 0)
     {
         /*return new SubTheorem<SubPropertyType>(name(),
         {rule.applyAnnexe(actionKey,(*(*m_son)[0]),indexes), (*m_son)[1]->copy()});*/

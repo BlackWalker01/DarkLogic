@@ -15,6 +15,7 @@
 #define DARK_LOGIC_CONSTANTRULEFORMULA_H
 #include "Formula/Arithmetic/subarithmeticrule.h"
 #include "Formula/dbvarprop.h"
+#include "logic.h"
 
 namespace N_DarkLogic
 {
@@ -42,6 +43,8 @@ public:
     bool identifyPriv(const ptr<ATheoremType>& prop, DbVarProp& dbVarProp) const override final;
     ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp) const override final;
     ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp) const override final;
+    ptr<ATheoremType> applyFirstPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const override final;
+    ptr<ATheoremType> applyPriv(DbVarProp& dbVarProp, const size_t& logicIdx) const override final;
 
     const VarType& getSon() const;
 
@@ -101,7 +104,7 @@ ptr<typename ConstSubArithmeticRule<VarType>::ATheoremType>
 ConstSubArithmeticRule<VarType>::
 applyPriv(DbVarProp &/*dbVarProp*/) const
 {
-    return std::make_shared<const ConstSubArithmeticTheorem<VarType>>(m_son->evaluate());
+    return Logic::make_theorem_formula<ConstSubArithmeticTheorem<VarType>>(m_son->evaluate());
 }
 
 
@@ -109,7 +112,24 @@ template<ArithConstantType VarType>
 ptr<typename ConstSubArithmeticRule<VarType>::ATheoremType>
 ConstSubArithmeticRule<VarType>::applyFirstPriv(DbVarProp &/*dbVarProp*/) const
 {
-    return std::make_shared<const ConstSubArithmeticTheorem<VarType>>(m_son->evaluate());
+    return Logic::make_theorem_formula<ConstSubArithmeticTheorem<VarType>>(m_son->evaluate());
+}
+
+
+template<ArithConstantType VarType>
+ptr<typename ConstSubArithmeticRule<VarType>::ATheoremType>
+ConstSubArithmeticRule<VarType>::
+applyPriv(DbVarProp&/*dbVarProp*/, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<ConstSubArithmeticTheorem<VarType>>(logicIdx, m_son->evaluate());
+}
+
+
+template<ArithConstantType VarType>
+ptr<typename ConstSubArithmeticRule<VarType>::ATheoremType>
+ConstSubArithmeticRule<VarType>::applyFirstPriv(DbVarProp&/*dbVarProp*/, const size_t& logicIdx) const
+{
+    return Logic::make_theorem_formula<ConstSubArithmeticTheorem<VarType>>(logicIdx, m_son->evaluate());
 }
 
 
