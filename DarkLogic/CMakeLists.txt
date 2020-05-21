@@ -51,6 +51,8 @@ add_library(DarkLogic SHARED
     Formula/evaluater.cpp
     darklogic.cpp
     Formula/Boolean/dbtheorem.cpp
+    Utils/rulecontent.cpp
+
 
     logic_global.h
     logic.h

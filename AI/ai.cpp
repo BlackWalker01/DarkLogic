@@ -7,8 +7,8 @@
 #include <condition_variable>
 #include <iostream>
 
-AI::AI(const AIMode type_,const size_t& maxInstanceIdx) : Player("AI"), m_type(type_),
-m_masterThread(std::make_shared<MasterAIThread>(maxInstanceIdx,*this)), 
+AI::AI(const AIMode type_,const size_t& maxInstanceIdx, const size_t& secondTimeout) : Player("AI"), m_type(type_),
+m_secondTimeout(secondTimeout), m_masterThread(std::make_shared<MasterAIThread>(maxInstanceIdx,*this)), 
 	m_crtNode(std::make_unique<Node>(*this)), m_hasEvents(false), m_lock(m_mutex)
 {
 	m_masterThread->init();
@@ -29,7 +29,7 @@ std::shared_ptr<const Action> AI::play()
 		std::cv_status status = std::cv_status::no_timeout;
 		while (!m_hasEvents && (status!=std::cv_status::timeout))
 		{
-			status = m_condition_var.wait_until(m_lock, start + std::chrono::seconds(60)); //1h			
+			status = m_condition_var.wait_until(m_lock, start + std::chrono::seconds(m_secondTimeout)); 			
 		}
 		if (status == std::cv_status::timeout)
 		{
@@ -118,6 +118,11 @@ std::shared_ptr<MasterAIThread> AI::getMaster() const
 AI::AIMode AI::type() const
 {
 	return m_type;
+}
+
+size_t AI::timeout() const
+{
+	return m_secondTimeout;
 }
 
 size_t AI::getRootNbSimu(const size_t& instanceIdx) const

@@ -70,10 +70,13 @@ public:
     static const std::vector<Action::Id>& getActions(const size_t& instanceIdx);
     static std::vector<Action> getHumanActions();
     static std::vector<Action> getDemonstration();
+    static std::unordered_map<std::string, RuleContent> getRuleContents();
 
     //demonstration methods
     static void apply(const Action::Id& actionKey);
     static void apply(const size_t& instanceIdx, const Action::Id& actionKey);
+    static bool apply(const std::string& actionStr);
+    static bool apply(const std::string& _ruleName, const std::vector<Action::Id>& _path);
     static void unapply();
     static void unapply(const size_t& instanceIdx);
     static bool hasAlreadyPlayed();
@@ -130,9 +133,11 @@ private:
     const std::vector<Action::Id>& _getActions(const size_t& logicIdx);
     std::vector<Action> _getHumanActions();
     std::vector<Action> _getDemonstration();
+    std::unordered_map<std::string, RuleContent> _getRuleContents() const;
 
     //demonstration methods
     void _apply(const Action::Id& actionKey);
+    bool _apply(const std::string& _ruleName, const std::vector<Action::Id>& _path);
     void _unapply();
     bool _hasAlreadyPlayed();
 

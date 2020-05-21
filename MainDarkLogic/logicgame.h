@@ -4,6 +4,7 @@
 #include "EnumFun.h"
 #include <memory>
 #include "player.h"
+#define AI_TIMEOUT 60 //seconds
 
 class LogicGame
 {   

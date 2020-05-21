@@ -1,3 +1,4 @@
+#include "logic.h"
 /*===--- logic.cpp - include for Logic library --------------*- C++ -*-===*
 *
 *   Part of the Logic Project, under the CC0 license.
@@ -172,6 +173,7 @@ bool N_DarkLogic::Logic::isOver(const size_t& instanceIdx)
 
 void N_DarkLogic::Logic::clearAll()
 {
+    s_masterInstance->_clear();
     for (auto& instance : s_instances)
     {
         instance->_clear();
@@ -318,6 +320,11 @@ std::vector<Action> N_DarkLogic::Logic::getDemonstration()
     return s_masterInstance->_getDemonstration();
 }
 
+std::unordered_map<std::string, RuleContent> N_DarkLogic::Logic::getRuleContents()
+{
+    return s_masterInstance->_getRuleContents();
+}
+
 std::vector<Action> Logic::getHumanActions()
 {
     return s_masterInstance->_getHumanActions();
@@ -331,6 +338,125 @@ void N_DarkLogic::Logic::apply(const Action::Id& actionKey)
 void Logic::apply(const size_t& instanceIdx, const Action::Id& actionKey)
 {
     s_instances[instanceIdx]->_apply(actionKey);
+}
+
+bool N_DarkLogic::Logic::apply(const std::string& actionStr)
+{
+    std::vector<std::string> args;
+    size_t k = 0;
+    std::string arg;
+    for (; k < actionStr.size(); k++)
+    {
+        if (actionStr[k] == '[')
+        {
+            while (k < actionStr.size())
+            {
+                arg += actionStr[k];
+                if (actionStr[k] == ']')
+                {
+                    break;
+                }
+                k++;
+            }
+        }
+        else if ((actionStr[k] == ','))
+        {
+            if (arg != "")
+            {
+                args.push_back(arg);
+                arg = "";
+            }
+            else
+            {
+                std::cout << "Error in command: empty argument" << std::endl;
+            }
+
+        }
+        else if (actionStr[k] == ' ')
+        {
+            continue;
+        }
+        else
+        {
+            arg += actionStr[k];
+        }
+    }
+
+    if (arg != "")
+    {
+        args.push_back(arg);
+        arg = "";
+    }
+
+    std::stringstream ss;
+    if (args.size() == 1)
+    {
+        return apply(args[0], {});
+    }
+    else if (args.size() == 2)
+    {
+        std::string ruleName;
+        std::vector<N_DarkLogic::Action::Id> path;
+        ss << args[0];
+        ss >> ruleName;
+        ss.clear();
+        arg = args[1];
+        std::string crtIdStr;
+        N_DarkLogic::Action::Id id = 0;
+        size_t nbBracket = 0;
+        for (size_t k = 0; k < arg.size(); k++)
+        {
+            if (arg[k] == '[')
+            {
+                nbBracket++;
+            }
+            else if (arg[k] == ']')
+            {
+                nbBracket--;
+                if (nbBracket == 0)
+                {
+                    if (crtIdStr != "")
+                    {
+                        ss << crtIdStr;
+                        ss >> id;
+                        ss.clear();
+                        path.push_back(id);
+                        crtIdStr = "";
+                    }
+                }
+            }
+            else if ((arg[k] == ',') && (nbBracket == 1))
+            {
+                if (crtIdStr != "")
+                {
+                    ss << crtIdStr;
+                    ss >> id;
+                    ss.clear();
+                    path.push_back(id);
+                    crtIdStr = "";
+                }
+            }
+            else if (arg[k] == ' ')
+            {
+                continue;
+            }
+            else
+            {
+                crtIdStr += arg[k];
+            }
+        }
+        return apply(ruleName, path);
+    }
+    else
+    {
+        Log::Error("Bad number of arguments for pushAction. pushAction takes one or two arguments");
+        return false;
+    }
+}
+
+bool N_DarkLogic::Logic::apply(const std::string& _ruleName, const std::vector<Action::Id>& _path)
+{
+	return s_masterInstance->_apply(_ruleName, _path);
 }
 
 void N_DarkLogic::Logic::unapply()
@@ -514,6 +640,11 @@ std::vector<Action> N_DarkLogic::Logic::_getDemonstration()
     return ret;
 }
 
+std::unordered_map<std::string, RuleContent> N_DarkLogic::Logic::_getRuleContents() const
+{
+    return m_rules.getRuleContents();
+}
+
 void N_DarkLogic::Logic::_apply(const Action::Id& actionKey)
 {
     auto antecedent = m_theorem;
@@ -521,6 +652,25 @@ void N_DarkLogic::Logic::_apply(const Action::Id& actionKey)
     auto couple= m_rules.apply(actionKey);
     m_theorem = couple.first;
     m_isLastRuleSymetric = m_isLastRuleSymetric && couple.second;
+}
+
+bool N_DarkLogic::Logic::_apply(const std::string& _ruleName, const std::vector<Action::Id>& _path)
+{
+    try
+    {
+        auto antecedent = m_theorem;        
+        auto tuple = m_rules.apply(m_theorem, _ruleName, _path);
+        m_theorem = std::get<0>(tuple);
+        m_isLastRuleSymetric = m_isLastRuleSymetric && std::get<1>(tuple);
+        m_antecedents.push_back(Antecedent(std::get<2>(tuple), antecedent, m_isLastRuleSymetric));
+        return true;
+    }
+    catch (std::runtime_error& e)
+    {
+        Log::Error(e.what());
+        return false;
+    }
+    
 }
 
 void N_DarkLogic::Logic::_unapply()
