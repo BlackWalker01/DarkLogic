@@ -36,6 +36,7 @@ public:
 
     size_t arity() const override final;
     ValueType evaluate() const override final;
+    const State& getState() const override final;
     constexpr ArithType type() const override final;
 
     const SubOperatorType& getSon() const;
@@ -55,6 +56,7 @@ public:
 private:
     const std::unique_ptr<const SubOperatorType> m_son;
     const DbVar m_extVars;
+    const State m_state;
 };
 
 template<typename ValueType1, typename ValueType2>
@@ -62,7 +64,8 @@ SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheor
 SubArithmeticTheorem(const ptr<ASubArithmeticTheorem<ValueType1>>& leftFormula,
                      const ptr<ASubArithmeticTheorem<ValueType2>>& rightFormula):
     m_son(std::make_unique<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2>> >(leftFormula,rightFormula)),
-    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars()),
+    m_state(PLUS, leftFormula->getState(), rightFormula->getState())
 {
     computeAllPaths();
     computeImplPaths();
@@ -85,6 +88,13 @@ typename SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithm
 SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::evaluate() const
 {
     return m_son->evaluate();
+}
+
+template<typename ValueType1, typename ValueType2>
+const State&
+SubArithmeticTheorem<Plus<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::getState() const
+{
+    return m_state;
 }
 
 template<typename ValueType1, typename ValueType2>

@@ -37,6 +37,7 @@ public:
 
     size_t arity() const override final;
     ValueType evaluate() const override final;
+    const State& getState() const override final;
     constexpr ArithType type() const override final;
 
     //internal methods
@@ -60,6 +61,7 @@ public:
 
 protected:
     const std::unique_ptr<const SubOperatorType> m_son;
+    const State m_state;
 };
 
 
@@ -68,7 +70,7 @@ struct ToTheoremStruct<ConstSubArithmeticRule<ValueType>> { using Type = ConstSu
 
 template<ArithConstantType VarType>
 ConstSubArithmeticRule<VarType>::ConstSubArithmeticRule(const ValueType &var):
-    m_son(std::make_unique<SubOperatorType>(var))
+    m_son(std::make_unique<SubOperatorType>(var)), m_state(m_son->valueType(), var)
 {
     
 }
@@ -83,6 +85,12 @@ template<ArithConstantType VarType>
 typename ConstSubArithmeticRule<VarType>::ValueType ConstSubArithmeticRule<VarType>::evaluate() const
 {
     return m_son->evaluate();
+}
+
+template<ArithConstantType VarType>
+inline const State& ConstSubArithmeticRule<VarType>::getState() const
+{
+    return m_state;
 }
 
 template<ArithConstantType VarType>

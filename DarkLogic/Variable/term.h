@@ -47,7 +47,7 @@ public:
 protected:
     const std::string m_name;
     static const std::unordered_map<std::string,ConstantEnum> s_constantHash;
-};
+}; 
 }
 
 #endif // DARK_LOGIC_TERM_H

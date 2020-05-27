@@ -240,6 +240,16 @@ bool N_DarkLogic::Logic::isEvaluated(const size_t& instanceIdx)
     return s_instances[instanceIdx]->_isEvaluated();
 }
 
+const State& N_DarkLogic::Logic::getState()
+{
+    return s_masterInstance->_getState();
+}
+
+const State& N_DarkLogic::Logic::getState(const size_t& instanceIdx)
+{
+    return s_instances[instanceIdx]->_getState();
+}
+
 bool N_DarkLogic::Logic::appliedRuleSymetric()
 {
     return s_masterInstance->_appliedRuleSymetric();
@@ -548,6 +558,11 @@ bool N_DarkLogic::Logic::_isEvaluated()
 bool N_DarkLogic::Logic::_appliedRuleSymetric()
 {
     return m_isLastRuleSymetric;
+}
+
+const State& N_DarkLogic::Logic::_getState() const
+{
+    return m_theorem->getState();
 }
 
 bool N_DarkLogic::Logic::_makeTheorem(const std::string& name, const std::string& cont)

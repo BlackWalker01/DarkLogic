@@ -20,6 +20,7 @@
 #include <vector>
 #include <unordered_map>
 #include <map>
+#include <variant>
 
 namespace  N_DarkLogic
 {
@@ -64,11 +65,23 @@ namespace  N_DarkLogic
     template<typename T>
     concept Type = BoolType<T> || ArithmeticType<T>;
 
+    //Sets handled by DarkLogic
+    class BooleanSet;
+    class NaturalIntegerSet;
 
     /**---------------------------------------------------------------
       * Define Variable for DarkLogic
       ---------------------------------------------------------------
       */
+    enum VALUE_TYPE
+    {
+        VOID_TYPE,
+        BOOL_TYPE,
+        NATURAL_INT_TYPE,
+        BOOLEANSET_TYPE,
+        NATURAL_INTEGERSET_TYPE
+    };
+
     using IDVar = unsigned short int; //identifiant type for variable
     template<SetDerived SetType>
     class Variable;
@@ -78,6 +91,7 @@ namespace  N_DarkLogic
     template<typename T>
     concept ArithVariableType = VariableType<T> && ArithmeticType<typename T::ValueType>;
 
+    using DLVariant = std::variant<bool, UInt, BooleanSet, NaturalIntegerSet>;
 
     /**---------------------------------------------------------------
       * Define Constant for DarkLogic

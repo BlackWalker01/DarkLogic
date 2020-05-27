@@ -610,6 +610,16 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
 }
 
 
+std::vector<State> getStates(const std::vector < ptr<ASubRule>>& subProps)
+{
+    std::vector<State> ret;
+    for (const auto& subProp : subProps)
+    {
+        ret.push_back(subProp->getState());
+    }
+    return ret;
+}
+
 /**---------------------------------------------------------------
  * Constructor methods from subProperties
  * ---------------------------------------------------------------
@@ -619,7 +629,8 @@ template<>
 SubRule<And<ASubRule>>::SubRule(const ptr<ASubRule>& leftSubProp,
                                          const ptr<ASubRule>& rightSubProp):
     m_son(std::make_unique<And<ASubRule>>(leftSubProp,rightSubProp)),
-    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars())
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars()),
+    m_state(AND, leftSubProp->getState(), rightSubProp->getState())
 {
 
 }
@@ -628,13 +639,15 @@ template<>
 SubRule<Equivalent<ASubRule>>::SubRule(const ptr<ASubRule>& leftSubProp,
                                                 const ptr<ASubRule>& rightSubProp):
     m_son(std::make_unique<Equivalent<ASubRule>>(leftSubProp,rightSubProp)),
-    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars())
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars()),
+    m_state(EQUIVALENT, leftSubProp->getState(), rightSubProp->getState())
 {
 
 }
 
 SubRule<Hyp<ASubRule>>::SubRule(const std::vector<ptr<ASubRule>>& subProps):
-    m_son(std::make_unique<Hyp<ASubRule>>(subProps)), m_extVars(getDbVarFromRules(subProps))
+    m_son(std::make_unique<Hyp<ASubRule>>(subProps)), m_extVars(getDbVarFromRules(subProps)),
+    m_state(HYP, getStates(subProps))
 {
 
 }
@@ -643,14 +656,16 @@ template<>
 SubRule<Implication<ASubRule>>::SubRule(const ptr<ASubRule>& leftSubProp,
                                                  const ptr<ASubRule>& rightSubProp):
     m_son(std::make_unique<Implication<ASubRule>>(leftSubProp,rightSubProp)),
-    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars())
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars()),
+    m_state(IMPLICATION, leftSubProp->getState(), rightSubProp->getState())
 {
 
 }
 
 SubRule<Not<ASubRule>>::SubRule(const ptr<ASubRule>& subProp):
     m_son(std::make_unique<Not<ASubRule>>(subProp)),
-    m_extVars(subProp->getExtVars())
+    m_extVars(subProp->getExtVars()),
+    m_state(NOT, subProp->getState())
 {
 
 }
@@ -658,19 +673,22 @@ SubRule<Not<ASubRule>>::SubRule(const ptr<ASubRule>& subProp):
 template<>
 SubRule<Or<ASubRule>>::SubRule(const ptr<ASubRule> &leftSubProp, const ptr<ASubRule> &rightSubProp):
     m_son(std::make_unique<Or<ASubRule>>(leftSubProp,rightSubProp)),
-    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars())
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars()),
+    m_state(OR, leftSubProp->getState(), rightSubProp->getState())
 {
 
 }
 
 SubRule<Boolean>::SubRule(const std::shared_ptr<Boolean>& son):
-    m_son(son), m_extVars(son)
+    m_son(son), m_extVars(son),
+    m_state(son->id(), BOOL_TYPE)
 {
 
 }
 
 SubRule<ConstBoolean>::SubRule(const bool& val):
-    m_son(std::make_unique<ConstBoolean>(val))
+    m_son(std::make_unique<ConstBoolean>(val)),
+    m_state(BOOL_TYPE, val)
 {
 
 }
@@ -705,6 +723,37 @@ bool SubRule<Boolean>::evaluate() const
 bool SubRule<ConstBoolean>::evaluate() const
 {
     return m_son->evaluate();
+}
+
+/**---------------------------------------------------------------
+ * getState methods
+ * ---------------------------------------------------------------
+ */
+
+template<SubRuleProperty SubPropertyType>
+const State& SubRule<SubPropertyType>::getState() const
+{
+    return m_state;
+}
+
+const State& SubRule<Hyp<ASubRule>>::getState() const
+{
+    return m_state;
+}
+
+const State& SubRule<Not<ASubRule>>::getState() const
+{
+    return m_state;
+}
+
+const State& SubRule<Boolean>::getState() const
+{
+    return m_state;
+}
+
+const State& SubRule<ConstBoolean>::getState() const
+{
+    return m_state;
 }
 
 

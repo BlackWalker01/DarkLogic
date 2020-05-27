@@ -18,6 +18,7 @@
 #include <unordered_map>
 #include "Utils/action.h"
 #include "Utils/rulecontent.h"
+#include "Utils/state.h"
 
 namespace N_DarkLogic
 {
@@ -59,6 +60,8 @@ namespace N_DarkLogic
 		static bool isEvaluated(const size_t& instanceIdx);
 		static bool appliedRuleSymetric();
 		static bool appliedRuleSymetric(const size_t& instanceIdx);
+		static const State& getState();
+		static const State& getState(const size_t& instanceIdx);
 
 		//get information on theorem content
 		static std::string theoremName();

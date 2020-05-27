@@ -28,6 +28,7 @@ public:
     SubTheorem(const SubRule<ConstBoolean>& prop);
 
     bool isEvaluated() const override final;
+    const State& getState() const override final;
     bool evaluate() const override final;
     constexpr PropType type() const override final
     {
@@ -58,6 +59,7 @@ protected:
 protected:
     size_t arity() const override final;
     const std::unique_ptr<const SubPropertyType> m_son;
+    const State m_state;
 };
 }
 #endif // DARK_LOGIC_SUBTHEOREMCONSTBOOLEAN_H

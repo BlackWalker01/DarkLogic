@@ -181,7 +181,7 @@ void LogicGame::createTheorem()
         }
         thStr=thStr2;
         ok=N_DarkLogic::DarkLogic::makeTheorem(thName,thStr);
-        if (m_mode == Mode::HumanMode)
+        if (ok && m_mode == Mode::HumanMode)
         {            
             std::cout << "Choose between :" << std::endl;
             std::cout << "-> getAction() : to print all possible actions" << std::endl;

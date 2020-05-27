@@ -27,6 +27,7 @@ public:
     SubRule(const bool& son);
 
     bool evaluate() const override final;
+    const State& getState() const override final;
     constexpr PropType type() const override final
     {
         return PropType::CONST_PROP;
@@ -54,6 +55,7 @@ protected:
 
 protected:
     const std::unique_ptr<const SubPropertyType> m_son;
+    const State m_state;
 };
 }
 

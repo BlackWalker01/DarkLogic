@@ -27,6 +27,7 @@ public:
     SubRule(const std::shared_ptr<Boolean>& val);
 
     bool evaluate() const override final;
+    const State& getState() const override final;
     constexpr PropType type() const override final
     {
         return PropType::VAR_PROP;
@@ -60,6 +61,7 @@ protected:
 protected:
     const std::shared_ptr<SubPropertyType> m_son;
     const DbVar m_extVars;
+    const State m_state;
 };
 }
 

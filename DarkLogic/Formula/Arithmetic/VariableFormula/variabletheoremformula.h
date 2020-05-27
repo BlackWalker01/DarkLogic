@@ -30,6 +30,7 @@ public:
 
     size_t arity() const override final;
     ValueType evaluate() const override final;
+    const State& getState() const override final;
     constexpr ArithType type() const override final;
 
     const SubOperatorType& getSon() const;
@@ -49,16 +50,23 @@ public:
 
     const std::shared_ptr<SubOperatorType> m_son;
     const DbVar m_extVars;
+    const State m_state;
 };
 
 template<ArithmeticType ValueType> struct ToRuleStruct<SubArithmeticTheorem<ValueType>> { using Type = SubArithmeticRule<ValueType>; };
 
 template<SubTheoremFormula VarType>
 SubArithmeticTheorem<VarType>::SubArithmeticTheorem(const std::shared_ptr<VarType> &var):
-    m_son(var), m_extVars(var)
+    m_son(var), m_extVars(var), m_state(m_son->id(), m_son->valueType())
 {
     computeAllPaths();
     computeImplPaths();
+}
+
+template<SubTheoremFormula VarType>
+inline const State& SubArithmeticTheorem<VarType>::getState() const
+{
+    return m_state;
 }
 
 template<SubTheoremFormula VarType>

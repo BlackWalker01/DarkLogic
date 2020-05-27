@@ -29,6 +29,7 @@ public:
     //evaluation methods
     bool isEvaluated() const override final;
     bool evaluate() const override final;
+    const State& getState() const override final;
     bool canBeDemonstrated() const override final;
     bool testEvaluate(const Evaluater::ConfigEval& configEval) const override final;
     bool getHiddenValue() const override final;
@@ -69,6 +70,7 @@ protected:
     const std::unique_ptr<const SubPropertyType> m_son;
     const DbVar m_extVars;
     const std::unique_ptr<Evaluater> m_eval;
+    const State m_state;
 };
 }
 
