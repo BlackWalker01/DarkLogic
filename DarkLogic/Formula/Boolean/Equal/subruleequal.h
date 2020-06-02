@@ -29,6 +29,7 @@ public:
             const ptr<ASubArithmeticRule<ValueType1>>& rightFormula);
 
     bool evaluate() const override final;
+    const State& getState() const override final;
     constexpr PropType type() const override final;
 
     bool isEqual(const ASubRule& prop) const override final;
@@ -56,6 +57,7 @@ protected:
 protected:
     const std::unique_ptr<const SubPropertyType> m_son;
     const DbVar m_extVars;
+    const State m_state;
 };
 
 template<typename ValueType1, typename ValueType2>
@@ -63,7 +65,8 @@ SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >
 SubRule(const ptr<ASubArithmeticRule<ValueType1>> &leftFormula,
         const ptr<ASubArithmeticRule<ValueType1>> &rightFormula):
     m_son(std::make_unique<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> >>(leftFormula,rightFormula)),
-    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars()),
+    m_state(EQUAL, leftFormula->getState(), rightFormula->getState())
 {
 
 }
@@ -72,6 +75,12 @@ template<typename ValueType1, typename ValueType2>
 bool SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::evaluate() const
 {
     return m_son->evaluate();
+}
+
+template<typename ValueType1, typename ValueType2>
+const State& SubRule<Equal<ASubArithmeticRule<ValueType1>, ASubArithmeticRule<ValueType2> > >::getState() const
+{
+    return m_state;
 }
 
 template<typename ValueType1, typename ValueType2>

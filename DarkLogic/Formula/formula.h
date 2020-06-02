@@ -20,6 +20,7 @@
 #include "Variable/dbvar.h"
 #include "valuetypeobject.h"
 #include "Utils/utils.h"
+#include "Utils/state.h"
 
 namespace N_DarkLogic
 {
@@ -42,6 +43,7 @@ public:
     void print() const;
 
     virtual ValueType evaluate() const =0;
+    virtual const State& getState() const = 0;
     VALUE_TYPE valueType() const override final;
 
     virtual const DbVar* getExtVars() const = 0;

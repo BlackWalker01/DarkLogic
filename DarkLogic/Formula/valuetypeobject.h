@@ -13,19 +13,10 @@
 
 #ifndef DARK_LOGIC_VALUETYPEOBJECT_H
 #define DARK_LOGIC_VALUETYPEOBJECT_H
-#include <memory>
+#include "Utils/utils.h"
 #include <sstream>
 
 namespace N_DarkLogic {
-
-enum VALUE_TYPE
-{
-    VOID_TYPE,
-    BOOL_TYPE,
-    NATURAL_INT_TYPE,
-    BOOLEANSET_TYPE,
-    NATURAL_INTEGERSET_TYPE
-};
 
 class ValueTypeObject
 {

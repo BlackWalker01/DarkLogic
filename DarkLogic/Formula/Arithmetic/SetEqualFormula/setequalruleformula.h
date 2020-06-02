@@ -40,6 +40,7 @@ public:
 
     size_t arity() const override final;
     ValueType evaluate() const override final;
+    const State& getState() const override final;
     constexpr ArithType type() const override final;
 
     //internal methods
@@ -66,6 +67,7 @@ public:
 protected:
     const std::unique_ptr<const SubOperatorType> m_son;
     const DbVar m_extVars;
+    const State m_state;
 };
 
 template<typename VariableType>
@@ -73,7 +75,8 @@ SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::
 SubArithmeticRule(const ptr<SubArithmeticRule<VariableType>> &leftFormula,
                   const ptr<ASubArithmeticRule<typename VariableType::ValueType>> &rightFormula):
     m_son(std::make_unique<SetEqual<SubArithmeticRule<VariableType>>>(leftFormula,rightFormula)),
-    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars()),
+    m_state(SETEQUAL, leftFormula->getState(), rightFormula->getState())
 {
 
 }
@@ -218,6 +221,13 @@ typename SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::ValueTyp
 SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::evaluate() const
 {
     return m_son->evaluate();
+}
+
+template<typename VariableType>
+const State&
+SubArithmeticRule<SetEqual<SubArithmeticRule<VariableType>> >::getState() const
+{
+    return m_state;
 }
 
 template<typename VariableType>

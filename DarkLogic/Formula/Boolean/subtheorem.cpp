@@ -608,6 +608,16 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
     return nullptr;
 }
 
+std::vector<State> getStates(const std::vector < ptr<ASubTheorem>>& subProps)
+{
+    std::vector<State> ret;
+    for (const auto& subProp : subProps)
+    {
+        ret.push_back(subProp->getState());
+    }
+    return ret;
+}
+
 /**---------------------------------------------------------------
  * computeImplPaths methods
  * ---------------------------------------------------------------
@@ -1548,7 +1558,8 @@ template<>
 SubTheorem<And<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& leftSubProp,
                                          const ptr<ASubTheorem>& rightSubProp):
     m_son(std::make_unique<And<ASubTheorem>>(leftSubProp,rightSubProp)),
-    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars()), m_eval(std::make_unique<Evaluater>())
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars()), m_eval(std::make_unique<Evaluater>()),
+    m_state(AND, leftSubProp->getState(), rightSubProp->getState())
 {
     computeAllPaths();
     initEval();
@@ -1558,7 +1569,8 @@ template<>
 SubTheorem<Equivalent<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& leftSubProp,
                                                 const ptr<ASubTheorem>& rightSubProp):
     m_son(std::make_unique<Equivalent<ASubTheorem>>(leftSubProp,rightSubProp)),
-    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars()), m_eval(std::make_unique<Evaluater>())
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars()), m_eval(std::make_unique<Evaluater>()),
+    m_state(EQUIVALENT, leftSubProp->getState(), rightSubProp->getState())
 {
     computeAllPaths();
     initEval();
@@ -1566,7 +1578,8 @@ SubTheorem<Equivalent<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& leftSubP
 
 SubTheorem<Hyp<ASubTheorem>>::SubTheorem(const std::vector<ptr<ASubTheorem>>& subProps):
     m_son(std::make_unique<Hyp<ASubTheorem>>(subProps)), m_extVars(getDbVarFromTheorems(subProps)), 
-    m_eval(std::make_unique<Evaluater>())
+    m_eval(std::make_unique<Evaluater>()),
+    m_state(HYP, getStates(subProps))
 {
     computeAllPaths();
     computeImplPaths();
@@ -1577,7 +1590,8 @@ template<>
 SubTheorem<Implication<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& leftSubProp,
                                                  const ptr<ASubTheorem>& rightSubProp):
     m_son(std::make_unique<Implication<ASubTheorem>>(leftSubProp,rightSubProp)), 
-    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars()), m_eval(std::make_unique<Evaluater>())
+    m_extVars(leftSubProp->getExtVars(), rightSubProp->getExtVars()), m_eval(std::make_unique<Evaluater>()),
+    m_state(IMPLICATION, leftSubProp->getState(), rightSubProp->getState())
 {
     computeAllPaths();
     computeImplPaths();
@@ -1586,7 +1600,8 @@ SubTheorem<Implication<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& leftSub
 
 SubTheorem<Not<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& subProp):
     m_son(std::make_unique<Not<ASubTheorem>>(subProp)), m_extVars(subProp->getExtVars()), 
-    m_eval(std::make_unique<Evaluater>())
+    m_eval(std::make_unique<Evaluater>()),
+    m_state(NOT, subProp->getState())
 {
     computeAllPaths();
     computeImplPaths();
@@ -1596,7 +1611,8 @@ SubTheorem<Not<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& subProp):
 template<>
 SubTheorem<Or<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& leftSubProp, const ptr<ASubTheorem>& rightSubProp):
     m_son(std::make_unique<Or<ASubTheorem>>(leftSubProp,rightSubProp)), m_extVars(leftSubProp->getExtVars(),rightSubProp->getExtVars()), 
-    m_eval(std::make_unique<Evaluater>())
+    m_eval(std::make_unique<Evaluater>()),
+    m_state(OR, leftSubProp->getState(), rightSubProp->getState())
 {
     computeAllPaths();
     computeImplPaths();
@@ -1604,7 +1620,8 @@ SubTheorem<Or<ASubTheorem>>::SubTheorem(const ptr<ASubTheorem>& leftSubProp, con
 }
 
 SubTheorem<Boolean>::SubTheorem(const std::shared_ptr<Boolean>& son):
-    m_son(son), m_extVars(son), m_eval(std::make_unique<Evaluater>())
+    m_son(son), m_extVars(son), m_eval(std::make_unique<Evaluater>()),
+    m_state(son->id(), BOOL_TYPE)
 {
     computeAllPaths();
     computeImplPaths();
@@ -1612,7 +1629,8 @@ SubTheorem<Boolean>::SubTheorem(const std::shared_ptr<Boolean>& son):
 }
 
 SubTheorem<ConstBoolean>::SubTheorem(const bool& val):
-    m_son(std::make_unique<ConstBoolean>(val))
+    m_son(std::make_unique<ConstBoolean>(val)),
+    m_state(BOOL_TYPE, val)
 {
     computeAllPaths();
     computeImplPaths();
@@ -1620,7 +1638,8 @@ SubTheorem<ConstBoolean>::SubTheorem(const bool& val):
 
 
 SubTheorem<ConstBoolean>::SubTheorem(const SubRule<ConstBoolean>& prop):
-    m_son(std::make_unique<ConstBoolean>(prop.evaluate()))
+    m_son(std::make_unique<ConstBoolean>(prop.evaluate())),
+    m_state(BOOL_TYPE, prop.evaluate())
 {
     computeAllPaths();
     computeImplPaths();
@@ -1872,6 +1891,37 @@ inline std::vector<Evaluater::ConfigEval> SubTheorem<Boolean>::getCompatibleConf
     const std::unordered_map<IDVar, IDVar>& internalVars) const
 {
     return m_eval->getCompatibleConfigs(commonConfig, internalVars);
+}
+
+
+/**---------------------------------------------------------------
+ * getState methods
+ * ---------------------------------------------------------------
+ */
+template<SubTheoremProperty SubPropertyType>
+const State& SubTheorem<SubPropertyType>::getState() const
+{
+    return m_state;
+}
+
+const State& SubTheorem<Hyp<ASubTheorem>>::getState() const
+{
+    return m_state;
+}
+
+const State& SubTheorem<Not<ASubTheorem>>::getState() const
+{
+    return m_state;
+}
+
+const State& SubTheorem<Boolean>::getState() const
+{
+    return m_state;
+}
+
+const State& SubTheorem<ConstBoolean>::getState() const
+{
+    return m_state;
 }
 
 

@@ -29,6 +29,7 @@ public:
     SubTheorem(const ptr<SubRule<ConstBoolean>>& prop);
 
     bool evaluate() const override;
+    const State& getState() const override final;
     constexpr PropType type() const override final;
 
     bool isEqual(const ASubTheorem& prop) const override final;
@@ -56,6 +57,7 @@ protected:
     size_t arity() const override final;
     const std::unique_ptr<const SubPropertyType> m_son;
     const DbVar m_extVars;
+    const State m_state;
 };
 
 
@@ -64,7 +66,8 @@ N_DarkLogic::SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticT
 SubTheorem(const ptr<ASubArithmeticTheorem<ValueType1>> &leftFormula,
            const ptr<ASubArithmeticTheorem<ValueType2>> &rightFormula):
     m_son(std::make_unique<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> >>(leftFormula,rightFormula)),
-    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars()),
+    m_state(EQUAL, leftFormula->getState(), rightFormula->getState())
 {
     computeAllPaths();
     computeImplPaths();
@@ -87,6 +90,12 @@ template<typename ValueType1, typename ValueType2>
 bool SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::evaluate() const
 {
     return m_son->evaluate();
+}
+
+template<typename ValueType1, typename ValueType2>
+const State& SubTheorem<Equal<ASubArithmeticTheorem<ValueType1>, ASubArithmeticTheorem<ValueType2> > >::getState() const
+{
+    return m_state;
 }
 
 template<typename ValueType1, typename ValueType2>

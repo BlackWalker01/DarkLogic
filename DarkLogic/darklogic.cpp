@@ -96,6 +96,16 @@ bool N_DarkLogic::DarkLogic::appliedRuleSymetric(const size_t& instanceIdx)
 	return Logic::appliedRuleSymetric(instanceIdx);
 }
 
+const State& N_DarkLogic::DarkLogic::getState()
+{
+	return Logic::getState();
+}
+
+const State& N_DarkLogic::DarkLogic::getState(const size_t& instanceIdx)
+{
+	return Logic::getState(instanceIdx);
+}
+
 bool N_DarkLogic::DarkLogic::makeTheorem(const std::string& name, const std::string& cont)
 {
 	return Logic::makeTheorem(name,cont);

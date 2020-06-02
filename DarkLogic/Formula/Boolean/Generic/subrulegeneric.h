@@ -33,6 +33,7 @@ public:
     SubRule(const ptr<ASubRule>& leftSubProp, const ptr<ASubRule>& rightSubProp);
 
     bool evaluate() const override final;
+    const State& getState() const override final;
     constexpr PropType type() const override final
     {
         if constexpr (std::is_same_v<SubPropertyType, And<ASubRule>>)
@@ -82,6 +83,7 @@ protected:
 protected:
     const std::unique_ptr<const SubPropertyType> m_son;
     const DbVar m_extVars;
+    const State m_state;
 };
 
 template<SubRuleProperty SubPropertyType> 

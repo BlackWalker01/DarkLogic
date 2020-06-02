@@ -30,6 +30,7 @@ public:
 
     size_t arity() const override final;
     ValueType evaluate() const override final;
+    const State& getState() const override final;
     constexpr ArithType type() const override final;
 
     const SubOperatorType& getSon() const;
@@ -46,6 +47,7 @@ public:
     ~ConstSubArithmeticTheorem() override = default;
 private:
     const std::unique_ptr<const SubOperatorType> m_son;
+    const State m_state;
 };
 
 template<ArithmeticType ValueType> 
@@ -53,7 +55,7 @@ struct ToRuleStruct<ConstSubArithmeticTheorem<ValueType>> { using Type = ConstSu
 
 template<ArithConstantType VarType>
 ConstSubArithmeticTheorem<VarType>::ConstSubArithmeticTheorem(const ValueType &var):
-    m_son(std::make_unique<SubOperatorType>(var))
+    m_son(std::make_unique<SubOperatorType>(var)), m_state(m_son->valueType(), var)
 {
     computeAllPaths();
     computeImplPaths();
@@ -69,6 +71,12 @@ template<ArithConstantType VarType>
 typename ConstSubArithmeticTheorem<VarType>::ValueType ConstSubArithmeticTheorem<VarType>::evaluate() const
 {
     return m_son->evaluate();
+}
+
+template<ArithConstantType VarType>
+inline const State& ConstSubArithmeticTheorem<VarType>::getState() const
+{
+    return m_state;
 }
 
 template<ArithConstantType VarType>

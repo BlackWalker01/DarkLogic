@@ -36,6 +36,7 @@ public:
 
     size_t arity() const override final;
     ValueType evaluate() const override final;
+    const State& getState() const override final;
     constexpr ArithType type() const override final;
 
     const SubOperatorType& getSon() const;
@@ -55,6 +56,7 @@ public:
 private:
     const std::unique_ptr<const SubOperatorType> m_son;
     const DbVar m_extVars;
+    const State m_state;
 };
 
 template<typename VariableType>
@@ -62,7 +64,8 @@ SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>> >::
 SubArithmeticTheorem(const ptr<SubArithmeticTheorem<VariableType>>& leftFormula,
                      const ptr<ASubArithmeticTheorem<typename VariableType::ValueType>>& rightFormula):
 m_son(std::make_unique<SetEqual<SubArithmeticTheorem<VariableType>>>(leftFormula,rightFormula)),
-m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
+m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars()),
+m_state(SETEQUAL, leftFormula->getState(), rightFormula->getState())
 {
     computeAllPaths();
     computeImplPaths();
@@ -85,6 +88,13 @@ typename SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>> >::Va
 SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>> >::evaluate() const
 {
     m_son->evaluate();
+}
+
+template<typename VariableType>
+const State&
+SubArithmeticTheorem<SetEqual<SubArithmeticTheorem<VariableType>> >::getState() const
+{
+    return m_state;
 }
 
 template<typename VariableType>

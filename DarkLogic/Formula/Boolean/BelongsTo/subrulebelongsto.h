@@ -29,6 +29,7 @@ public:
             const ptr<ASubArithmeticRule<SetType>>& rightFormula);
 
     bool evaluate() const override final;
+    const State& getState() const override final;
     constexpr PropType type() const override final;
 
     bool isEqual(const ASubRule& prop) const override final;
@@ -56,6 +57,7 @@ protected:
 public:
     const std::unique_ptr<const SubPropertyType> m_son;
     const DbVar m_extVars;
+    const State m_state;
 };
 
 template<typename SetType>
@@ -63,7 +65,8 @@ SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<
 SubRule(const ptr<ASubArithmeticRule<typename SetType::Type>>& leftFormula,
         const ptr<ASubArithmeticRule<SetType>>& rightFormula):
     m_son(std::make_unique<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>>>(leftFormula,rightFormula)),
-    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars()),
+    m_state(BELONGSTO, leftFormula->getState(), rightFormula->getState())
 {
 
 }
@@ -72,6 +75,12 @@ template<typename SetType>
 bool SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>,ASubArithmeticRule<SetType>> >::evaluate() const
 {
     return m_son->evaluate();
+}
+
+template<typename SetType>
+inline const State& SubRule<BelongsTo<ASubArithmeticRule<typename SetType::Type>, ASubArithmeticRule<SetType>>>::getState() const
+{
+    return m_state;
 }
 
 template<typename SetType>

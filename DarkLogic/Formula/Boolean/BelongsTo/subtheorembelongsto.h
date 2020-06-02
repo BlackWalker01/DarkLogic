@@ -29,6 +29,7 @@ public:
     SubTheorem(const SubRule<ConstBoolean>& prop);
 
     bool evaluate() const override;
+    const State& getState() const override final;
     constexpr PropType type() const override final;
 
     bool isEqual(const ASubTheorem& prop) const override final;
@@ -55,6 +56,7 @@ protected:
     size_t arity() const override final;
     std::unique_ptr<SubPropertyType> m_son;
     const DbVar m_extVars;
+    const State m_state;
 };
 
 /*template<typename ValueType1, typename ValueType2>
@@ -68,7 +70,8 @@ N_DarkLogic::SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,
 SubTheorem(const ptr<ASubArithmeticTheorem<typename SetType::Type> > &leftFormula,
            const ptr<ASubArithmeticTheorem<SetType> > &rightFormula):
     m_son(std::make_unique<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>>>(leftFormula,rightFormula)),
-    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars())
+    m_extVars(leftFormula->getExtVars(), rightFormula->getExtVars()),
+    m_state(BELONGSTO, leftFormula->getState(), rightFormula->getState())
 {
     computeAllPaths();
     computeImplPaths();
@@ -93,6 +96,12 @@ template<typename SetType>
 bool SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>,ASubArithmeticTheorem<SetType>> >::evaluate() const
 {
     return m_son->evaluate();
+}
+
+template<typename SetType>
+inline const State& SubTheorem<BelongsTo<ASubArithmeticTheorem<typename SetType::Type>, ASubArithmeticTheorem<SetType>>>::getState() const
+{
+    return m_state;
 }
 
 template<typename SetType>

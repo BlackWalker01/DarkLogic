@@ -19,6 +19,7 @@
 #include "Formula/Boolean/dbtheorem.h"
 #include "Utils/utils.h"
 #include "Utils/action.h"
+#include "Utils/state.h"
 
 namespace N_DarkLogic {
 
@@ -54,6 +55,8 @@ public:
     static bool evaluate(const size_t& instanceIdx);
     static bool isEvaluated();
     static bool isEvaluated(const size_t& instanceIdx);
+    static const State& getState();
+    static const State& getState(const size_t& instanceIdx);
     static bool appliedRuleSymetric();
     static bool appliedRuleSymetric(const size_t& instanceIdx);
 
@@ -121,6 +124,7 @@ private:
     bool _evaluate();
     bool _isEvaluated();
     bool _appliedRuleSymetric();
+    const State& _getState() const;
 
     bool _makeTheorem(const std::string& name, const std::string& cont);
     bool _makeTheorem(const std::string& name, const std::string& cont, const size_t& logicIdx);

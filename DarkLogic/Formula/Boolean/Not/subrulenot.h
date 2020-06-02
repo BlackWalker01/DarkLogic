@@ -28,6 +28,7 @@ public:
     SubRule(const ptr<ASubRule>& subProp);
 
     bool evaluate() const override final;
+    const State& getState() const override final;
     constexpr PropType type() const override final
     {
         return PropType::NOT_PROP;
@@ -58,6 +59,7 @@ protected:
 protected:
     const std::unique_ptr<const SubPropertyType> m_son;
     const DbVar m_extVars;
+    const State m_state;
 };
 }
 
