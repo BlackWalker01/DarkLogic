@@ -1,10 +1,112 @@
 #include "darklogic.h"
-#include "darklogic.h"
-#include "darklogic.h"
-#include "darklogic.h"
 #include "logic.h"
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+namespace py = pybind11;
 
 using namespace N_DarkLogic;
+
+PYBIND11_MODULE(DarkLogic, m)
+{
+	py::class_<DarkLogic> darkLogic(m, "DarkLogic");
+	darkLogic.def("init", &DarkLogic::init)
+		.def("makeTheorem", &DarkLogic::makeTheorem)
+		.def("apply", py::overload_cast<const Action::Id&>(&DarkLogic::apply))
+		.def("apply", py::overload_cast<const size_t&, const Action::Id&>(&DarkLogic::apply))
+		.def("apply", py::overload_cast<const std::string&, const std::vector<Action::Id>&>(&DarkLogic::apply))
+		.def("applyStr", &DarkLogic::applyStr)
+		.def("unapply", py::overload_cast<>(&DarkLogic::unapply))
+		.def("unapply", py::overload_cast<const size_t&>(&DarkLogic::unapply))
+		.def("getActions", py::overload_cast<>(&DarkLogic::getActions))
+		.def("getActions", py::overload_cast<const size_t&>(&DarkLogic::getActions))
+		.def("getHumanActions", py::overload_cast<>(&DarkLogic::getHumanActions))
+		.def("getRuleContents", &DarkLogic::getRuleContents)
+
+		//get information on theorem state
+		.def("isOver", py::overload_cast<>(&DarkLogic::isOver))
+		.def("isOver", py::overload_cast<const size_t&>(&DarkLogic::isOver))
+		.def("isDemonstrated", py::overload_cast<>(&DarkLogic::isDemonstrated))
+		.def("isDemonstrated", py::overload_cast<const size_t&>(&DarkLogic::isDemonstrated))
+		.def("isAlreadyPlayed", py::overload_cast<>(&DarkLogic::isAlreadyPlayed))
+		.def("isAlreadyPlayed", py::overload_cast<const size_t&>(&DarkLogic::isAlreadyPlayed))
+		.def("hasAlreadyPlayed", py::overload_cast<>(&DarkLogic::hasAlreadyPlayed))
+		.def("hasAlreadyPlayed", py::overload_cast<const size_t&>(&DarkLogic::hasAlreadyPlayed))
+		.def("canBeDemonstrated", py::overload_cast<>(&DarkLogic::canBeDemonstrated))
+		.def("canBeDemonstrated", py::overload_cast<const size_t&>(&DarkLogic::canBeDemonstrated))
+		.def("evaluate", py::overload_cast<>(&DarkLogic::evaluate))
+		.def("evaluate", py::overload_cast<const size_t&>(&DarkLogic::evaluate))
+		.def("isEvaluated", py::overload_cast<>(&DarkLogic::isEvaluated))
+		.def("isEvaluated", py::overload_cast<const size_t&>(&DarkLogic::isEvaluated))
+		.def("appliedRuleSymetric", py::overload_cast<>(&DarkLogic::appliedRuleSymetric))
+		.def("appliedRuleSymetric", py::overload_cast<const size_t&>(&DarkLogic::appliedRuleSymetric))
+		.def("getState", py::overload_cast<>(&DarkLogic::getState))
+		.def("getState", py::overload_cast<const size_t&>(&DarkLogic::getState))
+
+		.def("theoremName", &DarkLogic::theoremName)
+		.def("printTheorem", py::overload_cast<>(&DarkLogic::printTheorem))
+		.def("printTheorem", py::overload_cast<const size_t&>(&DarkLogic::printTheorem))
+		.def("toStrTheorem", py::overload_cast<>(&DarkLogic::toStrTheorem))
+		.def("toStrTheorem", py::overload_cast<const size_t&>(&DarkLogic::toStrTheorem))
+
+		.def("clearAll", &DarkLogic::clearAll)
+		.def("clear", py::overload_cast<>(&DarkLogic::clear))
+		.def("clear", py::overload_cast<const size_t&>(&DarkLogic::clear));
+
+	py::class_<Action> action(m, "Action");
+	action.def(py::init<const Action::Id&, const std::string&, const std::string&, const std::vector<Action::Id>&>())
+		.def("id", &Action::id)
+		.def("ruleName", &Action::ruleName)
+		.def("ruleStr", &Action::ruleStr)
+		.def("path", &Action::path)
+		.def("toString", &Action::toString);
+
+	py::class_<State> state(m, "State");
+	state.def("priorityOpe", &State::priorityOpe)
+		.def("operators", &State::operators)
+		.def("terms", &State::terms);
+
+	py::class_<State::Term> term(m, "Term");
+	term.def("isVariable", &State::Term::isVariable)
+		.def("type", &State::Term::type)
+		.def("id", &State::Term::id)
+		.def("val", &State::Term::val);
+
+	py::class_<State::OrderedName> orderedName(m, "OrderedName");
+	orderedName.def("name", &State::OrderedName::name)
+		.def("priority", &State::OrderedName::priority)
+		.def("associativity", &State::OrderedName::associativity)
+		.def("nbHyps", &State::OrderedName::nbHyps)
+		.def("nbPar", &State::OrderedName::nbPar)
+		.def("argIdx", &State::OrderedName::argIdx);
+
+	py::enum_<Name> name(m, "name");
+	name.value("NONE", Name::NONE)
+		.value("AND", Name::AND)
+		.value("EQUIVALENT", Name::EQUIVALENT)
+		.value("IMPLICATION", Name::IMPLICATION)
+		.value("NOT", Name::NOT)
+		.value("OR", Name::OR)
+		.value("HYP", Name::HYP)
+		.value("EQUAL", Name::EQUAL)
+		.value("SETEQUAL", Name::SETEQUAL)
+		.value("LET", Name::LET)
+		.value("BELONGSTO", Name::BELONGSTO)
+		.value("PLUS", Name::PLUS);
+
+	py::enum_<VALUE_TYPE> valueType(m, "Value_Type");
+	valueType.value("VOID_TYPE", VALUE_TYPE::VOID_TYPE)
+		.value("BOOL_TYPE", VALUE_TYPE::BOOL_TYPE)
+		.value("NATURAL_INT_TYPE", VALUE_TYPE::NATURAL_INT_TYPE)
+		.value("BOOLEANSET_TYPE", VALUE_TYPE::BOOLEANSET_TYPE)
+		.value("NATURAL_INTEGERSET_TYPE", VALUE_TYPE::NATURAL_INTEGERSET_TYPE);
+
+	py::enum_<Associativity> associativity(m, "Associativity");
+	associativity.value(" RIGHT", Associativity::RIGHT)
+		.value("LEFT", Associativity::LEFT);
+}
+
+
 
 void N_DarkLogic::DarkLogic::init(const size_t& nbInstances)
 {
