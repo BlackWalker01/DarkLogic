@@ -31,13 +31,13 @@ Human::Human(): Player("you")
 }
 
 std::shared_ptr<const Action> Human::play()
-{
-    std::string cmd = "";
-    std::string func = "";
-    std::vector<std::string> args;
+{    
     bool ok = false;
     while (!ok)
     {
+        std::string cmd = "";
+        std::string func = "";
+        std::vector<std::string> args;
         std::cout << "What do you want to do?" << std::endl;
         if (!std::getline(std::cin, cmd))
         {
@@ -152,16 +152,31 @@ std::shared_ptr<const Action> Human::play()
                         }
 
                         //check if args[0] can be associated to an action id
-                        ss << args[0];
-                        ss >> id;
-                        auto actions = N_DarkLogic::DarkLogic::getActions();
-                        for (const auto& actionId : actions)
+                        auto isNumber = [](const std::string& str)
                         {
-                            if (id == actionId)
+                            for (auto c : str)
                             {
-                                return std::make_shared<const Action>(PUSH_ACTION, id);
+                                if (c < '0' || c>'9')
+                                {
+                                    return false;
+                                }
                             }
-                        }
+                            return true;
+                        };
+
+                        if (isNumber(args[0]))
+                        {
+                            ss << args[0];
+                            ss >> id;
+                            auto actions = N_DarkLogic::DarkLogic::getActions();
+                            for (const auto& actionId : actions)
+                            {
+                                if (id == actionId)
+                                {
+                                    return std::make_shared<const Action>(PUSH_ACTION, id);
+                                }
+                            }
+                        }                        
                         std::cout << args[0] << " is not a valid action" << std::endl;
                     }
                     else if (args.size() == 2)

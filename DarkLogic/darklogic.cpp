@@ -11,11 +11,11 @@ PYBIND11_MODULE(DarkLogic, m)
 {
 	py::class_<DarkLogic> darkLogic(m, "DarkLogic");
 	darkLogic.def("init", &DarkLogic::init)
-		.def("makeTheorem", &DarkLogic::makeTheorem)
+		.def("makeTheorem", py::overload_cast<const std::string&, const std::string&> (&DarkLogic::makeTheorem))
 		.def("apply", py::overload_cast<const Action::Id&>(&DarkLogic::apply))
 		.def("apply", py::overload_cast<const size_t&, const Action::Id&>(&DarkLogic::apply))
 		.def("apply", py::overload_cast<const std::string&, const std::vector<Action::Id>&>(&DarkLogic::apply))
-		.def("applyStr", &DarkLogic::applyStr)
+		.def("applyStr", py::overload_cast<const std::string&>(&DarkLogic::applyStr))
 		.def("unapply", py::overload_cast<>(&DarkLogic::unapply))
 		.def("unapply", py::overload_cast<const size_t&>(&DarkLogic::unapply))
 		.def("getActions", py::overload_cast<>(&DarkLogic::getActions))

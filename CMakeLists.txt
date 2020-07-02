@@ -40,7 +40,7 @@ target_link_directories(LogicGame PUBLIC ${LIB_DIR})
 add_compile_definitions(_SILENCE_CLANG_CONCEPTS_MESSAGE)
 
 if(UNIX)
-    target_link_libraries(LogicGame DarkLogic pthread stdc++ m)
+    target_link_libraries(LogicGame DarkLogic pthread stdc++ m python3.8)
 else()
     target_link_libraries(LogicGame DarkLogic)
 endif()
