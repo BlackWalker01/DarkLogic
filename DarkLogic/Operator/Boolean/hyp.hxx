@@ -126,7 +126,7 @@ std::string HypFun<SubPropertyType>::toString(unsigned short priorityParent) con
 template<Proposition SubPropertyType>
 constexpr unsigned short HypFun<SubPropertyType>::priority()
 {
-    return 18;
+    return 20;
 }
 
 template<Proposition SubPropertyType> template<Proposition SubPropertyType2>

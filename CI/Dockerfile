@@ -34,7 +34,11 @@ RUN wget -c https://github.com/BlackWalker01/llvm-project/releases/download/llvm
 RUN unzip clang-11.zip
 RUN cd clang-11 && \
     chmod +x install.sh && \
-    ./install.sh 
+    ./install.sh
+
+#install python dependencies
+RUN apt install -y python3-distutils
+RUN apt-get install -y python3-dev	
 
 # expose port
 EXPOSE 5000

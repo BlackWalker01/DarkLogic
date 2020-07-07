@@ -6,6 +6,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_subdirectory(pybind11)
+
 add_library(DarkLogic SHARED
     #Sources
     logic.cpp
@@ -174,8 +176,12 @@ add_library(DarkLogic SHARED
 target_compile_definitions(DarkLogic PRIVATE DARK_LOGIC_LIBRARY)
 add_compile_definitions(_SILENCE_CLANG_CONCEPTS_MESSAGE)
 if(UNIX)
-    target_link_libraries(DarkLogic stdc++)
+    target_link_libraries(DarkLogic PUBLIC stdc++ pybind11::module)
+else()
+    target_link_libraries(DarkLogic PRIVATE pybind11::module)
+    set_target_properties(DarkLogic PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
+                                         SUFFIX "${PYTHON_MODULE_EXTENSION}")    
+
 endif()
-    
 
 install(TARGETS DarkLogic DESTINATION ${CMAKE_SOURCE_DIR}/../Lib)
