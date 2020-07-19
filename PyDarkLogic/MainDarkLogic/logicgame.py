@@ -7,6 +7,7 @@ sys.path.append(path + "\..\..\Lib")
 from DarkLogic import DarkLogic
 
 from AI.ai import AI
+from AI.deepai import DeepAI
 from Human.human import Human
 from MainDarkLogic.action import Action
 from enum import Enum
@@ -19,6 +20,7 @@ class Mode(Enum):
     NoMode = 0
     HumanMode = 1
     AIMode = 2
+    DeepAIMode = 3
 
 
 def _createHuman(game):
@@ -27,6 +29,10 @@ def _createHuman(game):
 
 def _createAI(game):
     game._createAI()
+
+
+def _createDeepAI(game):
+    game._createDeepAI()
 
 
 def _pushAction(game, action):
@@ -60,9 +66,19 @@ class LogicGame:
                  "HUMAN": Mode.HumanMode,
 
                  "ai": Mode.AIMode,
-                 "AI": Mode.AIMode}
+                 "AI": Mode.AIMode,
+
+                 "deepai": Mode.DeepAIMode,
+                 "deepAi": Mode.DeepAIMode,
+                 "deepAI": Mode.DeepAIMode,
+                 "DeepAi": Mode.DeepAIMode,
+                 "DeepAI": Mode.DeepAIMode,
+                 "DEEPAI": Mode.DeepAIMode}
+
     _modeSwitcher = {Mode.HumanMode: _createHuman,
-                     Mode.AIMode: _createAI}
+                     Mode.AIMode: _createAI,
+                     Mode.DeepAIMode: _createDeepAI
+                     }
     _actionSwitcher = {EnumFun.GET_ACTION: _printActions,
                        EnumFun.PUSH_ACTION: _pushAction,
                        EnumFun.POP_ACTION: _popAction}
@@ -87,7 +103,7 @@ class LogicGame:
     def _askPlayer(self):
         ok = False
         while not ok:
-            modeStr = input("Choose the mode (Human/AI):\n")
+            modeStr = input("Choose the mode (Human/AI/DeepAI):\n")
             mode = LogicGame._modeHash.get(modeStr)
             if mode:
                 LogicGame._modeSwitcher[mode](self)
@@ -108,6 +124,14 @@ class LogicGame:
         # nbInstances = 1
         DarkLogic.init(nbInstances)
         self._player = AI(0, nbInstances, LogicGame._AI_TIMEOUT)
+
+    def _createDeepAI(self):
+        print("Deep AI Mode")
+        self._mode = Mode.DeepAIMode
+        # nbInstances = multiprocessing.cpu_count()
+        nbInstances = 1
+        DarkLogic.init(nbInstances)
+        self._player = DeepAI(0, nbInstances, LogicGame._AI_TIMEOUT)
 
     def _createTheorem(self):
         # ask user to create theorem

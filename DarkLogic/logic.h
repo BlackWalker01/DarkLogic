@@ -57,6 +57,7 @@ public:
     static bool isEvaluated(const size_t& instanceIdx);
     static const State& getState();
     static const State& getState(const size_t& instanceIdx);
+    static std::vector<State> getRuleStates();
     static bool appliedRuleSymetric();
     static bool appliedRuleSymetric(const size_t& instanceIdx);
 
@@ -125,6 +126,7 @@ private:
     bool _isEvaluated();
     bool _appliedRuleSymetric();
     const State& _getState() const;
+    const std::vector<State> _getRuleStates() const;
 
     bool _makeTheorem(const std::string& name, const std::string& cont);
     bool _makeTheorem(const std::string& name, const std::string& cont, const size_t& logicIdx);

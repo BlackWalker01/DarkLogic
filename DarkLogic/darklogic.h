@@ -62,6 +62,7 @@ namespace N_DarkLogic
 		static bool appliedRuleSymetric(const size_t& instanceIdx);
 		static const State& getState();
 		static const State& getState(const size_t& instanceIdx);
+		static std::vector<State> getRuleStates();
 
 		//get information on theorem content
 		static std::string theoremName();

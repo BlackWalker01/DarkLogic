@@ -42,6 +42,7 @@ PYBIND11_MODULE(DarkLogic, m)
 		.def("appliedRuleSymetric", py::overload_cast<const size_t&>(&DarkLogic::appliedRuleSymetric))
 		.def("getState", py::overload_cast<>(&DarkLogic::getState))
 		.def("getState", py::overload_cast<const size_t&>(&DarkLogic::getState))
+		.def("getRuleStates", py::overload_cast<>(&DarkLogic::getRuleStates))
 
 		.def("theoremName", &DarkLogic::theoremName)
 		.def("printTheorem", py::overload_cast<>(&DarkLogic::printTheorem))
@@ -206,6 +207,11 @@ const State& N_DarkLogic::DarkLogic::getState()
 const State& N_DarkLogic::DarkLogic::getState(const size_t& instanceIdx)
 {
 	return Logic::getState(instanceIdx);
+}
+
+std::vector<State> N_DarkLogic::DarkLogic::getRuleStates()
+{
+	return Logic::getRuleStates();
 }
 
 bool N_DarkLogic::DarkLogic::makeTheorem(const std::string& name, const std::string& cont)

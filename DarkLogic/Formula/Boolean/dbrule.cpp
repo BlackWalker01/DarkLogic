@@ -146,6 +146,16 @@ bool DbRule::isLastRuleSymetric(const Action::Id& actionKey) const
     return m_actionKeyToRule.at(actionKey)->isSymetric();
 }
 
+std::vector<State> N_DarkLogic::DbRule::getStates() const
+{
+    std::vector<State> ret;
+    for (const auto& rule : m_db)
+    {
+        ret.push_back(rule->getState());
+    }
+    return ret;
+}
+
 std::unordered_map<std::string, RuleContent> N_DarkLogic::DbRule::getRuleContents() const
 {
     std::unordered_map<std::string, RuleContent> ret;

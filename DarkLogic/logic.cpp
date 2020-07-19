@@ -250,6 +250,11 @@ const State& N_DarkLogic::Logic::getState(const size_t& instanceIdx)
     return s_instances[instanceIdx]->_getState();
 }
 
+std::vector<State> N_DarkLogic::Logic::getRuleStates()
+{
+    return s_masterInstance->_getRuleStates();
+}
+
 bool N_DarkLogic::Logic::appliedRuleSymetric()
 {
     return s_masterInstance->_appliedRuleSymetric();
@@ -563,6 +568,11 @@ bool N_DarkLogic::Logic::_appliedRuleSymetric()
 const State& N_DarkLogic::Logic::_getState() const
 {
     return m_theorem->getState();
+}
+
+const std::vector<State> N_DarkLogic::Logic::_getRuleStates() const
+{
+    return m_rules.getStates();
 }
 
 bool N_DarkLogic::Logic::_makeTheorem(const std::string& name, const std::string& cont)

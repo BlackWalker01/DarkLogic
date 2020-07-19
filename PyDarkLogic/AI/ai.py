@@ -4,7 +4,7 @@ path = os.getcwd()
 import sys
 
 sys.path.append(path + "\..\MainDarkLogic")
-from MainDarkLogic.player import  Player
+from MainDarkLogic.player import Player
 from AI.masteraithread import MasterAIThread
 from AI.node import Node
 from threading import Thread, Condition, Lock
@@ -37,13 +37,16 @@ class AI(Player):
             self._masterThread.start_()
             while not self._hasEvents:
                 with self._condition_var:
-                    hasTimedout = self._condition_var.wait(self._secondTimeout)
+                    hasTimedout = not self._condition_var.wait(self._secondTimeout)
+                    if hasTimedout:
+                        break
 
             if hasTimedout:
                 self._masterThread.stop_()
             # waiting for threads to stop
             while not self._hasEvents:
-                self._condition_var.wait()
+                with self._condition_var:
+                    self._condition_var.wait()
             if len(self._eventQueue):
                 self._eventQueue.pop()
             self._hasEvents = False
