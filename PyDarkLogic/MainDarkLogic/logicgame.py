@@ -3,7 +3,7 @@ import os
 path = os.getcwd()
 import sys
 
-sys.path.append(path + "\..\..\Lib")
+sys.path.append(path + "\..\Lib")
 from DarkLogic import DarkLogic
 
 from AI.ai import AI
@@ -120,8 +120,8 @@ class LogicGame:
     def _createAI(self):
         print("AI Mode")
         self._mode = Mode.AIMode
-        nbInstances = multiprocessing.cpu_count()
-        # nbInstances = 1
+        # nbInstances = multiprocessing.cpu_count()
+        nbInstances = 1
         DarkLogic.init(nbInstances)
         self._player = AI(0, nbInstances, LogicGame._AI_TIMEOUT)
 

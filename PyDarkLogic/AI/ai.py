@@ -37,8 +37,11 @@ class AI(Player):
             self._masterThread.start_()
             while not self._hasEvents:
                 with self._condition_var:
-                    hasTimedout = not self._condition_var.wait(self._secondTimeout)
-                    if hasTimedout:
+                    self._condition_var.wait(self._secondTimeout)
+                    end = time.perf_counter()
+                    elapsed_seconds = end - start
+                    if elapsed_seconds >= self._secondTimeout:
+                        hasTimedout = True
                         break
 
             if hasTimedout:

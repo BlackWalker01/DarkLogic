@@ -155,7 +155,8 @@ class Node:
         maxDepth = 0
         while True:
             # init Nodes
-            nodeLists = []
+            states = []
+            nodeList = []
             crtActions = actions[actionIdx:]
 
             if len(crtActions) > 0:
@@ -163,62 +164,59 @@ class Node:
                     actionIdx += 1
                     node = self._sons[action]
                     if not node.isEvaluated():
-                        node.preExplore()
+                        node.preExplore(nodeList, states)
+                        if node.value() < Node.VAL_INIT:
+                            self._value = node.value() + 1
                     if Node._ai.mustStop(self._threadId):
                         return
-                    elif node.value() <= Node.VAL_INIT:
-                        if not node.isAIValuated():
-                            nodeLists.append([node])
-                            if len(nodeLists) == Node._ai.MaxNbNode:
-                                break
+                    if len(states) == Node._ai.MaxNbNode:
+                        break
 
             if Node._ai.mustStop(self._threadId):
                 return
-            if len(nodeLists) != Node._ai.MaxNbNode:
+            if len(states) != Node._ai.MaxNbNode:
                 # We need to go deeper!
                 nodes = self.getDeepExploreNodes(actions)
                 rand.shuffle(nodes)
                 for node in nodes:
-                    node.exploreDepthDeep(nodeLists, [node])
+                    node.exploreDepthDeep(nodeList, states)
+                    if node.value() < Node.VAL_INIT:
+                        self._value = node.value() + 1
                     if Node._ai.mustStop(self._threadId):
                         return
-                    if len(nodeLists) == Node._ai.MaxNbNode:
+                    if len(states) == Node._ai.MaxNbNode:
                         break
 
             # evaluate nodes
-            Node._ai.evaluate(nodeLists, self._threadId)
+            Node._ai.evaluate(nodeList, states)
 
-    def exploreDepthDeep(self, nodeLists, initList):
+    def exploreDepthDeep(self, nodeList, states):
         DarkLogic.apply(self._threadId, self._actionId)
         actions = DarkLogic.getActions(self._threadId)
-        if self._depth >= 3:
-            print("Depth = "+str(self._depth))
         for action in actions:
-            if action not in self._sons:
-                print("sons= "+str(self._sons))
-                print("value = "+str(self._value))
             if not self._sons[action]:
                 self._sons[action] = Node(actionId=action, threadId=self._threadId, depth=self._depth + 1)
             node = self._sons[action]
             if not node.isEvaluated():
-                node.preExplore()
+                node.preExplore(nodeList, states)
+                if node.value() < Node.VAL_INIT:
+                    self._value = node.value() + 1
             if Node._ai.mustStop(self._threadId):
                 break
-            elif node.value() <= Node.VAL_INIT:
-                if not node.isAIValuated():
-                    nodeLists.append(initList + [node])
-                    if len(nodeLists) == Node._ai.MaxNbNode:
-                        break
+            if len(states) == Node._ai.MaxNbNode:
+                break
 
-        if not Node._ai.mustStop(self._threadId) and len(nodeLists) != Node._ai.MaxNbNode:
+        if not Node._ai.mustStop(self._threadId) and len(states) != Node._ai.MaxNbNode:
             # We need to go deeper!
             nodes = self.getDeepExploreNodes(self._sons.keys())
             rand.shuffle(nodes)
             for node in nodes:
-                node.exploreDepthDeep(nodeLists, initList + [node])
+                node.exploreDepthDeep(nodeList, states)
+                if node.value() < Node.VAL_INIT:
+                    self._value = node.value() + 1
                 if Node._ai.mustStop(self._threadId):
                     break
-                if len(nodeLists) == Node._ai.MaxNbNode:
+                if len(states) == Node._ai.MaxNbNode:
                     break
 
         DarkLogic.unapply(self._threadId)
@@ -265,7 +263,7 @@ class Node:
 
         return minNodes
 
-    def preExplore(self):
+    def preExplore(self, nodeList, states):
         # play crt move
         DarkLogic.apply(self._threadId, self._actionId)
 
@@ -281,6 +279,8 @@ class Node:
             actions = DarkLogic.getActions(self._threadId)
             for action in actions:
                 self._sons[action] = None
+            nodeList.append(self)
+            states.append(Node._ai.getTrueState(self._threadId))
         self._isEvaluated = True
 
         # unplay crt move

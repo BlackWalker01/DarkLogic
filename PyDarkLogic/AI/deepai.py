@@ -12,6 +12,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from tensorflow.python.lib.io import file_io
 
 import random as rand
 from threading import Lock
@@ -102,7 +103,7 @@ def makeTrueState(state):
 
 
 class DeepAI(AI):
-    MaxNbNode = 20
+    MaxNbNode = 100
     NbDiffOperators = 7
     OperatorParams = NbDiffOperators + 2
     NbOperators = 20
@@ -117,60 +118,50 @@ class DeepAI(AI):
         for ruleState in ruleStates:
             self._trueRuleStates.append(makeTrueState(ruleState))
 
-        # create model
-        inputs = keras.Input(shape=(95, 20, 19), name="img")  # shape (H, W, C)
-        x = layers.Conv2D(128, 3, activation="relu")(inputs)
-        x = layers.Conv2D(256, 3, activation="relu")(x)
-        block_1_output = layers.MaxPooling2D(3)(x)
+        if file_io.file_exists("deepAIModel"):
+            self._model = keras.models.load_model("deepAIModel")
+        else:
+            # create model
+            inputs = keras.Input(shape=(95, 20, 19), name="img")  # shape (H, W, C)
+            x = layers.Conv2D(128, 3, activation="relu")(inputs)
+            x = layers.Conv2D(256, 3, activation="relu")(x)
+            block_1_output = layers.MaxPooling2D(3)(x)
 
-        x = layers.Conv2D(256, 3, activation="relu", padding="same")(block_1_output)
-        x = layers.Conv2D(256, 3, activation="relu", padding="same")(x)
-        block_2_output = layers.add([x, block_1_output])
+            x = layers.Conv2D(256, 3, activation="relu", padding="same")(block_1_output)
+            x = layers.Conv2D(256, 3, activation="relu", padding="same")(x)
+            block_2_output = layers.add([x, block_1_output])
 
-        x = layers.Conv2D(256, 3, activation="relu", padding="same")(block_2_output)
-        x = layers.Conv2D(256, 3, activation="relu", padding="same")(x)
-        block_3_output = layers.add([x, block_2_output])
+            x = layers.Conv2D(256, 3, activation="relu", padding="same")(block_2_output)
+            x = layers.Conv2D(256, 3, activation="relu", padding="same")(x)
+            block_3_output = layers.add([x, block_2_output])
 
-        x = layers.Conv2D(256, 3, activation="relu")(block_3_output)
-        x = layers.GlobalAveragePooling2D()(x)
-        x = layers.Dense(256, activation="relu")(x)
-        x = layers.Dropout(0.5)(x)
-        outputs = layers.Dense(DeepAI.MaxDepth + 1, activation="softmax")(x)
+            x = layers.Conv2D(256, 3, activation="relu")(block_3_output)
+            x = layers.GlobalAveragePooling2D()(x)
+            x = layers.Dense(256, activation="relu")(x)
+            x = layers.Dropout(0.5)(x)
+            outputs = layers.Dense(DeepAI.MaxDepth + 1, activation="softmax")(x)
 
-        self._model = keras.Model(inputs, outputs, name="deepai")
-        self._model.summary()
-        opt = keras.optimizers.Adam(learning_rate=0.01)
-        self._model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+            self._model = keras.Model(inputs, outputs, name="deepai")
+            self._model.summary()
+            opt = keras.optimizers.Adam(learning_rate=0.01)
+            self._model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+            self._model.save("deepAIModel")
         self._modelMutex = Lock()
         # self.train()
+
+    def getTrueState(self, threadIdx):
+        return [makeTrueState(DarkLogic.getState(threadIdx))] + self._trueRuleStates
 
     """
     nodeLists: 
     - type is list of list of node
     """
 
-    def evaluate(self, nodeLists, threadIdx):
-        nodes = []
-        trueStates = []
-        # get all states
-        for nodeList in nodeLists:
-            # init at last action of nodeList
-            for node in nodeList:
-                DarkLogic.getActions(threadIdx)
-                DarkLogic.apply(threadIdx, node.actionId())
-            nodes.append(nodeList[-1])
-
-            # get current state
-            trueStates.append([makeTrueState(DarkLogic.getState(threadIdx))] + self._trueRuleStates)
-
-            # restart from init point
-            for node in nodeList:
-                DarkLogic.unapply(threadIdx)
-
+    def evaluate(self, nodes, trueStates):
         # evaluate states
         trueStates = np.array(trueStates)
         self._modelMutex.acquire()
-        out = self._model.predict(trueStates, batch_size=len(nodeLists), workers=multiprocessing.cpu_count(),
+        out = self._model.predict(trueStates, batch_size=len(trueStates), workers=multiprocessing.cpu_count(),
                                   use_multiprocessing=True)
         self._modelMutex.release()
         realOuts = eval(out)
