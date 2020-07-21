@@ -103,26 +103,30 @@ def makeTrueState(state):
 
 
 class DeepAI(AI):
-    MaxNbNode = 100
+    MaxNbNode = 30
     NbDiffOperators = 7
     OperatorParams = NbDiffOperators + 2
-    NbOperators = 20
+    NbOperators = 30
     NbTerms = NbOperators
     MaxDepth = 25
+    MultExamples = 100
 
     def __init__(self, type_, maxInstanceIdx, secondTimeout):
         super().__init__(type_, maxInstanceIdx, secondTimeout)
+        self._theoremName = ""
+        self._theorem = ""
         # get Rule States
         self._trueRuleStates = []
         ruleStates = DarkLogic.getRuleStates()
         for ruleState in ruleStates:
             self._trueRuleStates.append(makeTrueState(ruleState))
-
+        self._storeNodes = []
         if file_io.file_exists("deepAIModel"):
             self._model = keras.models.load_model("deepAIModel")
         else:
             # create model
-            inputs = keras.Input(shape=(95, 20, 19), name="img")  # shape (H, W, C)
+            inputs = keras.Input(shape=(len(self._trueRuleStates) + 1,
+                                        DeepAI.NbOperators, 19), name="img")  # shape (H, W, C)
             x = layers.Conv2D(128, 3, activation="relu")(inputs)
             x = layers.Conv2D(256, 3, activation="relu")(x)
             block_1_output = layers.MaxPooling2D(3)(x)
@@ -152,6 +156,12 @@ class DeepAI(AI):
     def getTrueState(self, threadIdx):
         return [makeTrueState(DarkLogic.getState(threadIdx))] + self._trueRuleStates
 
+    """def getTrueState(self):
+        return [makeTrueState(DarkLogic.getState())] + self._trueRuleStates"""
+
+    def setTheoremInfo(self, thName, thContent):
+        self._theoremName = thName
+        self._theorem = thContent
     """
     nodeLists: 
     - type is list of list of node
@@ -171,13 +181,16 @@ class DeepAI(AI):
     def explore(self, actions):
         self._crtNode.exploreDeep(actions)
 
-    def train(self):
-        print("DeepAI is training...")
+    def _train(self):
+        DarkLogic.makeTheorem(self._theoremName, self._theorem)
+        node = self._storeNodes[0]
         x = []
         y = []
-        # create 1000 examples
-        N = 1000
-        for k in range(N):
+        print("DeepAI is preparing for training...")
+        node.getTrainNodes(x, y)
+
+        # create examples
+        for k in range(DeepAI.MultExamples):
             l = list(range(len(self._trueRuleStates)))
             newRuleStates = []
             n = rand.randint(0, len(self._trueRuleStates) - 1)
@@ -186,6 +199,18 @@ class DeepAI(AI):
                 newRuleStates.append(self._trueRuleStates[pos])
             x.append(np.array(newRuleStates))
             y.append(np.array(nthColounmOfIdentiy(1)))
+
+        # shuffle examples
+        randList = list(range(len(x)))
+        newX = []
+        newY = []
+        for pos in range(len(x)):
+            newX.append(x[pos])
+            newY.append(y[pos])
+        x = newX
+        y = newY
+
+        # fit
         pos = int(0.9 * N)
         x = np.array(x)
         y = np.array(y)
@@ -195,8 +220,28 @@ class DeepAI(AI):
         y_test = y[pos:]
         callbacks = [keras.callbacks.EarlyStopping(monitor='val_accuracy', min_delta=0.001, patience=20, verbose=1)]
         self._model.fit(x_train, y_train,
-                        batch_size=20, epochs=1, validation_data=(x_test, y_test), callbacks=callbacks)
+                        batch_size=20, epochs=100, validation_data=(x_test, y_test), callbacks=callbacks)
 
+    def _storeCrtNode(self):
+        self._storeNodes.append(self._crtNode)
+
+    def meditate(self):
+        self._train()
+        self._storeNodes.clear()
+
+    def getTrainingStates(self, val, x, y):
+        trueState = makeTrueState(DarkLogic.getState())
+        if val > DeepAI.MaxDepth:
+            val = DeepAI.MaxDepth + 1
+        trueOut = nthColounmOfIdentiy(val)
+        for k in range(DeepAI.MultExamples):
+            crtState = [trueState]
+            l = list(range(len(self._trueRuleStates)))
+            rand.shuffle(l)
+            for pos in l:
+                crtState.append(self._trueRuleStates[pos])
+            x.append(crtState)
+            y.append(trueOut)
 
 def nthColounmOfIdentiy(pos):
     # assert(pos < DeepAI.MaxDepth +1)

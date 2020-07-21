@@ -61,6 +61,7 @@ class AI(Player):
         else:
             self._masterThread.computeActions()
 
+        self._storeCrtNode()
         self._crtNode = newNode
         self._crtNode.setRoot()
         self._masterThread.updateLogic(self._crtNode.actionId())
@@ -105,3 +106,6 @@ class AI(Player):
         self._hasEvents = True
         with self._condition_var:
             self._condition_var.notify_all()
+
+    def _storeCrtNode(self):
+        pass

@@ -349,3 +349,23 @@ class Node:
             return ret
         else:
             return 0
+
+    def getTrainNodes(self, x, y):
+        DarkLogic.getActions()
+        for key in self._sons:
+            node = self._sons[key]
+            if node:
+                if node.isAIValuated() and node.value() != Node.VAL_INIT:
+                    Node._ai.getTrainingStates(node.value(), x, y)
+                    node.getDepthTrainNodes(x, y)
+
+    def getDepthTrainNodes(self, x, y):
+        DarkLogic.getActions()
+        DarkLogic.apply(self._actionId)
+        for key in self._sons:
+            node = self._sons[key]
+            if node:
+                if node.isAIValuated() and node.value() != Node.VAL_INIT:
+                    Node._ai.getTrainingStates(node.value(), x, y)
+                    node.getDepthTrainNodes(x, y)
+        DarkLogic.unapply()

@@ -7,3 +7,9 @@ class Player:
 
     def play(self):
         raise Exception("play method should be overidden")
+
+    def meditate(self):
+        pass
+
+    def setTheoremInfo(self, thName, thContent):
+        pass

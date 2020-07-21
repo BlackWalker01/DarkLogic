@@ -183,12 +183,22 @@ class LogicGame:
         DarkLogic.printTheorem()
 
     def _game(self):
+        nbAttempts = 0
+        maxNbAttempts = 15
         while not DarkLogic.isOver():
             action = self._player.play()
             LogicGame._actionSwitcher[action.fun()](self, action)
             print("____________________________________________________________________________")
+            if action.fun() == EnumFun.PUSH_ACTION:
+                nbAttempts += 1
+                if nbAttempts == maxNbAttempts:
+                    break
+                else:
+                    print("Attempt n°" + str(nbAttempts) + "/" + str(maxNbAttempts))
 
-        if DarkLogic.hasAlreadyPlayed():
+        if nbAttempts == maxNbAttempts:
+            print(self._player.name() + " lost! Too much attempts!")
+        elif DarkLogic.hasAlreadyPlayed():
             if DarkLogic.isDemonstrated():
                 print(self._player.name() + " won! " + self._player.name() + " finished the demonstration!")
             elif DarkLogic.isAlreadyPlayed():
@@ -208,3 +218,6 @@ class LogicGame:
 
         # clear Logic State
         DarkLogic.clearAll()
+
+        # let player meditates the last game
+        self._player.meditate()
