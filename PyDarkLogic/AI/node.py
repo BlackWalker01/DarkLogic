@@ -31,6 +31,7 @@ class Node:
         self._isEvaluated = False
         self._aiValue = None
         self._sons = {}
+        self._isLoss = False
 
     def actionId(self):
         return self._actionId
@@ -244,6 +245,9 @@ class Node:
         minVal = Node.VAL_MAX
         for action in actions:
             node = self._sons[action]
+            if not node:
+                self._sons[action] = Node(actionId=action, threadId=self._threadId, depth=self._depth + 1)
+                node = self._sons[action]
             if node.value() == Node.VAL_MAX:
                 continue
             if node.isAIValuated():
@@ -268,8 +272,11 @@ class Node:
         DarkLogic.apply(self._threadId, self._actionId)
 
         # check if it is a node which leads to loss
-        if DarkLogic.isAlreadyPlayed(self._threadId) or not DarkLogic.canBeDemonstrated(self._threadId):
+        if DarkLogic.isAlreadyPlayed(self._threadId):
             self._value = Node.VAL_MAX
+        elif not DarkLogic.canBeDemonstrated(self._threadId):
+            self._value = Node.VAL_MAX
+            self._isLoss = True
         # check if it is a node which leads to win
         elif DarkLogic.isDemonstrated(self._threadId):
             self._value = 0
@@ -299,7 +306,31 @@ class Node:
                 minNodes.append(key)
         valWinner = minNodes[rand.randint(0, len(minNodes) - 1)]
         winner = self._sons[valWinner]
-        self._sons.clear()
+        # self._sons.clear()
+        return winner
+
+    def getDeepBestNode(self):
+        minNodes = []
+        minVal = Node.VAL_MAX
+        minAIVal = Node.VAL_MAX
+        for key in self._sons.keys():
+            son = self._sons[key]
+            if son.value() < minVal:
+                minVal = son.value()
+                minAIVal = son.aiValue()
+                minNodes.clear()
+                minNodes.append(key)
+            elif son.value() == minVal:
+                if son.isAIValuated():
+                    if son.aiValue() < minAIVal:
+                        minAIVal = son.aiValue()
+                        minNodes = [key]
+                    elif son.aiValue() == minAIVal:
+                        minNodes.append(key)
+
+        valWinner = minNodes[rand.randint(0, len(minNodes) - 1)]
+        winner = self._sons[valWinner]
+        # self._sons.clear()
         return winner
 
     def getDemoMode(self):
@@ -318,7 +349,7 @@ class Node:
         if len(minNodes):
             valWinner = minNodes[rand.randint(0, len(minNodes) - 1)]
             winner = self._sons[valWinner]
-            self._sons.clear()
+            # self._sons.clear()
         return winner
 
     def setRoot(self):
@@ -352,20 +383,33 @@ class Node:
 
     def getTrainNodes(self, x, y):
         DarkLogic.getActions()
+        print(str(len(self._sons))+" nodes to explore")
         for key in self._sons:
             node = self._sons[key]
             if node:
-                if node.isAIValuated() and node.value() != Node.VAL_INIT:
-                    Node._ai.getTrainingStates(node.value(), x, y)
-                    node.getDepthTrainNodes(x, y)
+                if node.isEvaluated():
+                    print("explore " + str(node.actionId()) + " at depth = " + str(1) + " with value = " + str(
+                        node.value()))
+                    if node.value() != Node.VAL_INIT and not (node.value() == Node.VAL_MAX and not node.isLoss()):
+                        """print("train with node id = " + str(node.actionId()) + " at depth = " + str(
+                            1) + " with value = " + str(node.value()))"""
+                        Node._ai.getTrainingStates(node.value(), x, y)
+                    node.getDepthTrainNodes(x, y, 1)
 
-    def getDepthTrainNodes(self, x, y):
+    def getDepthTrainNodes(self, x, y, depth):
         DarkLogic.getActions()
         DarkLogic.apply(self._actionId)
+        # print("explore " + str(self.actionId()) + " at depth = " + str(depth) + " with value = " + str(self.value()))
         for key in self._sons:
             node = self._sons[key]
             if node:
-                if node.isAIValuated() and node.value() != Node.VAL_INIT:
-                    Node._ai.getTrainingStates(node.value(), x, y)
-                    node.getDepthTrainNodes(x, y)
+                if node.isEvaluated():
+                    if node.value() != Node.VAL_INIT and not (node.value() == Node.VAL_MAX and not node.isLoss()):
+                        """print("train with node id = " + str(node.actionId()) + " at depth = " + str(
+                            depth + 1) + " with value = " + str(node.value()))"""
+                        Node._ai.getTrainingStates(node.value(), x, y)
+                    node.getDepthTrainNodes(x, y, depth + 1)
         DarkLogic.unapply()
+
+    def isLoss(self):
+        return self._isLoss

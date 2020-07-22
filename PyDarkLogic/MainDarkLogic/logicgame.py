@@ -149,6 +149,7 @@ class LogicGame:
                 print("Error in theorem content")
                 continue
             ok = DarkLogic.makeTheorem(thName, thStr)
+            self._player.setTheoremInfo(thName, thStr)
             if ok and self._mode == Mode.HumanMode:
                 print("-> getAction() : to print all possible actions")
                 print("-> pushAction(id) : to make action identified by id")
@@ -186,6 +187,7 @@ class LogicGame:
         nbAttempts = 0
         maxNbAttempts = 15
         while not DarkLogic.isOver():
+            print("Attempt n°" + str(nbAttempts + 1) + "/" + str(maxNbAttempts))
             action = self._player.play()
             LogicGame._actionSwitcher[action.fun()](self, action)
             print("____________________________________________________________________________")
@@ -193,8 +195,6 @@ class LogicGame:
                 nbAttempts += 1
                 if nbAttempts == maxNbAttempts:
                     break
-                else:
-                    print("Attempt n°" + str(nbAttempts) + "/" + str(maxNbAttempts))
 
         if nbAttempts == maxNbAttempts:
             print(self._player.name() + " lost! Too much attempts!")

@@ -103,13 +103,13 @@ def makeTrueState(state):
 
 
 class DeepAI(AI):
-    MaxNbNode = 30
+    MaxNbNode = 50
     NbDiffOperators = 7
     OperatorParams = NbDiffOperators + 2
     NbOperators = 30
     NbTerms = NbOperators
     MaxDepth = 25
-    MultExamples = 100
+    MultExamples = 1000
 
     def __init__(self, type_, maxInstanceIdx, secondTimeout):
         super().__init__(type_, maxInstanceIdx, secondTimeout)
@@ -147,7 +147,7 @@ class DeepAI(AI):
 
             self._model = keras.Model(inputs, outputs, name="deepai")
             self._model.summary()
-            opt = keras.optimizers.Adam(learning_rate=0.01)
+            opt = keras.optimizers.Adam(learning_rate=0.002)
             self._model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
             self._model.save("deepAIModel")
         self._modelMutex = Lock()
@@ -201,6 +201,7 @@ class DeepAI(AI):
             y.append(np.array(nthColounmOfIdentiy(1)))
 
         # shuffle examples
+        print("shuffle "+str(len(x))+" examples ...")
         randList = list(range(len(x)))
         newX = []
         newY = []
@@ -211,16 +212,18 @@ class DeepAI(AI):
         y = newY
 
         # fit
-        pos = int(0.9 * N)
+        pos = int(0.9 * len(x))
         x = np.array(x)
         y = np.array(y)
         x_train = x[:pos]
         x_test = x[pos:]
         y_train = y[:pos]
         y_test = y[pos:]
-        callbacks = [keras.callbacks.EarlyStopping(monitor='val_accuracy', min_delta=0.001, patience=20, verbose=1)]
+        print("training on "+str(len(x_train))+" training examples")
+        callbacks = [keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=20, verbose=1)]
         self._model.fit(x_train, y_train,
-                        batch_size=20, epochs=100, validation_data=(x_test, y_test), callbacks=callbacks)
+                        batch_size=50, epochs=100, validation_data=(x_test, y_test), callbacks=callbacks)
+        self._model.save("deepAIModel")
 
     def _storeCrtNode(self):
         self._storeNodes.append(self._crtNode)
@@ -231,10 +234,14 @@ class DeepAI(AI):
 
     def getTrainingStates(self, val, x, y):
         trueState = makeTrueState(DarkLogic.getState())
+        hasToMult = True
         if val > DeepAI.MaxDepth:
             val = DeepAI.MaxDepth + 1
+            hasToMult = False
         trueOut = nthColounmOfIdentiy(val)
-        for k in range(DeepAI.MultExamples):
+        # print("shape = "+str(np.shape(trueOut)))
+        mult = DeepAI.MultExamples if hasToMult else 1
+        for k in range(mult):
             crtState = [trueState]
             l = list(range(len(self._trueRuleStates)))
             rand.shuffle(l)
@@ -243,11 +250,20 @@ class DeepAI(AI):
             x.append(crtState)
             y.append(trueOut)
 
+    def getBestNode(self):
+        return self._crtNode.getDeepBestNode()
+
+    def value(self):
+        if self._crtNode.isAIValuated():
+            return self._crtNode.aiValue()
+        return self._crtNode.value()
+
 def nthColounmOfIdentiy(pos):
     # assert(pos < DeepAI.MaxDepth +1)
     ret = []
     k = 0
-    while k < pos:
+    firstPos = min(pos, DeepAI.MaxDepth)
+    while k < firstPos:
         ret.append(0.0)
         k += 1
     ret.append(1.0)

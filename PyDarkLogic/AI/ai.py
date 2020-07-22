@@ -37,11 +37,8 @@ class AI(Player):
             self._masterThread.start_()
             while not self._hasEvents:
                 with self._condition_var:
-                    self._condition_var.wait(self._secondTimeout)
-                    end = time.perf_counter()
-                    elapsed_seconds = end - start
-                    if elapsed_seconds >= self._secondTimeout:
-                        hasTimedout = True
+                    hasTimedout = not self._condition_var.wait(self._secondTimeout)
+                    if hasTimedout:
                         break
 
             if hasTimedout:
@@ -55,7 +52,7 @@ class AI(Player):
             self._hasEvents = False
 
             nbNode = self._crtNode.nbNode()
-            newNode = self._crtNode.getBestNode()
+            newNode = self.getBestNode()
             print("[DEBUG] Nb explored nodes: " + str(nbNode))
 
         else:
@@ -69,7 +66,7 @@ class AI(Player):
         elapsed_seconds = end - start
         if nbNode:
             print("[DEBUG] AI play action " + str(self._crtNode.actionId()) + " with value " +
-                  str(self._crtNode.value()) +
+                  str(self.value()) +
                   " in " + str(elapsed_seconds) + " seconds")
             print("[DEBUG] AI exploration speed: " + str(nbNode / elapsed_seconds) + " nodes/s")
 
@@ -109,3 +106,9 @@ class AI(Player):
 
     def _storeCrtNode(self):
         pass
+
+    def getBestNode(self):
+        return self._crtNode.getBestNode()
+
+    def value(self):
+        return self._crtNode.value()
