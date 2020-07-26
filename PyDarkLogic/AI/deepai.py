@@ -1,4 +1,5 @@
 from AI.ai import AI
+from Database.database import Database
 
 import os
 
@@ -13,10 +14,182 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.python.lib.io import file_io
+from sklearn.utils import class_weight
 
 import random as rand
 from threading import Lock
 import multiprocessing
+
+
+class DeepAI(AI):
+    MaxNbNode = 50
+    NbDiffOperators = 7
+    OperatorParams = NbDiffOperators + 2
+    NbOperators = 30
+    NbTerms = NbOperators
+    MaxDepth = 25
+    MultExamples = 1000
+    MaxGameBefLearning = 1
+    ModelFile = "AI/deepAIModel"
+
+    def __init__(self, type_, maxInstanceIdx, secondTimeout):
+        super().__init__(type_, maxInstanceIdx, secondTimeout)
+        self._theoremName = ""
+        self._theorem = ""
+        # get Rule States
+        self._trueRuleStates = []
+        ruleStates = DarkLogic.getRuleStates()
+        for ruleState in ruleStates:
+            self._trueRuleStates.append(makeTrueState(ruleState))
+        self._storeNodes = []
+        self._db = Database()
+        self._gamesSinceLastLearning = 0
+        if file_io.file_exists(DeepAI.ModelFile):
+            self._model = keras.models.load_model(DeepAI.ModelFile)
+        else:
+            # create model
+            self._model = createModel(len(self._trueRuleStates) + 1)
+        self._modelMutex = Lock()
+
+    def getTrueState(self, threadIdx):
+        return [makeTrueState(DarkLogic.getState(threadIdx))] + self._trueRuleStates
+
+    """def getTrueState(self):
+        return [makeTrueState(DarkLogic.getState())] + self._trueRuleStates"""
+
+    def setTheoremInfo(self):
+        self._theoremName = DarkLogic.theoremName()
+        self._theorem = DarkLogic.toNormStrTheorem()
+
+    """
+    nodeLists: 
+    - type is list of list of node
+    """
+
+    def evaluate(self, nodes, trueStates):
+        # evaluate states
+        trueStates = np.array(trueStates)
+        self._modelMutex.acquire()
+        out = self._model.predict(trueStates, batch_size=len(trueStates), workers=multiprocessing.cpu_count(),
+                                  use_multiprocessing=True)
+        self._modelMutex.release()
+        realOuts = eval(out)
+        for node, realOut in zip(nodes, realOuts):
+            node.setAIValue(realOut)
+
+    def explore(self, actions):
+        self._crtNode.exploreDeep(actions)
+
+    def _train(self):
+        # DarkLogic.makeTheorem(self._theoremName, self._theorem)
+
+        x = []
+        y = []
+        print("DeepAI is preparing for training...")
+        # node.getTrainNodes(x, y)
+        dbStates = self._db.getDatas()
+        nbExcludedTh = 0
+        for dbState in dbStates.values():
+            if dbState.isEvaluated():
+                thCreated = DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
+                if thCreated:
+                    state = [makeTrueState(DarkLogic.getState())]
+                    l = list(range(len(self._trueRuleStates)))
+                    for pos in l:
+                        state.append(self._trueRuleStates[pos])
+                    x.append(state)
+                    if dbState.value() > DeepAI.MaxDepth:
+                        y.append(nthColounmOfIdentiy(DeepAI.MaxDepth))
+                    else:
+                        y.append(nthColounmOfIdentiy(dbState.value()))
+                    DarkLogic.clear()
+                else:
+                    nbExcludedTh += 1
+                    print("Excluded theorem: "+dbState.theoremContent())
+        if nbExcludedTh > 0:
+            print("number of excluded theorems: "+str(nbExcludedTh)+"/"+str(len(dbStates)))
+
+        """
+        # create examples
+        for k in range(DeepAI.MultExamples):
+            l = list(range(len(self._trueRuleStates)))
+            newRuleStates = []
+            n = rand.randint(0, len(self._trueRuleStates) - 1)
+            newRuleStates.append(self._trueRuleStates[l[n]])
+            for pos in l:
+                newRuleStates.append(self._trueRuleStates[pos])
+            x.append(np.array(newRuleStates))
+            y.append(np.array(nthColounmOfIdentiy(1)))"""
+
+        # shuffle examples
+        print("shuffle " + str(len(x)) + " examples ...")
+        randList = list(range(len(x)))
+        newX = []
+        newY = []
+        newValues = []
+        for pos in range(len(x)):
+            newX.append(x[pos])
+            newY.append(y[pos])
+        x = newX
+        y = newY
+        values = newValues
+
+        # fit
+        pos = int(0.9 * len(x))
+        x = np.array(x)
+        y = np.array(y)
+        values = np.array(values)
+        # class_weights = class_weight.compute_class_weight('balanced', np.unique(values),values)
+        x_train = x[:pos]
+        x_test = x[pos:]
+        y_train = y[:pos]
+        y_test = y[pos:]
+        print("training on " + str(len(x_train)) + " training examples")
+        callbacks = [keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=20, verbose=1)]
+        self._model.fit(x_train, y_train,
+                        batch_size=50, epochs=100, validation_data=(x_test, y_test), callbacks=callbacks)
+        self._model.save(DeepAI.ModelFile)
+
+    def _storeCrtNode(self):
+        self._storeNodes.append(self._crtNode)
+
+    def meditate(self):
+        self._gamesSinceLastLearning += 1
+        DarkLogic.makeTheorem(self._theoremName, self._theorem)
+        self._db.export(self._storeNodes[0].getDbStates())
+        if self._gamesSinceLastLearning == DeepAI.MaxGameBefLearning:
+            self._train()
+            self._gamesSinceLastLearning = 0
+        self._storeNodes.clear()
+        DarkLogic.clear()
+        super().meditate()
+
+    def getTrainingStates(self, val, x, y):
+        trueState = makeTrueState(DarkLogic.getState())
+        hasToMult = True
+        if val > DeepAI.MaxDepth:
+            val = DeepAI.MaxDepth + 1
+            hasToMult = False
+        trueOut = nthColounmOfIdentiy(val)
+        # print("shape = "+str(np.shape(trueOut)))
+        mult = DeepAI.MultExamples if hasToMult else 1
+        for k in range(mult):
+            crtState = [trueState]
+            l = list(range(len(self._trueRuleStates)))
+            rand.shuffle(l)
+            for pos in l:
+                crtState.append(self._trueRuleStates[pos])
+            x.append(crtState)
+            y.append(trueOut)
+
+    def getBestNode(self):
+        return self._crtNode.getDeepBestNode()
+
+    def value(self):
+        if self._crtNode.isAIValuated():
+            return self._crtNode.aiValue()
+        return self._crtNode.value()
+
 
 def makeOrderedOpeTab(ope):
     ret = []
@@ -33,6 +206,34 @@ def makeOrderedOpeTab(ope):
     ret.append(float(ope.nbHyps()))
     ret.append(float(ope.argIdx()))
     return ret
+
+
+def createModel(inputSize):
+    inputs = keras.Input(shape=(inputSize,
+                                DeepAI.NbOperators, 19), name="img")  # shape (H, W, C)
+    x = layers.Conv2D(128, 3, activation="relu")(inputs)
+    x = layers.Conv2D(256, 3, activation="relu")(x)
+    block_1_output = layers.MaxPooling2D(3)(x)
+
+    x = layers.Conv2D(256, 3, activation="relu", padding="same")(block_1_output)
+    x = layers.Conv2D(256, 3, activation="relu", padding="same")(x)
+    block_2_output = layers.add([x, block_1_output])
+
+    x = layers.Conv2D(256, 3, activation="relu", padding="same")(block_2_output)
+    x = layers.Conv2D(256, 3, activation="relu", padding="same")(x)
+    block_3_output = layers.add([x, block_2_output])
+
+    x = layers.Conv2D(256, 3, activation="relu")(block_3_output)
+    x = layers.GlobalAveragePooling2D()(x)
+    x = layers.Dense(256, activation="relu")(x)
+    x = layers.Dropout(0.5)(x)
+    outputs = layers.Dense(DeepAI.MaxDepth + 1, activation="softmax")(x)
+
+    model = keras.Model(inputs, outputs, name="deepai")
+    opt = keras.optimizers.Adam(learning_rate=0.002)
+    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+    model.save(DeepAI.ModelFile)
+    return model
 
 
 def makeOpeTab(opeName):
@@ -101,162 +302,6 @@ def makeTrueState(state):
         ret.append(priorOpe + ope + term)
     return ret
 
-
-class DeepAI(AI):
-    MaxNbNode = 50
-    NbDiffOperators = 7
-    OperatorParams = NbDiffOperators + 2
-    NbOperators = 30
-    NbTerms = NbOperators
-    MaxDepth = 25
-    MultExamples = 1000
-
-    def __init__(self, type_, maxInstanceIdx, secondTimeout):
-        super().__init__(type_, maxInstanceIdx, secondTimeout)
-        self._theoremName = ""
-        self._theorem = ""
-        # get Rule States
-        self._trueRuleStates = []
-        ruleStates = DarkLogic.getRuleStates()
-        for ruleState in ruleStates:
-            self._trueRuleStates.append(makeTrueState(ruleState))
-        self._storeNodes = []
-        if file_io.file_exists("deepAIModel"):
-            self._model = keras.models.load_model("deepAIModel")
-        else:
-            # create model
-            inputs = keras.Input(shape=(len(self._trueRuleStates) + 1,
-                                        DeepAI.NbOperators, 19), name="img")  # shape (H, W, C)
-            x = layers.Conv2D(128, 3, activation="relu")(inputs)
-            x = layers.Conv2D(256, 3, activation="relu")(x)
-            block_1_output = layers.MaxPooling2D(3)(x)
-
-            x = layers.Conv2D(256, 3, activation="relu", padding="same")(block_1_output)
-            x = layers.Conv2D(256, 3, activation="relu", padding="same")(x)
-            block_2_output = layers.add([x, block_1_output])
-
-            x = layers.Conv2D(256, 3, activation="relu", padding="same")(block_2_output)
-            x = layers.Conv2D(256, 3, activation="relu", padding="same")(x)
-            block_3_output = layers.add([x, block_2_output])
-
-            x = layers.Conv2D(256, 3, activation="relu")(block_3_output)
-            x = layers.GlobalAveragePooling2D()(x)
-            x = layers.Dense(256, activation="relu")(x)
-            x = layers.Dropout(0.5)(x)
-            outputs = layers.Dense(DeepAI.MaxDepth + 1, activation="softmax")(x)
-
-            self._model = keras.Model(inputs, outputs, name="deepai")
-            self._model.summary()
-            opt = keras.optimizers.Adam(learning_rate=0.002)
-            self._model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
-            self._model.save("deepAIModel")
-        self._modelMutex = Lock()
-        # self.train()
-
-    def getTrueState(self, threadIdx):
-        return [makeTrueState(DarkLogic.getState(threadIdx))] + self._trueRuleStates
-
-    """def getTrueState(self):
-        return [makeTrueState(DarkLogic.getState())] + self._trueRuleStates"""
-
-    def setTheoremInfo(self, thName, thContent):
-        self._theoremName = thName
-        self._theorem = thContent
-    """
-    nodeLists: 
-    - type is list of list of node
-    """
-
-    def evaluate(self, nodes, trueStates):
-        # evaluate states
-        trueStates = np.array(trueStates)
-        self._modelMutex.acquire()
-        out = self._model.predict(trueStates, batch_size=len(trueStates), workers=multiprocessing.cpu_count(),
-                                  use_multiprocessing=True)
-        self._modelMutex.release()
-        realOuts = eval(out)
-        for node, realOut in zip(nodes, realOuts):
-            node.setAIValue(realOut)
-
-    def explore(self, actions):
-        self._crtNode.exploreDeep(actions)
-
-    def _train(self):
-        DarkLogic.makeTheorem(self._theoremName, self._theorem)
-        node = self._storeNodes[0]
-        x = []
-        y = []
-        print("DeepAI is preparing for training...")
-        node.getTrainNodes(x, y)
-
-        # create examples
-        for k in range(DeepAI.MultExamples):
-            l = list(range(len(self._trueRuleStates)))
-            newRuleStates = []
-            n = rand.randint(0, len(self._trueRuleStates) - 1)
-            newRuleStates.append(self._trueRuleStates[l[n]])
-            for pos in l:
-                newRuleStates.append(self._trueRuleStates[pos])
-            x.append(np.array(newRuleStates))
-            y.append(np.array(nthColounmOfIdentiy(1)))
-
-        # shuffle examples
-        print("shuffle "+str(len(x))+" examples ...")
-        randList = list(range(len(x)))
-        newX = []
-        newY = []
-        for pos in range(len(x)):
-            newX.append(x[pos])
-            newY.append(y[pos])
-        x = newX
-        y = newY
-
-        # fit
-        pos = int(0.9 * len(x))
-        x = np.array(x)
-        y = np.array(y)
-        x_train = x[:pos]
-        x_test = x[pos:]
-        y_train = y[:pos]
-        y_test = y[pos:]
-        print("training on "+str(len(x_train))+" training examples")
-        callbacks = [keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=20, verbose=1)]
-        self._model.fit(x_train, y_train,
-                        batch_size=50, epochs=100, validation_data=(x_test, y_test), callbacks=callbacks)
-        self._model.save("deepAIModel")
-
-    def _storeCrtNode(self):
-        self._storeNodes.append(self._crtNode)
-
-    def meditate(self):
-        self._train()
-        self._storeNodes.clear()
-
-    def getTrainingStates(self, val, x, y):
-        trueState = makeTrueState(DarkLogic.getState())
-        hasToMult = True
-        if val > DeepAI.MaxDepth:
-            val = DeepAI.MaxDepth + 1
-            hasToMult = False
-        trueOut = nthColounmOfIdentiy(val)
-        # print("shape = "+str(np.shape(trueOut)))
-        mult = DeepAI.MultExamples if hasToMult else 1
-        for k in range(mult):
-            crtState = [trueState]
-            l = list(range(len(self._trueRuleStates)))
-            rand.shuffle(l)
-            for pos in l:
-                crtState.append(self._trueRuleStates[pos])
-            x.append(crtState)
-            y.append(trueOut)
-
-    def getBestNode(self):
-        return self._crtNode.getDeepBestNode()
-
-    def value(self):
-        if self._crtNode.isAIValuated():
-            return self._crtNode.aiValue()
-        return self._crtNode.value()
 
 def nthColounmOfIdentiy(pos):
     # assert(pos < DeepAI.MaxDepth +1)

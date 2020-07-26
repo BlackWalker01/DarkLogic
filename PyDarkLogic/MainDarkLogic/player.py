@@ -11,5 +11,5 @@ class Player:
     def meditate(self):
         pass
 
-    def setTheoremInfo(self, thName, thContent):
+    def setTheoremInfo(self):
         pass

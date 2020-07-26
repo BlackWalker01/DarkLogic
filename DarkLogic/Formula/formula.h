@@ -40,6 +40,7 @@ public:
     AbstractFormula(const AbstractFormula& formula) = delete;
     
     virtual std::string toString(unsigned short priorityParent=1000) const=0;
+    std::string toNormalizedString(unsigned short priorityParent = 1000) const;
     void print() const;
 
     virtual ValueType evaluate() const =0;
@@ -48,6 +49,11 @@ public:
 
     virtual const DbVar* getExtVars() const = 0;
 };
+
+namespace FormulaHelper
+{
+    std::string getVarNameFromId(const IDVar& idVar);
+}
 
 
 struct ParenthesisParam

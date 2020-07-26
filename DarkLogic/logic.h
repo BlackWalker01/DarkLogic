@@ -67,6 +67,7 @@ public:
     static void printTheorem(const size_t& instanceIdx);
     static std::string toStrTheorem();
     static std::string toStrTheorem(const size_t& instanceIdx);
+    static std::string toNormStrTheorem();
 
     //operator access methods
     static std::string theoremName();
@@ -133,6 +134,7 @@ private:
     void _learnRule();
     void _printTheorem();
     std::string _toStrTheorem() const;
+    std::string _toNormStrTheorem();
 
     //operator access methods
     const std::vector<Action::Id>& _getActions();

@@ -315,6 +315,11 @@ std::string N_DarkLogic::Logic::toStrTheorem(const size_t& instanceIdx)
     return s_instances[instanceIdx]->_toStrTheorem();
 }
 
+std::string N_DarkLogic::Logic::toNormStrTheorem()
+{
+    return s_masterInstance->_toNormStrTheorem();
+}
+
 std::string N_DarkLogic::Logic::theoremName()
 {
     return s_masterInstance->m_theoremName;
@@ -626,6 +631,11 @@ void N_DarkLogic::Logic::_printTheorem()
 std::string N_DarkLogic::Logic::_toStrTheorem() const
 {
     return m_theorem->toString();
+}
+
+std::string N_DarkLogic::Logic::_toNormStrTheorem()
+{
+    return m_theorem->toNormalizedString();
 }
 
 const std::vector<Action::Id>& N_DarkLogic::Logic::_getActions()

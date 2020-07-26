@@ -69,6 +69,7 @@ namespace N_DarkLogic
 		static void printTheorem();
 		static void printTheorem(const size_t& instanceIdx);
 		static std::string toStrTheorem();
+		static std::string toNormStrTheorem();
 		static std::string toStrTheorem(const size_t& instanceIdx);
 
 		//clear methods when the demonstration is over

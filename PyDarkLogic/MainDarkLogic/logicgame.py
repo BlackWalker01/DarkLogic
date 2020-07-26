@@ -120,8 +120,8 @@ class LogicGame:
     def _createAI(self):
         print("AI Mode")
         self._mode = Mode.AIMode
-        # nbInstances = multiprocessing.cpu_count()
-        nbInstances = 1
+        nbInstances = multiprocessing.cpu_count()
+        # nbInstances = 1
         DarkLogic.init(nbInstances)
         self._player = AI(0, nbInstances, LogicGame._AI_TIMEOUT)
 
@@ -149,7 +149,6 @@ class LogicGame:
                 print("Error in theorem content")
                 continue
             ok = DarkLogic.makeTheorem(thName, thStr)
-            self._player.setTheoremInfo(thName, thStr)
             if ok and self._mode == Mode.HumanMode:
                 print("-> getAction() : to print all possible actions")
                 print("-> pushAction(id) : to make action identified by id")
@@ -157,6 +156,7 @@ class LogicGame:
                       "apply) and path "
                       " (list of indexes [id1, id2, ..., idn]) in theorem ")
                 print("-> popAction : to cancel the latest action")
+        self._player.setTheoremInfo()
 
     def _pushActionStr(self, action):
         id = int(action)

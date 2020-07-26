@@ -107,6 +107,9 @@ class AI(Player):
     def _storeCrtNode(self):
         pass
 
+    def meditate(self):
+        self._crtNode = Node(ai=self)
+
     def getBestNode(self):
         return self._crtNode.getBestNode()
 

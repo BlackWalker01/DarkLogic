@@ -4,6 +4,7 @@ path = os.getcwd()
 import sys
 import time
 import random as rand
+from Database.state import State
 
 sys.path.append(path + "\..\..\Lib")
 from DarkLogic import DarkLogic
@@ -413,3 +414,34 @@ class Node:
 
     def isLoss(self):
         return self._isLoss
+
+    def getDbStates(self):
+        ret = []
+        DarkLogic.getActions()
+        if self.isEvaluated() and self.value() != Node.VAL_INIT and not (self.value() == Node.VAL_MAX
+                                                                         and not self.isLoss()):
+            ret.append(
+                State(name=DarkLogic.theoremName(), content=DarkLogic.toNormStrTheorem(), value=self._value))
+        else:
+            ret.append(State(name=DarkLogic.theoremName(), content=DarkLogic.toNormStrTheorem()))
+        for key in self._sons:
+            node = self._sons[key]
+            if node:
+                node.getDeepDbStates(ret, 1)
+        return ret
+
+    def getDeepDbStates(self, dbStates, depth):
+        DarkLogic.getActions()
+        DarkLogic.apply(self._actionId)
+        name = DarkLogic.theoremName()
+        content = DarkLogic.toNormStrTheorem()
+        if self.isEvaluated() and self.value() != Node.VAL_INIT and not (self.value() == Node.VAL_MAX
+                                                                         and not self.isLoss()):
+            dbStates.append(State(name=name, content=content, value=self._value))
+        else:
+            dbStates.append(State(name=name, content=content))
+        for key in self._sons:
+            node = self._sons[key]
+            if node:
+                node.getDeepDbStates(dbStates, depth + 1)
+        DarkLogic.unapply()

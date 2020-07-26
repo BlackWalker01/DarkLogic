@@ -31,6 +31,11 @@ VALUE_TYPE AbstractFormula<void>::valueType() const
     return VOID_TYPE;
 }
 
+std::string N_DarkLogic::FormulaHelper::getVarNameFromId(const IDVar& idVar)
+{
+    return AVariable::getVarNameFromId(idVar);
+}
+
 template<>
 VALUE_TYPE AbstractFormula<bool>::valueType() const
 {

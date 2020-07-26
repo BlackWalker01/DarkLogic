@@ -20,7 +20,11 @@ using namespace N_DarkLogic;
 ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::string &name, std::vector<OperatorOrdering> &opeList,
                                                std::vector<OperatorOrdering> &orderedOpeList, std::vector<std::shared_ptr<VariableContainer> > &varList)
 {
-    if(orderedOpeList.size())
+    if (opeList.size() != orderedOpeList.size())
+    {
+        throw std::runtime_error("Implementation error! Please contact support");
+    }
+    else if(orderedOpeList.size())
     {
         auto ope=orderedOpeList[0].ope;
         if(ope->name()==HYP)

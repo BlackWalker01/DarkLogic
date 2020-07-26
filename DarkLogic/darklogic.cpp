@@ -49,6 +49,7 @@ PYBIND11_MODULE(DarkLogic, m)
 		.def("printTheorem", py::overload_cast<const size_t&>(&DarkLogic::printTheorem))
 		.def("toStrTheorem", py::overload_cast<>(&DarkLogic::toStrTheorem))
 		.def("toStrTheorem", py::overload_cast<const size_t&>(&DarkLogic::toStrTheorem))
+		.def("toNormStrTheorem", py::overload_cast<>(&DarkLogic::toNormStrTheorem))
 
 		.def("clearAll", &DarkLogic::clearAll)
 		.def("clear", py::overload_cast<>(&DarkLogic::clear))
@@ -227,6 +228,11 @@ void N_DarkLogic::DarkLogic::printTheorem(const size_t& instanceIdx)
 std::string N_DarkLogic::DarkLogic::toStrTheorem()
 {
 	return Logic::toStrTheorem();
+}
+
+std::string N_DarkLogic::DarkLogic::toNormStrTheorem()
+{
+	return Logic::toNormStrTheorem();
 }
 
 std::string N_DarkLogic::DarkLogic::toStrTheorem(const size_t& instanceIdx)
