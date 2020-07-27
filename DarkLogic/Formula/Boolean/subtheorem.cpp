@@ -987,7 +987,7 @@ void SubTheorem<Implication<ASubTheorem>>::initEval()
         }
         else if (rightProp->canBeDemonstrated())
         {
-            if (!rightProp->getHiddenValue())
+            if (rightProp->getHiddenValue())
             {
                 m_eval->setHiddenValue(true);
             }

@@ -154,14 +154,15 @@ class DeepAI(AI):
         self._storeNodes.append(self._crtNode)
 
     def meditate(self):
-        self._gamesSinceLastLearning += 1
-        DarkLogic.makeTheorem(self._theoremName, self._theorem)
-        self._db.export(self._storeNodes[0].getDbStates())
-        if self._gamesSinceLastLearning == DeepAI.MaxGameBefLearning:
-            self._train()
-            self._gamesSinceLastLearning = 0
-        self._storeNodes.clear()
-        DarkLogic.clear()
+        if len(self._storeNodes) > 0:
+            self._gamesSinceLastLearning += 1
+            DarkLogic.makeTheorem(self._theoremName, self._theorem)
+            self._db.export(self._storeNodes[0].getDbStates())
+            if self._gamesSinceLastLearning == DeepAI.MaxGameBefLearning:
+                self._train()
+                self._gamesSinceLastLearning = 0
+            self._storeNodes.clear()
+            DarkLogic.clearAll()
         super().meditate()
 
     def getTrainingStates(self, val, x, y):

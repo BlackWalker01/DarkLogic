@@ -418,12 +418,13 @@ class Node:
     def getDbStates(self):
         ret = []
         DarkLogic.getActions()
+        name = DarkLogic.theoremName()
+        content = DarkLogic.toNormStrTheorem()
         if self.isEvaluated() and self.value() != Node.VAL_INIT and not (self.value() == Node.VAL_MAX
                                                                          and not self.isLoss()):
-            ret.append(
-                State(name=DarkLogic.theoremName(), content=DarkLogic.toNormStrTheorem(), value=self._value))
+            ret.append(State(name=name, content=content, value=self._value))
         else:
-            ret.append(State(name=DarkLogic.theoremName(), content=DarkLogic.toNormStrTheorem()))
+            ret.append(State(name=name, content=content))
         for key in self._sons:
             node = self._sons[key]
             if node:
