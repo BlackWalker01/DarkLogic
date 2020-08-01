@@ -27,14 +27,15 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
     else if(orderedOpeList.size())
     {
         auto ope=orderedOpeList[0].ope;
+        auto firstOrderedOpe = orderedOpeList[0];
         if(ope->name()==HYP)
         {
             orderedOpeList.erase(orderedOpeList.begin());
             opeList.erase(opeList.begin());
-            std::vector<OperatorOrdering> topOpeList, topOrderedOpeList, queueOpeList, queueOrderedOpeList;
             std::vector<ptr<IISubTheoremFormula>> subProps;
             for(size_t k=0;k<ope->arity();k++)
             {
+                std::vector<OperatorOrdering> topOpeList, topOrderedOpeList, queueOpeList, queueOrderedOpeList;
                 if (orderedOpeList.size())
                 {
                     //split between topOrderedOpeList and queueOrderedOpeList
@@ -42,7 +43,8 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                     std::unordered_map<ptr<IOperator>, OperatorOrdering> hashRightOpe;
                     for (size_t i = 0; i < orderedOpeList.size(); i++)
                     {
-                        if (orderedOpeList[i].argIndex == k)
+                        if (orderedOpeList[i].argIndex == k &&
+                            firstOrderedOpe.hyps.size()+1 == orderedOpeList[i].hyps.size())
                         {
                             topOrderedOpeList.push_back(orderedOpeList[i]);
                             auto ope = &(orderedOpeList[i]);

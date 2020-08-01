@@ -48,8 +48,8 @@ public:
 template<> struct ToTheoremStruct<ASubRule> { using Type = ASubTheorem; };
 
 ptr<IOperator> createRuleOperator(const Name name, const Arity& arity=0);
-void addRuleOperator(const Name name, std::vector<OperatorOrdering> &opeList,
-                     const std::vector<OperatorOrdering>& hyps, const size_t &numPar);
+void addRuleOperator(const Name name, std::vector<OperatorOrdering> &opeList, 
+                     const std::vector<OperatorOrdering>& hyps, const std::vector<size_t>& hypStack, const size_t &numPar);
 }
 
 #endif // DARK_LOGIC_ASUBRULE_H

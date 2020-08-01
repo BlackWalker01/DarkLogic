@@ -64,13 +64,12 @@ ptr<ASubRule> N_DarkLogic::createRule(const std::string &name, const std::string
 
     //look for operators and variables
     size_t numPar=0;
-    std::vector<ParenthesisParam> parenthesisParams; //first is parenthesis level of hypothesis operator, second is the current number of argument
-    parenthesisParams.push_back(ParenthesisParam());
     Name crtNameOpe=NONE;
     std::string crtVar="";
     std::vector<OperatorOrdering> opeList;
     //std::vector<unsigned short> parLvlList; //parenthesis level list
     std::vector<OperatorOrdering> hyps;
+    std::vector<size_t> hypStack;
     std::vector<std::shared_ptr<VariableContainer>> varList;
     DbVarContainer dbVar;
     for (size_t k = 0; k < content.size(); k++)
@@ -80,7 +79,6 @@ ptr<ASubRule> N_DarkLogic::createRule(const std::string &name, const std::string
         {
         case '(':
         {
-            parenthesisParams.push_back(ParenthesisParam(numPar, opeList.size()));
             numPar++;
             continue;
         }
@@ -89,9 +87,9 @@ ptr<ASubRule> N_DarkLogic::createRule(const std::string &name, const std::string
             if (hyps.size() && hyps.back().nbPar == numPar)
             {
                 hyps.pop_back();
+                hypStack.pop_back();
             }
             numPar--;
-            parenthesisParams.pop_back();
             continue;
         }
         case ' ':
@@ -101,11 +99,11 @@ ptr<ASubRule> N_DarkLogic::createRule(const std::string &name, const std::string
         //hypothesis cases
         case '{':
         {
-            parenthesisParams.push_back(ParenthesisParam(numPar, opeList.size()));
-            numPar++;
             OperatorOrdering opeOrdering;
-            opeOrdering.nbPar = parenthesisParams.back().nbPar;
+            opeOrdering.nbPar = numPar;
+            opeOrdering.hyps = hypStack;
             hyps.push_back(opeOrdering);
+            hypStack.push_back(opeList.size());
             continue;
         }
         case ',':
@@ -122,20 +120,13 @@ ptr<ASubRule> N_DarkLogic::createRule(const std::string &name, const std::string
         }
         case '}':
         {
-            if ((numPar == parenthesisParams.back().nbPar + 1) && hyps.size())
+            if (hyps.size() && numPar == hyps.back().nbPar && hypStack.size())
             {
                 hyps.back().nbArgs++;
-                if (hyps.back().nbArgs > 0)
-                {
-                    hyps.back().nbArgs++; //increment to add implication of hypothesis operator in its arity
-                    auto it = opeList.begin() + static_cast<long long>(parenthesisParams.back().indexInOpeList);
-                    hyps.back().ope = createRuleOperator(HYP, hyps.back().nbArgs);
-                    /*OperatorOrdering opeOrdering(createRuleOperator(HYP,hyps.back().nbArgs),
-                                                 parenthesisParams.back().nbPar,hyps[parenthesisParams.size()-2].nbArgs);*/
-                    opeList.insert(it, hyps.back());
-                }
-                numPar--;
-                parenthesisParams.pop_back();
+                hyps.back().nbArgs++; //increment to add implication of hypothesis operator in its arity
+                auto it = opeList.begin() + static_cast<long long>(hypStack.back());
+                hyps.back().ope = createRuleOperator(HYP, hyps.back().nbArgs);
+                opeList.insert(it, hyps.back());
             }
             else
             {
@@ -152,7 +143,7 @@ ptr<ASubRule> N_DarkLogic::createRule(const std::string &name, const std::string
         size_t crtK = k;
         if ((crtNameOpe = IOperator::getNextOpeName(content, k)))
         {
-            addRuleOperator(crtNameOpe, opeList, hyps, numPar);
+            addRuleOperator(crtNameOpe, opeList, hyps, hypStack, numPar);
             crtNameOpe = NONE;
             k--;
         }

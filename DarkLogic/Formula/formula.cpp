@@ -74,6 +74,54 @@ std::vector<N_DarkLogic::OperatorOrdering> N_DarkLogic::orderOperator(std::vecto
         return fusion(orderOperator(opeList1),orderOperator(opeList2));
     }
 }
+
+/**
+ * return 1 if tab1 > tab2
+ * return 0 if tab1 == tab2
+ * return -1 if tab1 < tab2
+*/
+int compareTab(const std::vector<size_t>& tab1, const std::vector<size_t>& tab2)
+{
+    if (tab1.size() > tab2.size())
+    {
+        for (size_t k = 0; k < tab2.size(); k++)
+        {
+            if(tab2[k] > tab1[k])
+            {
+                return -1;
+            }
+        }
+        return 1;
+    }
+    else if (tab1.size() == tab2.size())
+    {
+        for (size_t k = 0; k < tab1.size(); k++)
+        {
+            if (tab1[k] > tab2[k])
+            {
+                return 1;
+            }
+            else if (tab2[k] > tab1[k])
+            {
+                return -1;
+            }
+        }
+        return 0;
+    }
+    else
+    {
+        for (size_t k = 0; k < tab1.size(); k++)
+        {
+            if (tab1[k] > tab2[k])
+            {
+                return 1;
+            }
+        }
+        return -1;
+    }
+    return 0;
+}
+
 /**
  * @brief N_LogicGame::fusion
  * @param opeList1 = ope1::q1
@@ -116,75 +164,96 @@ std::vector<N_DarkLogic::OperatorOrdering> N_DarkLogic::fusion(const std::vector
         //if ope1 and ope2 are in the same parenthesis
         else
         {
-            //if ope1 comes before ope2 in the arguments of the current function, then return ope1::fusion(q1,opeList2)
-            if(opeList1[0].argIndex<opeList2[0].argIndex)
+            auto cmp = compareTab(opeList1[0].hyps, opeList2[0].hyps);
+            if (cmp < 0)
             {
-                std::vector<OperatorOrdering> t1(opeList1.begin(),opeList1.begin()+1);
-                std::vector<OperatorOrdering> queueOpeList1(opeList1.begin()+1,opeList1.end());
-                std::vector<OperatorOrdering> t2=fusion(queueOpeList1,opeList2);
-                auto ret=t1;
-                ret.insert(ret.end(),t2.begin(),t2.end());
+                std::vector<OperatorOrdering> t1(opeList1.begin(), opeList1.begin() + 1);
+                std::vector<OperatorOrdering> queueOpeList1(opeList1.begin() + 1, opeList1.end());
+                std::vector<OperatorOrdering> t2 = fusion(queueOpeList1, opeList2);
+                auto ret = t1;
+                ret.insert(ret.end(), t2.begin(), t2.end());
                 return ret;
             }
-            //if ope2 comes before ope1 in the arguments of the current function, then return ope2::fusion(opeList1,q2)
-            else if(opeList1[0].argIndex>opeList2[0].argIndex)
+            else if (cmp > 0)
             {
-                std::vector<OperatorOrdering> t1(opeList2.begin(),opeList2.begin()+1);
-                std::vector<OperatorOrdering> queueOpeList2(opeList2.begin()+1,opeList2.end());
-                std::vector<OperatorOrdering> t2=fusion(opeList1,queueOpeList2);
-                auto ret=t1;
-                ret.insert(ret.end(),t2.begin(),t2.end());
+                std::vector<OperatorOrdering> t1(opeList2.begin(), opeList2.begin() + 1);
+                std::vector<OperatorOrdering> queueOpeList2(opeList2.begin() + 1, opeList2.end());
+                std::vector<OperatorOrdering> t2 = fusion(opeList1, queueOpeList2);
+                auto ret = t1;
+                ret.insert(ret.end(), t2.begin(), t2.end());
                 return ret;
             }
-            //if ope1 and ope2 are in the same argument of the current function
             else
             {
-                //IOperator* ope1=opeList1[0].ope;
-                //IOperator* ope2=opeList2[0].ope;
-                if(opeList1[0].ope->priority()>opeList2[0].ope->priority())
+                //if ope1 comes before ope2 in the arguments of the current function, then return ope1::fusion(q1,opeList2)
+                if (opeList1[0].argIndex < opeList2[0].argIndex)
                 {
-                    std::vector<OperatorOrdering> t1(opeList1.begin(),opeList1.begin()+1);
-                    std::vector<OperatorOrdering> queueOpeList1(opeList1.begin()+1,opeList1.end());
-                    std::vector<OperatorOrdering> t2=fusion(queueOpeList1,opeList2);
-                    auto ret=t1;
-                    ret.insert(ret.end(),t2.begin(),t2.end());
+                    std::vector<OperatorOrdering> t1(opeList1.begin(), opeList1.begin() + 1);
+                    std::vector<OperatorOrdering> queueOpeList1(opeList1.begin() + 1, opeList1.end());
+                    std::vector<OperatorOrdering> t2 = fusion(queueOpeList1, opeList2);
+                    auto ret = t1;
+                    ret.insert(ret.end(), t2.begin(), t2.end());
                     return ret;
                 }
-                else if(opeList1[0].ope->priority()<opeList2[0].ope->priority())
+                //if ope2 comes before ope1 in the arguments of the current function, then return ope2::fusion(opeList1,q2)
+                else if (opeList1[0].argIndex > opeList2[0].argIndex)
                 {
-                    std::vector<OperatorOrdering> t1(opeList2.begin(),opeList2.begin()+1);
-                    std::vector<OperatorOrdering> queueOpeList2(opeList2.begin()+1,opeList2.end());
-                    std::vector<OperatorOrdering> t2=fusion(opeList1,queueOpeList2);
-                    auto ret=t1;
-                    ret.insert(ret.end(),t2.begin(),t2.end());
+                    std::vector<OperatorOrdering> t1(opeList2.begin(), opeList2.begin() + 1);
+                    std::vector<OperatorOrdering> queueOpeList2(opeList2.begin() + 1, opeList2.end());
+                    std::vector<OperatorOrdering> t2 = fusion(opeList1, queueOpeList2);
+                    auto ret = t1;
+                    ret.insert(ret.end(), t2.begin(), t2.end());
                     return ret;
                 }
+                //if ope1 and ope2 are in the same argument of the current function
                 else
                 {
-                    switch(opeList1[0].ope->associativity())
+                    //IOperator* ope1=opeList1[0].ope;
+                    //IOperator* ope2=opeList2[0].ope;
+                    if (opeList1[0].ope->priority() > opeList2[0].ope->priority())
                     {
+                        std::vector<OperatorOrdering> t1(opeList1.begin(), opeList1.begin() + 1);
+                        std::vector<OperatorOrdering> queueOpeList1(opeList1.begin() + 1, opeList1.end());
+                        std::vector<OperatorOrdering> t2 = fusion(queueOpeList1, opeList2);
+                        auto ret = t1;
+                        ret.insert(ret.end(), t2.begin(), t2.end());
+                        return ret;
+                    }
+                    else if (opeList1[0].ope->priority() < opeList2[0].ope->priority())
+                    {
+                        std::vector<OperatorOrdering> t1(opeList2.begin(), opeList2.begin() + 1);
+                        std::vector<OperatorOrdering> queueOpeList2(opeList2.begin() + 1, opeList2.end());
+                        std::vector<OperatorOrdering> t2 = fusion(opeList1, queueOpeList2);
+                        auto ret = t1;
+                        ret.insert(ret.end(), t2.begin(), t2.end());
+                        return ret;
+                    }
+                    else
+                    {
+                        switch (opeList1[0].ope->associativity())
+                        {
                         case Associativity::LEFT:
                         {
-                            std::vector<OperatorOrdering> t1(opeList1.begin(),opeList1.begin()+1);
-                            std::vector<OperatorOrdering> queueOpeList1(opeList1.begin()+1,opeList1.end());
-                            std::vector<OperatorOrdering> t2=fusion(queueOpeList1,opeList2);
-                            auto ret=t1;
-                            ret.insert(ret.end(),t2.begin(),t2.end());
+                            std::vector<OperatorOrdering> t1(opeList1.begin(), opeList1.begin() + 1);
+                            std::vector<OperatorOrdering> queueOpeList1(opeList1.begin() + 1, opeList1.end());
+                            std::vector<OperatorOrdering> t2 = fusion(queueOpeList1, opeList2);
+                            auto ret = t1;
+                            ret.insert(ret.end(), t2.begin(), t2.end());
                             return ret;
                         }
                         case Associativity::RIGHT:
                         {
-                            std::vector<OperatorOrdering> t1(opeList2.begin(),opeList2.begin()+1);
-                            std::vector<OperatorOrdering> queueOpeList2(opeList2.begin()+1,opeList2.end());
-                            std::vector<OperatorOrdering> t2=fusion(opeList1,queueOpeList2);
-                            auto ret=t1;
-                            ret.insert(ret.end(),t2.begin(),t2.end());
+                            std::vector<OperatorOrdering> t1(opeList2.begin(), opeList2.begin() + 1);
+                            std::vector<OperatorOrdering> queueOpeList2(opeList2.begin() + 1, opeList2.end());
+                            std::vector<OperatorOrdering> t2 = fusion(opeList1, queueOpeList2);
+                            auto ret = t1;
+                            ret.insert(ret.end(), t2.begin(), t2.end());
                             return ret;
+                        }
                         }
                     }
                 }
             }
-
         }
     }
     std::vector<OperatorOrdering> ret;
@@ -203,31 +272,15 @@ N_DarkLogic::OperatorOrdering::OperatorOrdering(): ope(nullptr), nbPar(0), argIn
 {
 }*/
 
-N_DarkLogic::OperatorOrdering::OperatorOrdering(const ptr<IOperator> &ope_, const size_t &nbPar_, const size_t &argIndex_):
-    ope(ope_), nbPar(nbPar_), argIndex(argIndex_), nbArgs(0)
+N_DarkLogic::OperatorOrdering::OperatorOrdering(const ptr<IOperator> &ope_, const size_t &nbPar_, const std::vector<size_t>& hypStack, 
+    const size_t &argIndex_):
+    ope(ope_), nbPar(nbPar_), argIndex(argIndex_), nbArgs(0), hyps(hypStack)
 {
 
 }
 
 N_DarkLogic::OperatorOrdering::OperatorOrdering(const OperatorOrdering &opeOrdering): ope(opeOrdering.ope),
-    nbPar(opeOrdering.nbPar), argIndex(opeOrdering.argIndex), nbArgs(opeOrdering.nbArgs)
-{
-
-}
-
-N_DarkLogic::ParenthesisParam::ParenthesisParam(): nbPar(0), indexInOpeList(0)
-{
-
-}
-
-N_DarkLogic::ParenthesisParam::ParenthesisParam(const size_t &nbPar_, const size_t &indexInOpeList_):
-    nbPar(nbPar_), indexInOpeList(indexInOpeList_)
-{
-
-}
-
-N_DarkLogic::ParenthesisParam::ParenthesisParam(const ParenthesisParam &parenthesisParam):
-    nbPar(parenthesisParam.nbPar), indexInOpeList(parenthesisParam.indexInOpeList)
+    nbPar(opeOrdering.nbPar), argIndex(opeOrdering.argIndex), nbArgs(opeOrdering.nbArgs), hyps(opeOrdering.hyps)
 {
 
 }

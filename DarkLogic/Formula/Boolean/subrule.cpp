@@ -30,10 +30,10 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
         {
             orderedOpeList.erase(orderedOpeList.begin());
             opeList.erase(opeList.begin());
-            std::vector<OperatorOrdering> topOpeList, topOrderedOpeList, queueOpeList, queueOrderedOpeList;
             std::vector<ptr<IISubRuleFormula>> subProps;
             for(size_t k=0;k<ope->arity();k++)
             {
+                std::vector<OperatorOrdering> topOpeList, topOrderedOpeList, queueOpeList, queueOrderedOpeList;
                 if (orderedOpeList.size())
                 {
                     //split between topOrderedOpeList and queueOrderedOpeList

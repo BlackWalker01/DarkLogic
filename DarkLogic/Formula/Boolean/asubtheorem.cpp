@@ -175,7 +175,8 @@ ptr<IOperator> N_DarkLogic::createTheoremOperator(const Name name, const N_DarkL
 
 
 void N_DarkLogic::addTheoremOperator(const Name opeName, std::vector<OperatorOrdering> &opeList,
-                                    const std::vector<OperatorOrdering> &hyps, const size_t &numPar, const std::string &name, size_t &index)
+                                    const std::vector<OperatorOrdering> &hyps, const std::vector<size_t>& hypStack, 
+                                    const size_t &numPar, const std::string &name, size_t &index)
 {
     ptr<IOperator> ope=nullptr;
     if((ope=createTheoremOperator(opeName)))
@@ -186,16 +187,16 @@ void N_DarkLogic::addTheoremOperator(const Name opeName, std::vector<OperatorOrd
             //if it is operator in conclusion part of hypothesis operator
             if (hyps.back().ope)
             {
-                opeList.push_back(OperatorOrdering(ope, numPar, hyps.back().nbArgs-1));
+                opeList.push_back(OperatorOrdering(ope, numPar, hypStack, hyps.back().nbArgs-1));
             }
             else
             {
-                opeList.push_back(OperatorOrdering(ope, numPar, hyps.back().nbArgs));
+                opeList.push_back(OperatorOrdering(ope, numPar, hypStack, hyps.back().nbArgs));
             }            
         }
         else
         {
-            opeList.push_back(OperatorOrdering(ope,numPar,0));
+            opeList.push_back(OperatorOrdering(ope,numPar, hypStack, 0));
         }
     }
     else

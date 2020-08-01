@@ -55,28 +55,18 @@ namespace FormulaHelper
     std::string getVarNameFromId(const IDVar& idVar);
 }
 
-
-struct ParenthesisParam
-{
-    ParenthesisParam();
-    ParenthesisParam(const size_t& nbPar_, const size_t& indexInOpeList_);
-    ParenthesisParam(const ParenthesisParam& parenthesisParam);
-
-    size_t nbPar;
-    size_t indexInOpeList;
-};
-
 struct OperatorOrdering
 {
     OperatorOrdering();
     //OperatorOrdering(const ptr<IOperator>& ope_, const size_t& nbPar_);
-    OperatorOrdering(const ptr<IOperator>& ope_, const size_t& nbPar_, const size_t& argIndex_);
+    OperatorOrdering(const ptr<IOperator>& ope_, const size_t& nbPar_, const std::vector<size_t>& hypStack, const size_t& argIndex_);
     OperatorOrdering(const OperatorOrdering& opeOrdering);
 
     std::shared_ptr<const IOperator> ope; //operator to order
     size_t nbPar; //number of unclosed parenthesis before the operator
     size_t argIndex; //index in variadic operator over this operator
     size_t nbArgs;
+    std::vector<size_t> hyps; //index of hypothesis operator in which current operator is
 };
 
 struct VariableContainer
