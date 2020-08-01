@@ -64,6 +64,7 @@ ptr<ASubRule> N_DarkLogic::createRule(const std::string &name, const std::string
 
     //look for operators and variables
     size_t numPar=0;
+    size_t nbBraceBracket = 0;
     Name crtNameOpe=NONE;
     std::string crtVar="";
     std::vector<OperatorOrdering> opeList;
@@ -84,7 +85,12 @@ ptr<ASubRule> N_DarkLogic::createRule(const std::string &name, const std::string
         }
         case ')':
         {
-            if (hyps.size() && hyps.back().nbPar == numPar)
+            if (numPar == 0)
+            {
+                throw std::runtime_error("Unexpected ')' character at " + sizeToString(k) + " index");
+            }
+            // close all hypothesis operators in that parenthesis
+            while (hyps.size() && hyps.back().nbPar == numPar)
             {
                 hyps.pop_back();
                 hypStack.pop_back();
@@ -102,8 +108,20 @@ ptr<ASubRule> N_DarkLogic::createRule(const std::string &name, const std::string
             OperatorOrdering opeOrdering;
             opeOrdering.nbPar = numPar;
             opeOrdering.hyps = hypStack;
+            if (hyps.size())
+            {
+                if (hyps.back().foundCcl)
+                {
+                    opeOrdering.argIndex = hyps.back().nbArgs - 1;
+                }
+                else
+                {
+                    opeOrdering.argIndex = hyps.back().nbArgs;
+                }
+            }
             hyps.push_back(opeOrdering);
             hypStack.push_back(opeList.size());
+            nbBraceBracket++;
             continue;
         }
         case ',':
@@ -120,12 +138,21 @@ ptr<ASubRule> N_DarkLogic::createRule(const std::string &name, const std::string
         }
         case '}':
         {
+            nbBraceBracket--;
+            // close latest hypothesis operators if necessary
+            while (nbBraceBracket + 2 <= hyps.size() && hyps[hyps.size() - 2].nbPar == hyps[hyps.size() - 1].nbPar
+                && hyps[hyps.size() - 1].foundCcl)
+            {
+                hyps.pop_back();
+                hypStack.pop_back();
+            }
             if (hyps.size() && numPar == hyps.back().nbPar && hypStack.size())
             {
                 hyps.back().nbArgs++;
                 hyps.back().nbArgs++; //increment to add implication of hypothesis operator in its arity
                 auto it = opeList.begin() + static_cast<long long>(hypStack.back());
                 hyps.back().ope = createRuleOperator(HYP, hyps.back().nbArgs);
+                hyps.back().foundCcl = true;
                 opeList.insert(it, hyps.back());
             }
             else

@@ -141,31 +141,31 @@ std::vector<N_DarkLogic::OperatorOrdering> N_DarkLogic::fusion(const std::vector
     }
     else
     {
-        //if ope1 is in less parenthesis than ope2, then return ope1::fusion(q1,opeList2)
-        if(opeList1[0].nbPar<opeList2[0].nbPar)
+        // check function calls
+        auto cmp = compareTab(opeList1[0].hyps, opeList2[0].hyps);
+        if (cmp < 0)
         {
-            std::vector<OperatorOrdering> t1(opeList1.begin(),opeList1.begin()+1);
-            std::vector<OperatorOrdering> queueOpeList1(opeList1.begin()+1,opeList1.end());
-            std::vector<OperatorOrdering> t2=fusion(queueOpeList1,opeList2);
-            auto ret=t1;
-            ret.insert(ret.end(),t2.begin(),t2.end());
+            std::vector<OperatorOrdering> t1(opeList1.begin(), opeList1.begin() + 1);
+            std::vector<OperatorOrdering> queueOpeList1(opeList1.begin() + 1, opeList1.end());
+            std::vector<OperatorOrdering> t2 = fusion(queueOpeList1, opeList2);
+            auto ret = t1;
+            ret.insert(ret.end(), t2.begin(), t2.end());
             return ret;
         }
-        //if ope2 is in less parenthesis than ope1, then return ope2::fusion(opeList1,q2)
-        else if(opeList1[0].nbPar>opeList2[0].nbPar)
+        else if (cmp > 0)
         {
-            std::vector<OperatorOrdering> t1(opeList2.begin(),opeList2.begin()+1);
-            std::vector<OperatorOrdering> queueOpeList2(opeList2.begin()+1,opeList2.end());
-            std::vector<OperatorOrdering> t2=fusion(opeList1,queueOpeList2);
-            auto ret=t1;
-            ret.insert(ret.end(),t2.begin(),t2.end());
+            std::vector<OperatorOrdering> t1(opeList2.begin(), opeList2.begin() + 1);
+            std::vector<OperatorOrdering> queueOpeList2(opeList2.begin() + 1, opeList2.end());
+            std::vector<OperatorOrdering> t2 = fusion(opeList1, queueOpeList2);
+            auto ret = t1;
+            ret.insert(ret.end(), t2.begin(), t2.end());
             return ret;
         }
-        //if ope1 and ope2 are in the same parenthesis
+        // if ope1 and ope2 are in the same function
         else
         {
-            auto cmp = compareTab(opeList1[0].hyps, opeList2[0].hyps);
-            if (cmp < 0)
+            //if ope1 comes before ope2 in the arguments of the current function, then return ope1::fusion(q1,opeList2)
+            if (opeList1[0].argIndex < opeList2[0].argIndex)
             {
                 std::vector<OperatorOrdering> t1(opeList1.begin(), opeList1.begin() + 1);
                 std::vector<OperatorOrdering> queueOpeList1(opeList1.begin() + 1, opeList1.end());
@@ -174,7 +174,8 @@ std::vector<N_DarkLogic::OperatorOrdering> N_DarkLogic::fusion(const std::vector
                 ret.insert(ret.end(), t2.begin(), t2.end());
                 return ret;
             }
-            else if (cmp > 0)
+            //if ope2 comes before ope1 in the arguments of the current function, then return ope2::fusion(opeList1,q2)
+            else if (opeList1[0].argIndex > opeList2[0].argIndex)
             {
                 std::vector<OperatorOrdering> t1(opeList2.begin(), opeList2.begin() + 1);
                 std::vector<OperatorOrdering> queueOpeList2(opeList2.begin() + 1, opeList2.end());
@@ -183,10 +184,11 @@ std::vector<N_DarkLogic::OperatorOrdering> N_DarkLogic::fusion(const std::vector
                 ret.insert(ret.end(), t2.begin(), t2.end());
                 return ret;
             }
+            //if ope1 and ope2 are in the same argument of the current function
             else
             {
-                //if ope1 comes before ope2 in the arguments of the current function, then return ope1::fusion(q1,opeList2)
-                if (opeList1[0].argIndex < opeList2[0].argIndex)
+                //if ope1 is in less parenthesis than ope2, then return ope1::fusion(q1,opeList2)
+                if (opeList1[0].nbPar < opeList2[0].nbPar)
                 {
                     std::vector<OperatorOrdering> t1(opeList1.begin(), opeList1.begin() + 1);
                     std::vector<OperatorOrdering> queueOpeList1(opeList1.begin() + 1, opeList1.end());
@@ -195,8 +197,8 @@ std::vector<N_DarkLogic::OperatorOrdering> N_DarkLogic::fusion(const std::vector
                     ret.insert(ret.end(), t2.begin(), t2.end());
                     return ret;
                 }
-                //if ope2 comes before ope1 in the arguments of the current function, then return ope2::fusion(opeList1,q2)
-                else if (opeList1[0].argIndex > opeList2[0].argIndex)
+                //if ope2 is in less parenthesis than ope1, then return ope2::fusion(opeList1,q2)
+                else if (opeList1[0].nbPar > opeList2[0].nbPar)
                 {
                     std::vector<OperatorOrdering> t1(opeList2.begin(), opeList2.begin() + 1);
                     std::vector<OperatorOrdering> queueOpeList2(opeList2.begin() + 1, opeList2.end());
@@ -205,11 +207,9 @@ std::vector<N_DarkLogic::OperatorOrdering> N_DarkLogic::fusion(const std::vector
                     ret.insert(ret.end(), t2.begin(), t2.end());
                     return ret;
                 }
-                //if ope1 and ope2 are in the same argument of the current function
+                //if ope1 and ope2 are in the same parenthesis
                 else
                 {
-                    //IOperator* ope1=opeList1[0].ope;
-                    //IOperator* ope2=opeList2[0].ope;
                     if (opeList1[0].ope->priority() > opeList2[0].ope->priority())
                     {
                         std::vector<OperatorOrdering> t1(opeList1.begin(), opeList1.begin() + 1);
@@ -262,7 +262,7 @@ std::vector<N_DarkLogic::OperatorOrdering> N_DarkLogic::fusion(const std::vector
 
 
 
-N_DarkLogic::OperatorOrdering::OperatorOrdering(): ope(nullptr), nbPar(0), argIndex(0), nbArgs(0)
+N_DarkLogic::OperatorOrdering::OperatorOrdering(): ope(nullptr), nbPar(0), argIndex(0), nbArgs(0), foundCcl(false)
 {
 
 }
@@ -274,13 +274,14 @@ N_DarkLogic::OperatorOrdering::OperatorOrdering(): ope(nullptr), nbPar(0), argIn
 
 N_DarkLogic::OperatorOrdering::OperatorOrdering(const ptr<IOperator> &ope_, const size_t &nbPar_, const std::vector<size_t>& hypStack, 
     const size_t &argIndex_):
-    ope(ope_), nbPar(nbPar_), argIndex(argIndex_), nbArgs(0), hyps(hypStack)
+    ope(ope_), nbPar(nbPar_), argIndex(argIndex_), nbArgs(0), hyps(hypStack), foundCcl(false)
 {
 
 }
 
 N_DarkLogic::OperatorOrdering::OperatorOrdering(const OperatorOrdering &opeOrdering): ope(opeOrdering.ope),
-    nbPar(opeOrdering.nbPar), argIndex(opeOrdering.argIndex), nbArgs(opeOrdering.nbArgs), hyps(opeOrdering.hyps)
+    nbPar(opeOrdering.nbPar), argIndex(opeOrdering.argIndex), nbArgs(opeOrdering.nbArgs), hyps(opeOrdering.hyps),
+    foundCcl(opeOrdering.foundCcl)
 {
 
 }

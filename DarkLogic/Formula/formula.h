@@ -67,6 +67,7 @@ struct OperatorOrdering
     size_t argIndex; //index in variadic operator over this operator
     size_t nbArgs;
     std::vector<size_t> hyps; //index of hypothesis operator in which current operator is
+    bool foundCcl; // is true if and only if operator is hypothesis and parser already found is closing brace bracket
 };
 
 struct VariableContainer
