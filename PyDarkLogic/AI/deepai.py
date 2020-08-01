@@ -28,7 +28,7 @@ class DeepAI(AI):
     NbOperators = 30
     NbTerms = NbOperators
     MaxDepth = 25
-    MultExamples = 1000
+    MultExamples = 500
     MaxGameBefLearning = 1
     ModelFile = "AI/deepAIModel"
 
@@ -50,6 +50,7 @@ class DeepAI(AI):
             # create model
             self._model = createModel(len(self._trueRuleStates) + 1)
         self._modelMutex = Lock()
+        self._train()
 
     def getTrueState(self, threadIdx):
         return [makeTrueState(DarkLogic.getState(threadIdx))] + self._trueRuleStates
@@ -89,37 +90,30 @@ class DeepAI(AI):
         # node.getTrainNodes(x, y)
         dbStates = self._db.getDatas()
         nbExcludedTh = 0
+        nbSelectedTh = 0
+        print("Total number of theorems in database: "+str(len(dbStates)))
         for dbState in dbStates.values():
             if dbState.isEvaluated():
+                nbSelectedTh += 1
                 thCreated = DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
                 if thCreated:
-                    state = [makeTrueState(DarkLogic.getState())]
-                    l = list(range(len(self._trueRuleStates)))
-                    for pos in l:
-                        state.append(self._trueRuleStates[pos])
-                    x.append(state)
-                    if dbState.value() > DeepAI.MaxDepth:
-                        y.append(nthColounmOfIdentiy(DeepAI.MaxDepth))
-                    else:
-                        y.append(nthColounmOfIdentiy(dbState.value()))
-                    DarkLogic.clear()
+                    multExamples = DeepAI.MultExamples if dbState.value() < DeepAI.MaxDepth else 1
+                    for k in range(multExamples):
+                        state = [makeTrueState(DarkLogic.getState())]
+                        l = list(range(len(self._trueRuleStates)))
+                        for pos in l:
+                            state.append(self._trueRuleStates[pos])
+                        x.append(state)
+                        if dbState.value() > DeepAI.MaxDepth:
+                            y.append(nthColounmOfIdentiy(DeepAI.MaxDepth))
+                        else:
+                            y.append(nthColounmOfIdentiy(dbState.value()))
+                    DarkLogic.clearAll()
                 else:
                     nbExcludedTh += 1
                     print("Excluded theorem: "+dbState.theoremContent())
         if nbExcludedTh > 0:
-            print("number of excluded theorems: "+str(nbExcludedTh)+"/"+str(len(dbStates)))
-
-        """
-        # create examples
-        for k in range(DeepAI.MultExamples):
-            l = list(range(len(self._trueRuleStates)))
-            newRuleStates = []
-            n = rand.randint(0, len(self._trueRuleStates) - 1)
-            newRuleStates.append(self._trueRuleStates[l[n]])
-            for pos in l:
-                newRuleStates.append(self._trueRuleStates[pos])
-            x.append(np.array(newRuleStates))
-            y.append(np.array(nthColounmOfIdentiy(1)))"""
+            print("number of excluded theorems: "+str(nbExcludedTh)+"/"+str(nbSelectedTh))
 
         # shuffle examples
         print("shuffle " + str(len(x)) + " examples ...")
@@ -231,7 +225,7 @@ def createModel(inputSize):
     outputs = layers.Dense(DeepAI.MaxDepth + 1, activation="softmax")(x)
 
     model = keras.Model(inputs, outputs, name="deepai")
-    opt = keras.optimizers.Adam(learning_rate=0.002)
+    opt = keras.optimizers.Adam(learning_rate=0.0005)
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
     model.save(DeepAI.ModelFile)
     return model
