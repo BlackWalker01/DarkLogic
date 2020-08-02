@@ -139,7 +139,15 @@ class DeepAI(AI):
         y_train = y[:pos]
         y_test = y[pos:]
         print("training on " + str(len(x_train)) + " training examples")
-        callbacks = [keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=20, verbose=1)]
+        earlyStop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=20, verbose=1)
+
+        def schedulerFun(epoch, lr):
+            if (epoch % 15) == 0 and epoch != 0:
+                return lr / 10
+            else:
+                return lr
+        scheduler = tf.keras.callbacks.LearningRateScheduler(schedulerFun)
+        callbacks = [earlyStop, scheduler]
         self._model.fit(x_train, y_train,
                         batch_size=50, epochs=100, validation_data=(x_test, y_test), callbacks=callbacks)
         self._model.save(DeepAI.ModelFile)
@@ -153,6 +161,7 @@ class DeepAI(AI):
             DarkLogic.makeTheorem(self._theoremName, self._theorem)
             self._db.export(self._storeNodes[0].getDbStates())
             if self._gamesSinceLastLearning == DeepAI.MaxGameBefLearning:
+                self._model = createModel(len(self._trueRuleStates) + 1)
                 self._train()
                 self._gamesSinceLastLearning = 0
             self._storeNodes.clear()
@@ -321,5 +330,5 @@ def eval(outputs):
         for pred in output:
             crtVal += pred * k
             k += 1
-        ret.append(int(crtVal))
+        ret.append(round(crtVal))
     return ret

@@ -212,7 +212,7 @@ class LogicGame:
         else:
             if DarkLogic.isDemonstrated():
                 print("Game Over! the demonstration is already finished!")
-            elif not DarkLogic.canBeDemonstrated:
+            elif not DarkLogic.canBeDemonstrated():
                 print("Game Over! This theorem cannot be demonstrated! " +
                       "It can be true or false according to the values of its variables")
 
