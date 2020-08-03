@@ -55,18 +55,27 @@ namespace FormulaHelper
     std::string getVarNameFromId(const IDVar& idVar);
 }
 
+struct HypParams
+{
+    HypParams(const size_t& idx_, const size_t& argIdx_);
+
+    size_t idx;
+    size_t argIdx;
+};
+
 struct OperatorOrdering
 {
     OperatorOrdering();
     //OperatorOrdering(const ptr<IOperator>& ope_, const size_t& nbPar_);
-    OperatorOrdering(const ptr<IOperator>& ope_, const size_t& nbPar_, const std::vector<size_t>& hypStack, const size_t& argIndex_);
+    OperatorOrdering(const ptr<IOperator>& ope_, const size_t& nbPar_, const std::vector<HypParams>& hypStack);
     OperatorOrdering(const OperatorOrdering& opeOrdering);
+
+    size_t argIndex();
 
     std::shared_ptr<const IOperator> ope; //operator to order
     size_t nbPar; //number of unclosed parenthesis before the operator
-    size_t argIndex; //index in variadic operator over this operator
     size_t nbArgs;
-    std::vector<size_t> hyps; //index of hypothesis operator in which current operator is
+    std::vector<HypParams> hyps; //hypothesis operator param list in which current operator is
     bool foundCcl; // is true if and only if operator is hypothesis and parser already found is closing brace bracket
 };
 

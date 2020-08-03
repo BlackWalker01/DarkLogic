@@ -89,7 +89,7 @@ class LogicGame:
         self._player = None
 
     def start(self):
-        print("Welcome in LogicGame (v1.2.1)!")
+        print("Welcome in LogicGame (v1.2.2)!")
 
         # create player and init Logic
         self._askPlayer()

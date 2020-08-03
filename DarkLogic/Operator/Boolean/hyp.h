@@ -49,7 +49,7 @@ struct HypFun
 
     static constexpr Associativity associativity()
     {
-        return Associativity::RIGHT;
+        return Associativity::LEFT;
     }
 
     static std::string symbol();

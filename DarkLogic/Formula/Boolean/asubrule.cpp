@@ -114,29 +114,13 @@ ptr<IOperator> N_DarkLogic::createRuleOperator(const Name name, const Arity &ari
 }
 
 void N_DarkLogic::addRuleOperator(const Name name, std::vector<OperatorOrdering> &opeList,
-                                  const std::vector<OperatorOrdering> &hyps, const std::vector<size_t>& hypStack, 
+                                  const std::vector<OperatorOrdering> &hyps, const std::vector<HypParams>& hypStack,
                                 const size_t& numPar)
 {
     ptr<IOperator> ope=nullptr;
     if((ope=createRuleOperator(name)))
     {
-        //if current operator comes just after a Hypothesis operator, then it is a subOperator of this one
-        if(hyps.size() /*&& hyps.back().nbPar>=numPar*/)
-        {
-            //if it is operator in conclusion part of hypothesis operator
-            if (hyps.back().ope)
-            {
-                opeList.push_back(OperatorOrdering(ope, numPar, hypStack, hyps.back().nbArgs - 1));
-            }
-            else
-            {
-                opeList.push_back(OperatorOrdering(ope, numPar, hypStack, hyps.back().nbArgs));
-            }
-        }
-        else
-        {
-            opeList.push_back(OperatorOrdering(ope, numPar, hypStack, 0));
-        }
+        opeList.push_back(OperatorOrdering(ope, numPar, hypStack));
     }
     else
     {

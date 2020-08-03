@@ -586,7 +586,7 @@ bool N_DarkLogic::Logic::_makeTheorem(const std::string& name, const std::string
     {
         m_theoremName = name;
         m_theorem = createTheorem(name, cont);
-
+        //Log::Debug(m_theorem->toString());
         //Compute actions
         _getActions();
 

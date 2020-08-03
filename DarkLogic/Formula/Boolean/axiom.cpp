@@ -28,7 +28,7 @@ ptr<ASubRule> N_DarkLogic::createAxiom(const std::string &name, const std::strin
     std::vector<OperatorOrdering> opeList;
     //std::vector<unsigned short> parLvlList; //parenthesis level list
     std::vector<OperatorOrdering> hyps;
-    std::vector<size_t> hypStack;
+    std::vector<HypParams> hypStack;
     std::vector<std::shared_ptr<VariableContainer>> varList;
     DbVarContainer dbVar;
     for (size_t k = 0; k < content.size(); k++)
@@ -66,19 +66,9 @@ ptr<ASubRule> N_DarkLogic::createAxiom(const std::string &name, const std::strin
             OperatorOrdering opeOrdering;
             opeOrdering.nbPar = numPar;
             opeOrdering.hyps = hypStack;
-            if (hyps.size())
-            {
-                if (hyps.back().foundCcl)
-                {
-                    opeOrdering.argIndex = hyps.back().nbArgs - 1;
-                }
-                else
-                {
-                    opeOrdering.argIndex = hyps.back().nbArgs;
-                }
-            }
+            opeOrdering.hyps = hypStack;
             hyps.push_back(opeOrdering);
-            hypStack.push_back(opeList.size());
+            hypStack.push_back(HypParams(opeList.size(),0));
             nbBraceBracket++;
             continue;
         }
@@ -86,7 +76,15 @@ ptr<ASubRule> N_DarkLogic::createAxiom(const std::string &name, const std::strin
         {
             if (hyps.size())
             {
+                // close latest hypothesis operators if necessary
+                while (nbBraceBracket < hyps.size() && hyps[hyps.size() - 2].nbPar == hyps[hyps.size() - 1].nbPar
+                    && hyps[hyps.size() - 1].foundCcl)
+                {
+                    hyps.pop_back();
+                    hypStack.pop_back();
+                }
                 hyps.back().nbArgs++;
+                hypStack.back().argIdx++;
             }
             else
             {
@@ -108,7 +106,8 @@ ptr<ASubRule> N_DarkLogic::createAxiom(const std::string &name, const std::strin
             {
                 hyps.back().nbArgs++;
                 hyps.back().nbArgs++; //increment to add implication of hypothesis operator in its arity
-                auto it = opeList.begin() + static_cast<long long>(hypStack.back());
+                hypStack.back().argIdx++;
+                auto it = opeList.begin() + static_cast<long long>(hypStack.back().idx);
                 hyps.back().ope = createRuleOperator(HYP, hyps.back().nbArgs);
                 hyps.back().foundCcl = true;
                 opeList.insert(it, hyps.back());

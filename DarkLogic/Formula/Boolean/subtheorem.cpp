@@ -18,7 +18,8 @@
 using namespace N_DarkLogic;
 
 ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::string &name, std::vector<OperatorOrdering> &opeList,
-                                               std::vector<OperatorOrdering> &orderedOpeList, std::vector<std::shared_ptr<VariableContainer> > &varList)
+                                               std::vector<OperatorOrdering> &orderedOpeList, std::vector<std::shared_ptr<VariableContainer> > &varList,
+                                                const size_t& nbHyps)
 {
     if (opeList.size() != orderedOpeList.size())
     {
@@ -43,7 +44,7 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                     std::unordered_map<ptr<IOperator>, OperatorOrdering> hashRightOpe;
                     for (size_t i = 0; i < orderedOpeList.size(); i++)
                     {
-                        if (orderedOpeList[i].argIndex == k &&
+                        if (orderedOpeList[i].hyps.size() > nbHyps && orderedOpeList[i].hyps[nbHyps].argIdx == k &&
                             firstOrderedOpe.hyps.size()+1 == orderedOpeList[i].hyps.size())
                         {
                             topOrderedOpeList.push_back(orderedOpeList[i]);
@@ -78,7 +79,7 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
 
                 //top sub-SubTheorem
                 subProps.push_back(std::dynamic_pointer_cast<const IISubTheoremFormula>
-                                   (createSubTheorem(name+ope->symbol()+sizeToString(k),topOpeList,topOrderedOpeList,varList)));
+                                   (createSubTheorem(name+ope->symbol()+sizeToString(k),topOpeList,topOrderedOpeList,varList,nbHyps+1)));
                 topOrderedOpeList.clear();
                 queueOrderedOpeList.clear();
             }
@@ -120,7 +121,7 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                     {
                         case NOT:
                         {
-                            auto subOpe=createSubTheorem(name+"!",queueOpeList,queueOrderedOpeList,varList);
+                            auto subOpe=createSubTheorem(name+"!",queueOpeList,queueOrderedOpeList,varList,nbHyps);
                             switch (subOpe->valueType())
                             {
                                 case BOOL_TYPE:
@@ -198,8 +199,8 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                     {
                         case AND:
                         {
-                            auto leftOpe=createSubTheorem(name+"&&L",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubTheorem(name+"&&R",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubTheorem(name+"&&L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubTheorem(name+"&&R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case BOOL_TYPE:
@@ -227,8 +228,8 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                         }
                         case EQUIVALENT:
                         {
-                            auto leftOpe=createSubTheorem(name+"<=>L",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubTheorem(name+"<=>R",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubTheorem(name+"<=>L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubTheorem(name+"<=>R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case BOOL_TYPE:
@@ -256,8 +257,8 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                         }
                         case IMPLICATION:
                         {
-                            auto leftOpe=createSubTheorem(name+"=>L",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubTheorem(name+"=>R",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubTheorem(name+"=>L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubTheorem(name+"=>R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case BOOL_TYPE:
@@ -285,8 +286,8 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                         }
                         case OR:
                         {
-                            auto leftOpe=createSubTheorem(name+"||L",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubTheorem(name+"||R",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubTheorem(name+"||L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubTheorem(name+"||R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case BOOL_TYPE:
@@ -315,8 +316,8 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
 
                         case EQUAL:
                         {
-                            auto leftOpe=createSubTheorem(name+"==L",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubTheorem(name+"==R",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubTheorem(name+"==L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubTheorem(name+"==R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case NATURAL_INT_TYPE:
@@ -355,7 +356,7 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                             {
                                 firstVar=varList[0];
                                 varList.erase(varList.begin());
-                                rightOpe=createSubTheorem(name+"€R",rightOpeList,rightOrderedOpeList,varList);
+                                rightOpe=createSubTheorem(name+"€R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                                 varList.insert(varList.begin(),firstVar);
                                 if(firstVar->type==VALUE_TYPE::VOID_TYPE)
                                 {
@@ -377,12 +378,12 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                                 {
                                     throw std::runtime_error(firstVar->var->name()+" is not of the same type of right operand in € operator");
                                 }
-                                leftOpe=createSubTheorem(name+"€L",leftOpeList,leftOrderedOpeList,varList);
+                                leftOpe=createSubTheorem(name+"€L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
                             }
                             else
                             {
-                                leftOpe=createSubTheorem(name+"€L",leftOpeList,leftOrderedOpeList,varList);
-                                rightOpe=createSubTheorem(name+"€R",rightOpeList,rightOrderedOpeList,varList);
+                                leftOpe=createSubTheorem(name+"€L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                                rightOpe=createSubTheorem(name+"€R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             }
                             switch(leftOpe->valueType())
                             {
@@ -417,7 +418,7 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                             }
                             auto firstVar=varList[0];
                             varList.erase(varList.begin());
-                            auto rightOpe=createSubTheorem(name+"=R",rightOpeList,rightOrderedOpeList,varList);
+                            auto rightOpe=createSubTheorem(name+"=R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             varList.insert(varList.begin(),firstVar);
                             if(firstVar->type==VALUE_TYPE::VOID_TYPE)
                             {
@@ -428,7 +429,7 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                             {
                                 throw std::runtime_error(firstVar->var->name()+" is not of the same type of right operand");
                             }
-                            auto leftOpe=createSubTheorem(name+"=L",leftOpeList,leftOrderedOpeList,varList);
+                            auto leftOpe=createSubTheorem(name+"=L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case NATURAL_INT_TYPE:
@@ -456,8 +457,8 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                         }
                         case LET:
                         {
-                            auto leftOpe=createSubTheorem(name+"letL",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubTheorem(name+"letR",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubTheorem(name+"letL",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubTheorem(name+"letR",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case VOID_TYPE:
@@ -502,8 +503,8 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                         }
                         case PLUS:
                         {
-                            auto leftOpe=createSubTheorem(name+"+L",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubTheorem(name+"+R",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubTheorem(name+"+L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubTheorem(name+"+R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case NATURAL_INT_TYPE:
