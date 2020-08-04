@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(pybind11)
 
-add_library(DarkLogic SHARED
+set(SRCS
     #Sources
     logic.cpp
     Utils/utils.cpp
@@ -53,9 +53,9 @@ add_library(DarkLogic SHARED
     Formula/evaluater.cpp
     darklogic.cpp
     Formula/Boolean/dbtheorem.cpp
-    Utils/rulecontent.cpp
+    Utils/rulecontent.cpp)
 
-
+set(HEADER
     logic_global.h
     logic.h
     Utils/utils.h
@@ -173,11 +173,25 @@ add_library(DarkLogic SHARED
     darklogic.h
     )
 
-target_compile_definitions(DarkLogic PRIVATE DARK_LOGIC_LIBRARY)
+
+
 add_compile_definitions(_SILENCE_CLANG_CONCEPTS_MESSAGE)
 if(UNIX)
+    # darklogic library
+    add_library(darklogic SHARED ${SRCS} ${HEADER})
+    target_compile_definitions(darklogic PRIVATE DARK_LOGIC_LIBRARY)
+    target_link_libraries(darklogic PUBLIC stdc++ pybind11::module)
+    # DarkLogic library
+    add_library(DarkLogic SHARED ${SRCS} ${HEADER})
+    target_compile_definitions(DarkLogic PRIVATE DARK_LOGIC_LIBRARY)
     target_link_libraries(DarkLogic PUBLIC stdc++ pybind11::module)
+    set_target_properties(DarkLogic PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
+                                         SUFFIX "${PYTHON_MODULE_EXTENSION}")
+    install(TARGETS darklogic DESTINATION ${CMAKE_SOURCE_DIR}/../Lib)
+    install(TARGETS DarkLogic DESTINATION ${CMAKE_SOURCE_DIR}/../Lib)
 else()
+    add_library(DarkLogic SHARED ${SRCS} ${HEADER})
+    target_compile_definitions(DarkLogic PRIVATE DARK_LOGIC_LIBRARY)
     target_link_libraries(DarkLogic PRIVATE pybind11::module)
     set_target_properties(DarkLogic PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                          SUFFIX "${PYTHON_MODULE_EXTENSION}")    

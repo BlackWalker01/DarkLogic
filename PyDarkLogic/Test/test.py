@@ -126,7 +126,7 @@ def performanceIdentity():
 
 
 def performanceDoubleNot():
-    Test.test.performance("doubleNot", "a<=>!!a", 3.8)  # normally 1.7
+    Test.test.performance("doubleNot", "a<=>!!a", 7.5)  # normally 1.7
 
 
 def performanceNonContradiction():
