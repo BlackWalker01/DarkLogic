@@ -23,6 +23,7 @@ namespace N_DarkLogic {
 template<SubRuleProperty SubPropertyType>
 class Rule;
 class Action;
+class State;
 
 class DbRule
 {
@@ -42,6 +43,7 @@ public:
     const std::vector<Action::Id>& getActions(const ptr<ASubTheorem>& prop);
     const std::vector<Action::Id>& getActions(const ptr<ASubTheorem> &prop, const size_t& logicIdx);    
     bool isLastRuleSymetric(const Action::Id& actionKey) const;
+    std::vector<State> getStates() const;
 
     //Human methods
     std::vector<Action> getHumanActions(const ptr<ASubTheorem>& prop);

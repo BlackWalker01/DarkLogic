@@ -28,11 +28,13 @@ public:
 		return false;
 	}
 	static std::vector<std::string> getAllVarName();
+	static std::string getVarNameFromId(const IDVar& idVar);
 protected:
 	const IDVar m_id;
 private:	
 	static IDVar getIDVar(const std::string& name_);
 	static std::unordered_map<std::string, IDVar> s_nameToID;
+	static std::unordered_map<IDVar, std::string> s_idToName;
 };
 }
 

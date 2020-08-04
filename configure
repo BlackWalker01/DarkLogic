@@ -35,12 +35,12 @@ fi
 cd DarkLogic
 mkdir build
 cd build
-#for the moment, it works only with clang > 10
+#for the moment, it works only with clang > 10  > /dev/null
 testClang
 echo "Configure DarkLogic library"
-cmake -DCMAKE_CXX_COMPILER=/usr/local/bin/clang -DCMAKE_BUILD_TYPE=RELEASE .. > /dev/null
+cmake -DCMAKE_CXX_COMPILER=/usr/local/bin/clang -DCMAKE_BUILD_TYPE=RELEASE ..
 echo "Building DarkLogic library..."
-make -j > /dev/null
+make -j2
 make install > /dev/null
 echo "DarkLogic successfully built!"
 
@@ -50,7 +50,4 @@ mkdir build
 cd build
 echo "Configure LogicGame"
 cmake -DCMAKE_CXX_COMPILER=/usr/local/bin/clang -DCMAKE_BUILD_TYPE=RELEASE ..
-
-
-
 

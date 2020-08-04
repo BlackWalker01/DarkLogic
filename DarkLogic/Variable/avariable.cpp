@@ -15,6 +15,7 @@
 
 using namespace N_DarkLogic;
 std::unordered_map<std::string,IDVar> AVariable::s_nameToID = {};
+std::unordered_map<IDVar, std::string> AVariable::s_idToName = {};
 
 N_DarkLogic::AVariable::AVariable(const std::string& name_): AbstractTerm(name_), m_id(getIDVar(name_))
 {
@@ -35,6 +36,11 @@ std::vector<std::string> N_DarkLogic::AVariable::getAllVarName()
 	return ret;
 }
 
+std::string N_DarkLogic::AVariable::getVarNameFromId(const IDVar& idVar)
+{
+	return s_idToName[idVar];
+}
+
 IDVar N_DarkLogic::AVariable::getIDVar(const std::string& name_)
 {
 	auto it = s_nameToID.find(name_);
@@ -46,6 +52,7 @@ IDVar N_DarkLogic::AVariable::getIDVar(const std::string& name_)
 	{
 		IDVar ret = s_nameToID.size();
 		s_nameToID[name_] = ret;
+		s_idToName[ret] = name_;
 		return ret;
 	}
 }

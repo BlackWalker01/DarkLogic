@@ -53,13 +53,13 @@ ptr<ASubTheorem> N_DarkLogic::createTheorem(const std::string &name, const std::
 
     //look for operators and variables
     size_t numPar=0;
-    std::vector<ParenthesisParam> parenthesisParams;
-    parenthesisParams.push_back(ParenthesisParam());
+    size_t nbBraceBracket = 0;
     Name crtNameOpe=NONE;
     std::string crtVar="";
     std::vector<OperatorOrdering> opeList;
     //std::vector<unsigned short> parLvlList; //parenthesis level list
     std::vector<OperatorOrdering> hyps;
+    std::vector<HypParams> hypStack;
     std::vector<std::shared_ptr<VariableContainer>> varList;
     DbVarContainer dbVar;
     for(size_t k=0;k<content.size();k++)
@@ -69,18 +69,22 @@ ptr<ASubTheorem> N_DarkLogic::createTheorem(const std::string &name, const std::
         {
             case '(':
             {
-                parenthesisParams.push_back(ParenthesisParam(numPar,opeList.size()));
                 numPar++;
                 continue;
             }
             case ')':
             {
-                if(hyps.size() && hyps.back().nbPar==numPar)
+                if (numPar == 0)
+                {
+                    throw std::runtime_error("Unexpected ')' character at " + sizeToString(k) + " index");
+                }
+                // close all hypothesis operators in that parenthesis
+                while (hyps.size() && hyps.back().nbPar == numPar)
                 {
                     hyps.pop_back();
+                    hypStack.pop_back();
                 }
                 numPar--;
-                parenthesisParams.pop_back();
                 continue;
             }
             case ' ':
@@ -90,18 +94,27 @@ ptr<ASubTheorem> N_DarkLogic::createTheorem(const std::string &name, const std::
             //hypothesis cases
             case '{':
             {
-                parenthesisParams.push_back(ParenthesisParam(numPar,opeList.size()));
-                numPar++;
                 OperatorOrdering opeOrdering;
-                opeOrdering.nbPar = parenthesisParams.back().nbPar;
+                opeOrdering.nbPar = numPar;
+                opeOrdering.hyps = hypStack;
                 hyps.push_back(opeOrdering);
+                hypStack.push_back(HypParams(opeList.size(),0));
+                nbBraceBracket++;
                 continue;
             }
             case ',':
             {
                 if(hyps.size())
                 {
+                    // close latest hypothesis operators if necessary
+                    while (nbBraceBracket < hyps.size() && hyps[hyps.size() - 2].nbPar == hyps[hyps.size() - 1].nbPar
+                        && hyps[hyps.size() - 1].foundCcl)
+                    {
+                        hyps.pop_back();
+                        hypStack.pop_back();
+                    }
                     hyps.back().nbArgs++;
+                    hypStack.back().argIdx++;
                 }
                 else
                 {
@@ -111,20 +124,23 @@ ptr<ASubTheorem> N_DarkLogic::createTheorem(const std::string &name, const std::
             }
             case '}':
             {
-                if((numPar==parenthesisParams.back().nbPar+1) && hyps.size())
+                nbBraceBracket--;
+                // close latest hypothesis operators if necessary
+                while (nbBraceBracket + 2 <= hyps.size() && hyps[hyps.size()-2].nbPar == hyps[hyps.size() - 1].nbPar
+                    && hyps[hyps.size() - 1].foundCcl)
+                {
+                    hyps.pop_back();
+                    hypStack.pop_back();
+                }
+                if(hyps.size() && numPar == hyps.back().nbPar && hypStack.size())
                 {
                     hyps.back().nbArgs++;
-                    if(hyps.back().nbArgs>0)
-                    {
-                        hyps.back().nbArgs++; //increment to add implication of hypothesis operator in its arity
-                        auto it=opeList.begin()+static_cast<long long>(parenthesisParams.back().indexInOpeList);
-                        hyps.back().ope = createTheoremOperator(HYP, hyps.back().nbArgs);
-                        /*OperatorOrdering opeOrdering(createRuleOperator(HYP,hyps.back().nbArgs),
-                                                     parenthesisParams.back().nbPar,hyps[parenthesisParams.size()-2].nbArgs);*/
-                        opeList.insert(it,hyps.back());
-                    }
-                    numPar--;
-                    parenthesisParams.pop_back();
+                    hyps.back().nbArgs++; //increment to add implication of hypothesis operator in its arity
+                    hypStack.back().argIdx++;
+                    auto it = opeList.begin() + static_cast<long long>(hypStack.back().idx);
+                    hyps.back().ope = createTheoremOperator(HYP, hyps.back().nbArgs);
+                    hyps.back().foundCcl = true;
+                    opeList.insert(it, hyps.back());
                 }
                 else
                 {
@@ -141,7 +157,7 @@ ptr<ASubTheorem> N_DarkLogic::createTheorem(const std::string &name, const std::
         size_t crtK=k;
         if((crtNameOpe=IOperator::getNextOpeName(content,k)))
         {
-            addTheoremOperator(crtNameOpe,opeList,hyps,numPar,name,k);
+            addTheoremOperator(crtNameOpe,opeList,hyps,hypStack,numPar,name,k);
             crtNameOpe=NONE;
             k--;
         }
@@ -343,7 +359,11 @@ ptr<ValueTypeObject> N_DarkLogic::createTheorem(const std::string &name, std::ve
                                             std::vector<OperatorOrdering> &orderedOpeList,
                                                 std::vector<std::shared_ptr<VariableContainer> > &varList)
 {
-    if(orderedOpeList.size())
+    if (opeList.size() != orderedOpeList.size())
+    {
+        throw std::runtime_error("Implementation error! Please contact support");
+    }
+    else if(orderedOpeList.size())
     {
         auto ope=orderedOpeList[0].ope;
         if(ope->name()==HYP)
@@ -351,10 +371,10 @@ ptr<ValueTypeObject> N_DarkLogic::createTheorem(const std::string &name, std::ve
             //size_t nbPar=orderedOpeList[0].nbPar;
             orderedOpeList.erase(orderedOpeList.begin());
             opeList.erase(opeList.begin());
-            std::vector<OperatorOrdering> topOpeList, topOrderedOpeList, queueOpeList, queueOrderedOpeList;
             std::vector<ptr<IISubTheoremFormula>> subProps;
             for(size_t k=0;k<ope->arity();k++)
             {
+                std::vector<OperatorOrdering> topOpeList, topOrderedOpeList, queueOpeList, queueOrderedOpeList;
                 if (orderedOpeList.size())
                 {
                     //split between topOrderedOpeList and queueOrderedOpeList
@@ -362,7 +382,7 @@ ptr<ValueTypeObject> N_DarkLogic::createTheorem(const std::string &name, std::ve
                     std::unordered_map<ptr<IOperator>, OperatorOrdering> hashRightOpe;
                     for (size_t i = 0; i < orderedOpeList.size(); i++)
                     {
-                        if (orderedOpeList[i].argIndex == k)
+                        if (orderedOpeList[i].hyps.size() > 0 && orderedOpeList[i].hyps[0].argIdx == k)
                         {
                             topOrderedOpeList.push_back(orderedOpeList[i]);
                             auto ope = &(orderedOpeList[i]);
@@ -396,7 +416,7 @@ ptr<ValueTypeObject> N_DarkLogic::createTheorem(const std::string &name, std::ve
 
                 //top sub-SubTheorem
                 subProps.push_back(std::dynamic_pointer_cast<const IISubTheoremFormula>
-                                   (createSubTheorem(name+ope->symbol()+sizeToString(k),topOpeList,topOrderedOpeList,varList)));
+                                   (createSubTheorem(name+ope->symbol()+sizeToString(k),topOpeList,topOrderedOpeList,varList,1)));
                 topOrderedOpeList.clear();
                 queueOrderedOpeList.clear();
             }

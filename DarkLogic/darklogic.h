@@ -62,12 +62,14 @@ namespace N_DarkLogic
 		static bool appliedRuleSymetric(const size_t& instanceIdx);
 		static const State& getState();
 		static const State& getState(const size_t& instanceIdx);
+		static std::vector<State> getRuleStates();
 
 		//get information on theorem content
 		static std::string theoremName();
 		static void printTheorem();
 		static void printTheorem(const size_t& instanceIdx);
 		static std::string toStrTheorem();
+		static std::string toNormStrTheorem();
 		static std::string toStrTheorem(const size_t& instanceIdx);
 
 		//clear methods when the demonstration is over

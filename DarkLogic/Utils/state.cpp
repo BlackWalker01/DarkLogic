@@ -14,6 +14,7 @@
 #include "state.h"
 #include "Operator/alloperator.h"
 #include "Variable/allvariable.h"
+#include <cassert>
 
 using namespace N_DarkLogic;
 
@@ -347,8 +348,6 @@ std::vector<State::OrderedName> orderOperators(Name headOpe, const State& subSta
 		}
 	}
 
-    auto reOrderedOpeSub = triFusion(orderedOpeSub);
-    ret.insert(ret.end(), reOrderedOpeSub.begin(), reOrderedOpeSub.end());
 	return ret;
 }
 
@@ -471,6 +470,7 @@ State::State(Name headOpe, const State& subState):
 	m_priorityOpe(orderOperators(headOpe, subState)), m_operators(mergeVectors({ headOpe }, subState.operators())),
 	m_terms(subState.terms())
 {
+    assert(m_priorityOpe.size() == m_operators.size());
 }
 
 State::State(Name headOpe, const State& leftState, const State& rightState) :
@@ -478,6 +478,7 @@ State::State(Name headOpe, const State& leftState, const State& rightState) :
 	m_operators(mergeVectors(leftState.operators(), headOpe, rightState.operators())),
 	m_terms(mergeVectors(leftState.terms(), rightState.terms()))
 {
+    assert(m_priorityOpe.size() == m_operators.size());
 }
 
 State::State(Name headOpe, const std::vector<State>& subStates):
@@ -485,6 +486,7 @@ State::State(Name headOpe, const std::vector<State>& subStates):
 	m_operators(mergeOperatorVectors(headOpe,subStates)),
 	m_terms(mergeTermVectors(subStates))
 {
+    assert(m_priorityOpe.size() == m_operators.size());
 }
 
 State::State(const IDVar& idVar, VALUE_TYPE varType):

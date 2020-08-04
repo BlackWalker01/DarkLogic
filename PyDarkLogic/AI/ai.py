@@ -1,10 +1,5 @@
-import os
-
-path = os.getcwd()
-import sys
-
-sys.path.append(path + "\..\MainDarkLogic")
-from MainDarkLogic.player import  Player
+import MainDarkLogic.darklogic as DarkLogic
+from MainDarkLogic.player import Player
 from AI.masteraithread import MasterAIThread
 from AI.node import Node
 from threading import Thread, Condition, Lock
@@ -37,24 +32,28 @@ class AI(Player):
             self._masterThread.start_()
             while not self._hasEvents:
                 with self._condition_var:
-                    hasTimedout = self._condition_var.wait(self._secondTimeout)
+                    hasTimedout = not self._condition_var.wait(self._secondTimeout)
+                    if hasTimedout:
+                        break
 
             if hasTimedout:
                 self._masterThread.stop_()
             # waiting for threads to stop
             while not self._hasEvents:
-                self._condition_var.wait()
+                with self._condition_var:
+                    self._condition_var.wait()
             if len(self._eventQueue):
                 self._eventQueue.pop()
             self._hasEvents = False
 
             nbNode = self._crtNode.nbNode()
-            newNode = self._crtNode.getBestNode()
+            newNode = self.getBestNode()
             print("[DEBUG] Nb explored nodes: " + str(nbNode))
 
         else:
             self._masterThread.computeActions()
 
+        self._storeCrtNode()
         self._crtNode = newNode
         self._crtNode.setRoot()
         self._masterThread.updateLogic(self._crtNode.actionId())
@@ -62,7 +61,7 @@ class AI(Player):
         elapsed_seconds = end - start
         if nbNode:
             print("[DEBUG] AI play action " + str(self._crtNode.actionId()) + " with value " +
-                  str(self._crtNode.value()) +
+                  str(self.value()) +
                   " in " + str(elapsed_seconds) + " seconds")
             print("[DEBUG] AI exploration speed: " + str(nbNode / elapsed_seconds) + " nodes/s")
 
@@ -99,3 +98,15 @@ class AI(Player):
         self._hasEvents = True
         with self._condition_var:
             self._condition_var.notify_all()
+
+    def _storeCrtNode(self):
+        pass
+
+    def meditate(self):
+        self._crtNode = Node(ai=self)
+
+    def getBestNode(self):
+        return self._crtNode.getBestNode()
+
+    def value(self):
+        return self._crtNode.value()

@@ -20,8 +20,9 @@
 using namespace N_DarkLogic;
 
 ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::vector<OperatorOrdering> &opeList,
-                                            std::vector<OperatorOrdering> &orderedOpeList,
-                                                std::vector<std::shared_ptr<VariableContainer>> &varList)
+                                                std::vector<OperatorOrdering> &orderedOpeList,
+                                                std::vector<std::shared_ptr<VariableContainer>> &varList,
+                                                const size_t& nbHyps)
 {
     if(orderedOpeList.size())
     {        
@@ -30,10 +31,10 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
         {
             orderedOpeList.erase(orderedOpeList.begin());
             opeList.erase(opeList.begin());
-            std::vector<OperatorOrdering> topOpeList, topOrderedOpeList, queueOpeList, queueOrderedOpeList;
             std::vector<ptr<IISubRuleFormula>> subProps;
             for(size_t k=0;k<ope->arity();k++)
             {
+                std::vector<OperatorOrdering> topOpeList, topOrderedOpeList, queueOpeList, queueOrderedOpeList;
                 if (orderedOpeList.size())
                 {
                     //split between topOrderedOpeList and queueOrderedOpeList
@@ -41,7 +42,7 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
                     std::unordered_map<ptr<IOperator>, OperatorOrdering> hashRightOpe;
                     for (size_t i = 0; i < orderedOpeList.size(); i++)
                     {
-                        if (orderedOpeList[i].argIndex == k)
+                        if (orderedOpeList[i].hyps.size() > nbHyps && orderedOpeList[i].hyps[nbHyps].argIdx == k)
                         {
                             topOrderedOpeList.push_back(orderedOpeList[i]);
                             auto ope = &(orderedOpeList[i]);
@@ -75,7 +76,7 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
 
                 //top sub-SubTheorem
                 subProps.push_back(std::dynamic_pointer_cast<const IISubRuleFormula>
-                                   (createSubRule(name+ope->symbol()+sizeToString(k),topOpeList,topOrderedOpeList,varList)));
+                                   (createSubRule(name+ope->symbol()+sizeToString(k),topOpeList,topOrderedOpeList,varList,nbHyps+1)));
                 topOrderedOpeList.clear();
                 queueOrderedOpeList.clear();
             }
@@ -117,7 +118,7 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
                     {
                         case NOT:
                         {
-                            auto subOpe=createSubRule(name+"!",queueOpeList,queueOrderedOpeList,varList);
+                            auto subOpe=createSubRule(name+"!",queueOpeList,queueOrderedOpeList,varList,nbHyps);
                             switch (subOpe->valueType())
                             {
                                 case BOOL_TYPE:
@@ -196,8 +197,8 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
                     {
                         case AND:
                         {
-                            auto leftOpe=createSubRule(name+"&&L",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubRule(name+"&&R",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubRule(name+"&&L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubRule(name+"&&R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case BOOL_TYPE:
@@ -225,8 +226,8 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
                         }
                         case EQUIVALENT:
                         {
-                            auto leftOpe=createSubRule(name+"<=>L",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubRule(name+"<=>R",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubRule(name+"<=>L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubRule(name+"<=>R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case BOOL_TYPE:
@@ -254,8 +255,8 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
                         }
                         case IMPLICATION:
                         {
-                            auto leftOpe=createSubRule(name+"=>L",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubRule(name+"=>R",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubRule(name+"=>L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubRule(name+"=>R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case BOOL_TYPE:
@@ -283,8 +284,8 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
                         }
                         case OR:
                         {
-                            auto leftOpe=createSubRule(name+"||L",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubRule(name+"||R",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubRule(name+"||L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubRule(name+"||R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case BOOL_TYPE:
@@ -314,7 +315,7 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
                         {
                             auto firstVar=varList[0];
                             varList.erase(varList.begin());
-                            auto rightOpe=createSubRule(name+"=R",rightOpeList,rightOrderedOpeList,varList);
+                            auto rightOpe=createSubRule(name+"=R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             varList.insert(varList.begin(),firstVar);
                             if(firstVar->type==VALUE_TYPE::VOID_TYPE)
                             {
@@ -324,7 +325,7 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
                             {
                                 throw std::runtime_error(firstVar->var->name()+" is not of the same type of right operand");
                             }
-                            auto leftOpe=createSubRule(name+"=L",leftOpeList,leftOrderedOpeList,varList);
+                            auto leftOpe=createSubRule(name+"=L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case NATURAL_INT_TYPE:
@@ -352,8 +353,8 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
                         }
                         case EQUAL:
                         {
-                            auto leftOpe=createSubRule(name+"==L",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubRule(name+"==R",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubRule(name+"==L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubRule(name+"==R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case NATURAL_INT_TYPE:
@@ -392,7 +393,7 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
                             {
                                 firstVar=varList[0];
                                 varList.erase(varList.begin());
-                                rightOpe=createSubRule(name+"€R",rightOpeList,rightOrderedOpeList,varList);
+                                rightOpe=createSubRule(name+"€R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                                 varList.insert(varList.begin(),firstVar);
                                 if(firstVar->type==VALUE_TYPE::VOID_TYPE)
                                 {
@@ -414,12 +415,12 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
                                 {
                                     throw std::runtime_error(firstVar->var->name()+" is not of the same type of right operand in € operator");
                                 }
-                                leftOpe=createSubRule(name+"€L",leftOpeList,leftOrderedOpeList,varList);
+                                leftOpe=createSubRule(name+"€L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
                             }
                             else
                             {
-                                leftOpe=createSubRule(name+"€L",leftOpeList,leftOrderedOpeList,varList);
-                                rightOpe=createSubRule(name+"€R",rightOpeList,rightOrderedOpeList,varList);
+                                leftOpe=createSubRule(name+"€L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                                rightOpe=createSubRule(name+"€R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             }
                             switch(leftOpe->valueType())
                             {
@@ -448,8 +449,8 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
                         }
                         case LET:
                         {
-                            auto leftOpe=createSubRule(name+"letL",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubRule(name+"letR",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubRule(name+"letL",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubRule(name+"letR",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case VOID_TYPE:
@@ -494,8 +495,8 @@ ptr<ValueTypeObject> N_DarkLogic::createSubRule(const std::string &name, std::ve
                         }
                         case PLUS:
                         {
-                            auto leftOpe=createSubRule(name+"+L",leftOpeList,leftOrderedOpeList,varList);
-                            auto rightOpe=createSubRule(name+"+R",rightOpeList,rightOrderedOpeList,varList);
+                            auto leftOpe=createSubRule(name+"+L",leftOpeList,leftOrderedOpeList,varList,nbHyps);
+                            auto rightOpe=createSubRule(name+"+R",rightOpeList,rightOrderedOpeList,varList,nbHyps);
                             switch(leftOpe->valueType())
                             {
                                 case NATURAL_INT_TYPE:

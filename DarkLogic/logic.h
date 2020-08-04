@@ -57,6 +57,7 @@ public:
     static bool isEvaluated(const size_t& instanceIdx);
     static const State& getState();
     static const State& getState(const size_t& instanceIdx);
+    static std::vector<State> getRuleStates();
     static bool appliedRuleSymetric();
     static bool appliedRuleSymetric(const size_t& instanceIdx);
 
@@ -66,6 +67,7 @@ public:
     static void printTheorem(const size_t& instanceIdx);
     static std::string toStrTheorem();
     static std::string toStrTheorem(const size_t& instanceIdx);
+    static std::string toNormStrTheorem();
 
     //operator access methods
     static std::string theoremName();
@@ -125,12 +127,14 @@ private:
     bool _isEvaluated();
     bool _appliedRuleSymetric();
     const State& _getState() const;
+    const std::vector<State> _getRuleStates() const;
 
     bool _makeTheorem(const std::string& name, const std::string& cont);
     bool _makeTheorem(const std::string& name, const std::string& cont, const size_t& logicIdx);
     void _learnRule();
     void _printTheorem();
     std::string _toStrTheorem() const;
+    std::string _toNormStrTheorem();
 
     //operator access methods
     const std::vector<Action::Id>& _getActions();
