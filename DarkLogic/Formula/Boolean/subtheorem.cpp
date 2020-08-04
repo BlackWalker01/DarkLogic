@@ -44,8 +44,7 @@ ptr<N_DarkLogic::ValueTypeObject> N_DarkLogic::createSubTheorem(const std::strin
                     std::unordered_map<ptr<IOperator>, OperatorOrdering> hashRightOpe;
                     for (size_t i = 0; i < orderedOpeList.size(); i++)
                     {
-                        if (orderedOpeList[i].hyps.size() > nbHyps && orderedOpeList[i].hyps[nbHyps].argIdx == k &&
-                            firstOrderedOpe.hyps.size()+1 == orderedOpeList[i].hyps.size())
+                        if (orderedOpeList[i].hyps.size() > nbHyps && orderedOpeList[i].hyps[nbHyps].argIdx == k)
                         {
                             topOrderedOpeList.push_back(orderedOpeList[i]);
                             auto ope = &(orderedOpeList[i]);

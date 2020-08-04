@@ -1,10 +1,4 @@
-import os
-
-path = os.getcwd()
-import sys
-
-sys.path.append(path + "\..\..\Lib")
-from DarkLogic import DarkLogic
+import MainDarkLogic.darklogic as DarkLogic
 from threading import Thread, Condition, Lock
 from AI.event import Event
 from AI.aithread import AIThread
@@ -40,9 +34,6 @@ class MasterAIThread(Thread):
         self._slaveThreads = []
         self._threadAlive = {}
 
-        # start thread
-        self.start()
-
     def computeActions(self):
         for slave in self._slaveThreads:
             slave.computeActions()
@@ -55,6 +46,8 @@ class MasterAIThread(Thread):
         return self._slaveThreads[threadIdx].mustStop()
 
     def start_(self):
+        if not self.is_alive():
+            self.start()
         self._pushEvent(0, Event.EventEnum.START)
 
     def stop_(self):
@@ -72,6 +65,7 @@ class MasterAIThread(Thread):
                 self._slaveThreads.append(AIThread(k, self._ai))
 
     def _start(self):
+        # print("start master thread")
         # Dispatch actions between slave threads
         actions = DarkLogic.getActions()
         for k in range(len(actions)):
@@ -114,6 +108,8 @@ class MasterAIThread(Thread):
                 self._switcher[ev.type()](self, ev.threadIdx())
                 self._eventQueue.pop(0)
             self._hasEvents = False
+            if len(self._threadAlive) == 0:
+                break
 
     def _pushEvent(self, threadIdx_, type_):
         self._mutex.acquire()

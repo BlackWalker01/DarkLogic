@@ -5,9 +5,9 @@ import os.path
 
 
 class Database:
-    Name = "Database/deepaiMemory.csv"
 
-    def __init__(self):
+    def __init__(self, name):
+        self._name = name
         self._theoremDb = {}
         print("loading memory...")
         self.load()
@@ -15,8 +15,8 @@ class Database:
 
     def load(self):
         self._theoremDb = {}
-        if os.path.isfile(Database.Name):
-            with open(Database.Name, newline='') as csvfile:
+        if os.path.isfile(self._name):
+            with open(self._name, newline='') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
                     state = None
@@ -27,7 +27,7 @@ class Database:
                         state = State(content=row["content"], name=row["name"])
                     self._theoremDb[state.theoremContent()] = state
         else:
-            with open(Database.Name, 'w', newline='') as csvfile:
+            with open(self._name, 'w', newline='') as csvfile:
                 fieldnames = ["name", "content", "value"]
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
@@ -51,7 +51,7 @@ class Database:
 
         # export datas database
         print("[DEBUG] Export datas to long-term memory...")
-        with open(Database.Name, 'w', newline='') as csvfile:
+        with open(self._name, 'w', newline='') as csvfile:
             fieldnames = ["name", "content", "value"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()

@@ -1,13 +1,7 @@
-import os
-
-path = os.getcwd()
-import sys
 import time
 import random as rand
+import MainDarkLogic.darklogic as DarkLogic
 from Database.state import State
-
-sys.path.append(path + "\..\..\Lib")
-from DarkLogic import DarkLogic
 
 
 class Node:

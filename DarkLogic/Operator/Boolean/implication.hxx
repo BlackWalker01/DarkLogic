@@ -70,7 +70,7 @@ std::string ImplFun<SubPropertyType>::symbol()
 template<Proposition SubPropertyType>
 std::string ImplFun<SubPropertyType>::toString(unsigned short priorityParent) const
 {
-    if(priorityParent<=priority())
+    if(priorityParent<priority())
     {
         return "("+std::get<0>(m_sonProps)->toString(priority())+symbol()+std::get<1>(m_sonProps)->toString(priority())+")";
     }

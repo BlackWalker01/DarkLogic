@@ -36,14 +36,11 @@ class AIThread(Thread):
         self._mustStop = False
         self._mutexStop = Lock()
 
-        # hanling events
+        # handling eventss
         self._hasEvents = False
         self._mutex = Lock()
         self._condition_var = Condition(self._mutex)
         self._eventQueue = []
-
-        # start thread
-        self.start()
 
     def hasStarted(self):
         return self._hasStarted
@@ -93,6 +90,8 @@ class AIThread(Thread):
                 AIThread._switcher[self._eventQueue[0].type()](self)
                 self._eventQueue.pop(0)
             self._hasEvents = False
+            if self.mustStop():
+                break
 
     def _pushEvent(self, threadIdx_, type_):
         self._mutex.acquire()
@@ -108,5 +107,8 @@ class AIThread(Thread):
         self._mutexStop.release()
 
     def _start(self):
+        # print("start ai thread "+str(self._instanceId))
         self._mustStop = False
+        if not self.is_alive():
+            self.start()
         self._pushEvent(0, Event.EventEnum.START)

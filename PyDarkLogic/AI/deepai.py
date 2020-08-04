@@ -1,14 +1,6 @@
 from AI.ai import AI
 from Database.database import Database
-
-import os
-
-path = os.getcwd()
-import sys
-
-sys.path.append(path + "\..\..\Lib")
-from DarkLogic import DarkLogic
-
+import MainDarkLogic.darklogic as DarkLogic
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -31,6 +23,7 @@ class DeepAI(AI):
     MultExamples = 500
     MaxGameBefLearning = 1
     ModelFile = "AI/deepAIModel"
+    DbName = "Database/deepaiMemory.csv"
 
     def __init__(self, type_, maxInstanceIdx, secondTimeout):
         super().__init__(type_, maxInstanceIdx, secondTimeout)
@@ -42,7 +35,7 @@ class DeepAI(AI):
         for ruleState in ruleStates:
             self._trueRuleStates.append(makeTrueState(ruleState))
         self._storeNodes = []
-        self._db = Database()
+        self._db = Database(DeepAI.DbName)
         self._gamesSinceLastLearning = 0
         if file_io.file_exists(DeepAI.ModelFile):
             self._model = keras.models.load_model(DeepAI.ModelFile)
@@ -82,8 +75,6 @@ class DeepAI(AI):
         self._crtNode.exploreDeep(actions)
 
     def _train(self):
-        # DarkLogic.makeTheorem(self._theoremName, self._theorem)
-
         x = []
         y = []
         print("DeepAI is preparing for training...")

@@ -1,14 +1,4 @@
-import os
-
-path = os.getcwd()
-import sys
-
-sys.path.append(path + "\..\Lib")
-from DarkLogic import DarkLogic
-
-from AI.ai import AI
-from AI.deepai import DeepAI
-from Human.human import Human
+import MainDarkLogic.darklogic as DarkLogic
 from MainDarkLogic.action import Action
 from enum import Enum
 from .enumfun import EnumFun
@@ -112,12 +102,14 @@ class LogicGame:
                 print("Unknown mode " + modeStr)
 
     def _createHuman(self):
+        from Human.human import Human
         print("Human Mode")
         self._mode = Mode.HumanMode
         DarkLogic.init(0)
         self._player = Human()
 
     def _createAI(self):
+        from AI.ai import AI
         print("AI Mode")
         self._mode = Mode.AIMode
         nbInstances = multiprocessing.cpu_count()
@@ -126,6 +118,7 @@ class LogicGame:
         self._player = AI(0, nbInstances, LogicGame._AI_TIMEOUT)
 
     def _createDeepAI(self):
+        from AI.deepai import DeepAI
         print("Deep AI Mode")
         self._mode = Mode.DeepAIMode
         # nbInstances = multiprocessing.cpu_count()

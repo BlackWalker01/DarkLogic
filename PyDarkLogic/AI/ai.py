@@ -1,9 +1,4 @@
-import os
-
-path = os.getcwd()
-import sys
-
-sys.path.append(path + "\..\MainDarkLogic")
+import MainDarkLogic.darklogic as DarkLogic
 from MainDarkLogic.player import Player
 from AI.masteraithread import MasterAIThread
 from AI.node import Node
