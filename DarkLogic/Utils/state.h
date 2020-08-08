@@ -51,19 +51,13 @@ public:
 	class LOGICSHARED_EXPORT OrderedName
 	{
 	public:
-		OrderedName(Name name_, const unsigned int& nbPar_, const unsigned int& nbHyps_, const unsigned int& argIdx_);
+		OrderedName(Name name_, const unsigned int& nbHyps_, const unsigned int& argIdx_);
 
 		Name name() const; //name enum of current operator
-		unsigned int priority() const; //priority of current operator
-		Associativity associativity() const;
 		unsigned int nbHyps() const; //number of hypothesis operators in which current operator is
-		unsigned int nbPar() const;
 		unsigned int argIdx() const;
 	private:
 		Name m_name;
-		unsigned int m_priority;
-		Associativity m_associativity;
-		unsigned int m_nbPar;
 		unsigned int m_nbHyps;
 		unsigned int m_argIdx;
 	};
