@@ -33,26 +33,7 @@ public:
     virtual Associativity associativity() const=0;
     virtual std::string symbol() const=0;
 
-
-    static bool isOpeName(const std::string& name);
-    static Name getOpeName(const std::string& name_);
-    static Name getNextOpeName(const std::string& propCont, size_t& i);
-    static void skipStrings(const std::string& propCont, size_t& i);
-
     virtual ~IOperator() = default;
-
-private:
-    static const std::unordered_map<std::string,Name>  s_nameHash;
-    static const std::unordered_map<std::string,std::string> s_mightBeOpeName;
-    static const std::unordered_map<std::string,std::string> s_stringsToSkip;
-    static const std::unordered_map<std::string,std::string> s_stringsMightSkip;
-
-    static std::unordered_map<std::string,std::string> initStringMightSkip();
-    static std::unordered_map<std::string,std::string> initMightBeOpeName();
-
-    static bool mustBeSkipped(const std::string& s);
-    static bool mightBeSkipped(const std::string& s);
-    static bool mightBeOpeName(const std::string& s);
 };
 }
 #endif // DARK_LOGIC_IOPERATOR_H

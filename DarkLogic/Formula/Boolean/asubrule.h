@@ -40,16 +40,10 @@ public:
     virtual void clearAllIdentifications() const;
     bool testEvaluate() const;
 
-    static void addAbstractTerm(const std::string& varName, std::vector<std::shared_ptr<VariableContainer> > &varList, DbVarContainer &dbVar);
-
     virtual ~ASubRule() = default;
 };
 
 template<> struct ToTheoremStruct<ASubRule> { using Type = ASubTheorem; };
-
-ptr<IOperator> createRuleOperator(const Name name, const Arity& arity=0);
-void addRuleOperator(const Name name, std::vector<OperatorOrdering> &opeList, 
-                     const std::vector<OperatorOrdering>& hyps, const std::vector<HypParams>& hypStack, const size_t &numPar);
 }
 
 #endif // DARK_LOGIC_ASUBRULE_H

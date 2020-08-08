@@ -34,6 +34,7 @@ set(SRCS
     Formula/Boolean/subrule.cpp
     Formula/Boolean/subtheorem.cpp
     Formula/Boolean/theorem.cpp
+    Formula/parser.cpp
     Set/booleanset.cpp
     Set/naturalintegerset.cpp
     Set/set.cpp
@@ -147,6 +148,7 @@ set(HEADER
     Formula/Boolean/subrule.h
     Formula/Boolean/subtheorem.h
     Formula/Boolean/theorem.h
+    Formula/parser.h
     Set/allset.h
     Set/naturalintegerset.h
     Set/omniset.h

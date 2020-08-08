@@ -21,11 +21,5 @@ namespace N_DarkLogic{
 template<SubTheoremProperty SubPropertyType>
 class Theorem;
 
-ptr<ASubTheorem> createTheorem(const std::string &name, const std::string &content);
-
-ptr<ValueTypeObject> createTheorem(const std::string &name, std::vector<OperatorOrdering> &opeList,
-                               std::vector<OperatorOrdering> &orderedOpeList,
-                                   std::vector<std::shared_ptr<VariableContainer>> &varList);
-
 }
 #endif // DARK_LOGIC_THEOREM_H

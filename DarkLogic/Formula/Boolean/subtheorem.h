@@ -28,10 +28,6 @@ class SubRule;
 
 template<SubTheoremProperty SubPropertyType>
 class SubTheorem;
-
-ptr<ValueTypeObject> createSubTheorem(const std::string &name, std::vector<OperatorOrdering> &opeList,
-                                  std::vector<OperatorOrdering> &orderedOpeList, std::vector<std::shared_ptr<VariableContainer> > &varList,
-                                    const size_t& nbHyps = 0);
 }
 
 #endif // DARK_LOGIC_SUBTHEOREM_H

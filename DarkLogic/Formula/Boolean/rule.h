@@ -19,11 +19,6 @@
 
 namespace N_DarkLogic {
 
-ptr<ASubRule> createRule(const std::string& name, const std::string& content);
-ptr<ASubRule> createRule(const std::string &name, std::vector<OperatorOrdering> &opeList,
-                            std::vector<OperatorOrdering> &orderedOpeList,
-                             std::vector<std::shared_ptr<VariableContainer> > &varList);
-
 class DbVarProp;
 
 template<SubRuleProperty SubPropertyType>

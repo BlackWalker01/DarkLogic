@@ -76,10 +76,7 @@ PYBIND11_MODULE(DarkLogic, m)
 
 	py::class_<State::OrderedName> orderedName(m, "OrderedName");
 	orderedName.def("name", &State::OrderedName::name)
-		.def("priority", &State::OrderedName::priority)
-		.def("associativity", &State::OrderedName::associativity)
 		.def("nbHyps", &State::OrderedName::nbHyps)
-		.def("nbPar", &State::OrderedName::nbPar)
 		.def("argIdx", &State::OrderedName::argIdx);
 
 	py::enum_<Name> name(m, "name");

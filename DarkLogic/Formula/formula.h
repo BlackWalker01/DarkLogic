@@ -55,63 +55,6 @@ namespace FormulaHelper
     std::string getVarNameFromId(const IDVar& idVar);
 }
 
-struct HypParams
-{
-    HypParams(const size_t& idx_, const size_t& argIdx_);
-
-    size_t idx;
-    size_t argIdx;
-};
-
-struct OperatorOrdering
-{
-    OperatorOrdering();
-    //OperatorOrdering(const ptr<IOperator>& ope_, const size_t& nbPar_);
-    OperatorOrdering(const ptr<IOperator>& ope_, const size_t& nbPar_, const std::vector<HypParams>& hypStack);
-    OperatorOrdering(const OperatorOrdering& opeOrdering);
-
-    size_t argIndex();
-
-    std::shared_ptr<const IOperator> ope; //operator to order
-    size_t nbPar; //number of unclosed parenthesis before the operator
-    size_t nbArgs;
-    std::vector<HypParams> hyps; //hypothesis operator param list in which current operator is
-    bool foundCcl; // is true if and only if operator is hypothesis and parser already found is closing brace bracket
-};
-
-struct VariableContainer
-{
-    VariableContainer(const std::shared_ptr<AbstractTerm> &term);
-
-    void init();
-
-    ~VariableContainer() = default;
-
-    //attributes
-    VALUE_TYPE type;
-    std::shared_ptr<AbstractTerm> var;
-};
-
-class DbVarContainer
-{
-public:
-    DbVarContainer() = default;
-
-    void insert(const std::shared_ptr<VariableContainer> &var);
-
-    std::shared_ptr<VariableContainer> &find(const std::string &name);
-    bool contains(const std::string& name) const;
-
-    ~DbVarContainer() = default;
-
-private:
-    std::unordered_map<std::string,std::shared_ptr<VariableContainer>> db;
-};
-
-std::vector<OperatorOrdering> orderOperator(std::vector<OperatorOrdering>& opeList);
-std::vector<OperatorOrdering> fusion(const std::vector<OperatorOrdering >& opeList1,
-                                                         const std::vector<OperatorOrdering >& opeList2);
-
 std::vector<const DbVar*> getDbVarFromRules(const std::vector<ptr<ASubRule>>& formulas);
 std::vector<const DbVar*> getDbVarFromTheorems(const std::vector<ptr<ASubTheorem>>& formulas);
 
