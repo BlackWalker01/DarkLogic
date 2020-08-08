@@ -24,11 +24,6 @@ namespace N_DarkLogic
 template<SubRuleProperty SubPropertyType>
 class SubRule;
 
-ptr<ValueTypeObject> createSubRule(const std::string &name, std::vector<OperatorOrdering> &opeList,
-                                    std::vector<OperatorOrdering> &orderedOpeList,
-                                    std::vector<std::shared_ptr<VariableContainer> > &varList,
-                                    const size_t& nbHyps = 0);
-
 bool operator==(const ASubRule& rule, const ASubTheorem& thm)
 {
     return rule.isEqual(thm);

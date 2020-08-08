@@ -58,11 +58,6 @@ public:
 
     virtual ~ASubTheorem() = default;
 
-    //static methods
-    static void addAbstractTerm(const std::string &varName, std::vector<std::shared_ptr<VariableContainer>> &varList,
-                                DbVarContainer &dbVar);
-
-
 private:
     bool testCanBeDemonstrated(const std::vector<ptr<AVariable>>& vars, std::unique_ptr<bool>& crtValue) const;
 protected:
@@ -71,10 +66,5 @@ protected:
 };
 
 template<> struct ToRuleStruct<ASubTheorem> { using Type = ASubRule; };
-
-ptr<ASubTheorem> create(const std::string &name, const std::string &content);
-ptr<IOperator> createTheoremOperator(const Name name, const Arity& arity=0);
-void addTheoremOperator(const Name opeName, std::vector<OperatorOrdering> &opeList, const std::vector<OperatorOrdering> &hyps,
-                     const std::vector<HypParams>& hypStack, const size_t &numPar, const std::string& name, size_t& index);
 }
 #endif // DARK_LOGIC_ASUBTHEOREM_H

@@ -143,10 +143,8 @@ def parser():
         assert thCreated, "Theorem name: " + dbState.theoremName() + ", " \
                              "content: " + dbState.theoremContent() + " has not been created"
         dlContent = DarkLogic.toStrTheorem()
-        if dlContent != dbState.theoremContent():
-            print("Bad parsing! content in darklogic is '" + dlContent + "', but original was " + dbState.theoremContent())
-        """assert dlContent == dbState.theoremContent(), \
-            "Bad parsing! content in darklogic is '" + dlContent + "', but original was " + dbState.theoremContent()"""
+        assert dlContent == dbState.theoremContent(), "Bad parsing! content in darklogic is '"\
+            + dlContent + "', but original was " + dbState.theoremContent()
 
 
 stringToTest = {
