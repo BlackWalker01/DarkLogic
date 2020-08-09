@@ -33,6 +33,8 @@ class MasterAIThread(Thread):
         self._condition_var = Condition(self._mutex)
         self._slaveThreads = []
         self._threadAlive = {}
+        for k in range(self._maxInstanceIdx):
+            self._slaveThreads.append(AIThread(k, self._ai, self))
 
     def computeActions(self):
         for slave in self._slaveThreads:
@@ -65,7 +67,6 @@ class MasterAIThread(Thread):
                 self._slaveThreads.append(AIThread(k, self._ai))
 
     def _start(self):
-        # print("start master thread")
         # Dispatch actions between slave threads
         actions = DarkLogic.getActions()
         for k in range(len(actions)):
@@ -82,8 +83,9 @@ class MasterAIThread(Thread):
                 self._threadAlive[self._slaveThreads[k].instanceId()] = self._slaveThreads[k].instanceId()
 
     def _stop(self):
-        for slaveThread in self._slaveThreads:
-            slaveThread._stop()
+        for threadIdx in self._threadAlive.values():
+            if not self._slaveThreads[threadIdx].mustStop():
+                self._slaveThreads[threadIdx]._stop()
 
     def _stopFromThread(self, threadIdx):
         # remove threadIdx thread in "living threads"
@@ -94,9 +96,7 @@ class MasterAIThread(Thread):
             self._ai.stopFromMasterThread()
         # check if the other threads know they must stop
         else:
-            for threadIdx in self._threadAlive.values():
-                if not self._slaveThreads[threadIdx].mustStop():
-                    self._slaveThreads[threadIdx]._stop()
+            self._stop()
 
     def run(self):
         while True:
@@ -109,6 +109,7 @@ class MasterAIThread(Thread):
                 self._eventQueue.pop(0)
             self._hasEvents = False
             if len(self._threadAlive) == 0:
+                self._eventQueue.clear()
                 break
 
     def _pushEvent(self, threadIdx_, type_):

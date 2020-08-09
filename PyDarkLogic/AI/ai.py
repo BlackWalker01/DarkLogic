@@ -14,13 +14,15 @@ class AI(Player):
         super().__init__("AI")
         self._type = type_
         self._secondTimeout = secondTimeout
-        self._masterThread = MasterAIThread(maxInstanceIdx, self)
+        self._maxInstanceIdx = maxInstanceIdx
+        self._masterThread = None
+        # self._masterThread = MasterAIThread(maxInstanceIdx, self)
         self._crtNode = Node(ai=self)
         self._hasEvents = False
         self._eventQueue = []
         self._mutex = Lock()
         self._condition_var = Condition(self._mutex)
-        self._masterThread.init()
+        # self._masterThread.init()
 
     def play(self):
         # start chrono
@@ -29,6 +31,7 @@ class AI(Player):
         nbNode = None
         hasTimedout = False
         if not newNode:
+            self._masterThread = MasterAIThread(self._maxInstanceIdx, self)
             self._masterThread.start_()
             while not self._hasEvents:
                 with self._condition_var:
