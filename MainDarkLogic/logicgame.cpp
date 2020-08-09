@@ -15,7 +15,7 @@ LogicGame::LogicGame():
 
 void LogicGame::start()
 {
-    std::cout << "Welcome in LogicGame (v1.2.3)!" << std::endl;
+    std::cout << "Welcome in LogicGame (v1.2.4)!" << std::endl;
     
     //create player and init logic
     askPlayer();

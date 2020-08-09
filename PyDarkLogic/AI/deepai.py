@@ -43,6 +43,7 @@ class DeepAI(AI):
             # create model
             self._model = createModel(len(self._trueRuleStates) + 1)
         self._modelMutex = Lock()
+        self._elo = 1000
         self._train()
 
     def getTrueState(self, threadIdx):
