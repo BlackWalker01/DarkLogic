@@ -86,83 +86,185 @@ class DeepAI(AI):
         class_nb = {}
         for cl in range(DeepAI.MaxDepth + 1):
             class_nb[cl] = 0
-        print("Total number of theorems in database: "+str(len(dbStates)))
+        print("Total number of theorems in database: " + str(len(dbStates)))
+        dbStateIdx = -1
         for dbState in dbStates.values():
+            dbStateIdx += 1
+            """if dbStateIdx != 0 and dbStateIdx % 25000 == 0:
+                print(str(dbStateIdx) + " has been seen")"""
             if dbState.isEvaluated():
                 nbSelectedTh += 1
-                thCreated = DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
-                if thCreated:
-                    cl = dbState.value() if dbState.value() < DeepAI.MaxDepth else DeepAI.MaxDepth
-                    class_nb[cl] += 1
-                    # multExamples = DeepAI.MultExamples if dbState.value() < DeepAI.MaxDepth else 1
-                    multExamples = 1
-                    for k in range(multExamples):
-                        state = [makeTrueState(DarkLogic.getState())]
-                        l = list(range(len(self._trueRuleStates)))
-                        for pos in l:
-                            state.append(self._trueRuleStates[pos])
-                        x.append(state)
-                        if dbState.value() > DeepAI.MaxDepth:
-                            y.append(nthColounmOfIdentiy(DeepAI.MaxDepth))
-                        else:
-                            y.append(nthColounmOfIdentiy(dbState.value()))
-                    DarkLogic.clearAll()
+                cl = dbState.value() if dbState.value() < DeepAI.MaxDepth else DeepAI.MaxDepth
+                class_nb[cl] += 1
+                l = list(range(len(self._trueRuleStates)))
+                x.append([dbState, l])
+                if dbState.value() > DeepAI.MaxDepth:
+                    y.append(nthColounmOfIdentiy(DeepAI.MaxDepth))
                 else:
-                    nbExcludedTh += 1
-                    print("Excluded theorem: "+dbState.theoremContent())
-        if nbExcludedTh > 0:
-            print("number of excluded theorems: "+str(nbExcludedTh)+"/"+str(nbSelectedTh))
+                    y.append(nthColounmOfIdentiy(dbState.value()))
 
-        # check class_weight
-        print("Keep " + str(len(x)) + " examples")
-        class_weights = {}
-        for val in class_nb:
-            nb_cl = class_nb[val]
-            if nb_cl >= len(x) - 1:
-                print("[WARNING] Useless to train if almost all examples are from one class! Exit")
-                return
-            if nb_cl != 0:
-                class_weights[val] = 1 / nb_cl
-            else:
-                class_weights[val] = 0
-
-        # shuffle examples
-        print("shuffle " + str(len(x)) + " examples ...")
-        randList = list(range(len(x)))
-        newX = []
-        newY = []
-        newValues = []
-        for pos in range(len(x)):
-            newX.append(x[pos])
-            newY.append(y[pos])
-        x = newX
-        y = newY
-        values = newValues
-
-        # fit
+        # if we keep some examples
         if len(x):
+            # check class_weight
+            print("Keep " + str(len(x)) + " examples")
+            class_weights = {}
+            for val in class_nb:
+                nb_cl = class_nb[val]
+                if nb_cl >= len(x) - 1:
+                    print("[WARNING] Useless to train if almost all examples are from one class! Exit")
+                    return
+                if nb_cl != 0:
+                    class_weights[val] = 1 / nb_cl
+                else:
+                    class_weights[val] = 0
+
+            # shuffle examples
+            print("shuffle " + str(len(x)) + " examples ...")
+            randList = list(range(len(x)))
+            newX = []
+            newY = []
+            newValues = []
+            for pos in range(len(x)):
+                newX.append(x[pos])
+                newY.append(y[pos])
+            x = newX
+            y = newY
+            values = newValues
+
+            # prepare for training
+            batch_size = 50
+            nb_epochs = 1000
             pos = int(0.9 * len(x))
-            x = np.array(x)
-            y = np.array(y)
+            # x = np.array(x)
+            # y = np.array(y)
             values = np.array(values)
-            # class_weights = class_weight.compute_class_weight('balanced', np.unique(values),values)
             x_train = x[:pos]
             x_test = x[pos:]
             y_train = y[:pos]
             y_test = y[pos:]
             print("training on " + str(len(x_train)) + " examples")
             earlyStop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=20, verbose=1)
+            trainBatches_x = []
+            trainBatches_y = []
+            testBatches_x = []
+            testBatches_y = []
+            batch_x = []
+            batch_y = []
+            # prepare train batches
+            for k in range(len(x_train)):
+                batch_x.append(x_train[k])
+                batch_y.append(y_train[k])
+                if len(batch_x) == batch_size:
+                    trainBatches_x.append(batch_x)
+                    batch_x = []
+                    trainBatches_y.append(batch_y)
+                    batch_y = []
+            if len(batch_x) > 0:
+                trainBatches_x.append(batch_x)
+                batch_x = []
+                trainBatches_y.append(batch_y)
+                batch_y = []
 
-            def schedulerFun(epoch, lr):
-                if (epoch % 15) == 0 and epoch != 0:
-                    return lr / 10
+            # prepare test batches
+            for k in range(len(x_test)):
+                batch_x.append(x_test[k])
+                batch_y.append(y_test[k])
+                if len(batch_x) == batch_size:
+                    testBatches_x.append(batch_x)
+                    batch_x = []
+                    testBatches_y.append(batch_y)
+                    batch_y = []
+            if len(batch_x) > 0:
+                testBatches_x.append(batch_x)
+                batch_x = []
+                testBatches_y.append(batch_y)
+                batch_y = []
+
+            # fit
+            minLoss = 10 ** 10
+            lastDecLoss = 0  # last epoch since loss has decreased
+            minValLoss = 10 ** 10
+            lastDecValLoss = 0  # last epoch since loss has decreased
+            lr = 5 * 10 ** (-4)
+            for epoch in range(nb_epochs):
+                print("epoch n°" + str(epoch + 1) + "/" + str(nb_epochs))
+                # training...
+                print("training...")
+                loss = 0
+                accuracy = 0
+                val_loss = 0
+                val_accuracy = 0
+                for numBatch in range(len(trainBatches_x)):
+                    crtBatch = trainBatches_x[numBatch]
+                    batch = []
+                    for ex in crtBatch:
+                        dbState = ex[0]
+                        l = ex[1]
+                        DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
+                        state = [makeTrueState(DarkLogic.getState())]
+                        for pos in l:
+                            state.append(self._trueRuleStates[pos])
+                        batch.append(state)
+                        DarkLogic.clearAll()
+                    batch = np.array(batch)
+                    out = np.array(trainBatches_y[numBatch])
+                    history = self._model.train_on_batch(batch, out, class_weight=class_weights)
+                    loss = (loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
+                    accuracy = (accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
+                    if numBatch % 30 == 0:
+                        print("batch n°" + str(numBatch + 1) + "/" + str(len(trainBatches_x)))
+                        print("loss = "+str(loss))
+                        print("accuracy = "+str(accuracy))
+
+                print("LOSS = " + str(loss))
+                print("ACCURACY = " + str(accuracy))
+                if loss < minLoss:
+                    minLoss = loss
+                    lastDecLoss = 0
                 else:
-                    return lr
-            scheduler = tf.keras.callbacks.LearningRateScheduler(schedulerFun)
-            callbacks = [earlyStop, scheduler]
-            self._model.fit(x_train, y_train,
-                            batch_size=50, epochs=100, validation_data=(x_test, y_test), callbacks=callbacks,
-                            class_weight=class_weights)
+                    lastDecLoss += 1
+
+                # validation...
+                print("validation...")
+                for numBatch in range(len(testBatches_x)):
+                    crtBatch = testBatches_x[numBatch]
+                    batch = []
+                    for ex in crtBatch:
+                        dbState = ex[0]
+                        l = ex[1]
+                        DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
+                        state = [makeTrueState(DarkLogic.getState())]
+                        for pos in l:
+                            state.append(self._trueRuleStates[pos])
+                        batch.append(state)
+                        DarkLogic.clearAll()
+                    batch = np.array(batch)
+                    out = np.array(testBatches_y[numBatch])
+                    history = self._model.train_on_batch(batch, out, class_weight=class_weights)
+                    val_loss = (val_loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
+                    val_accuracy = (val_accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
+                    if numBatch % 30 == 0:
+                        print("batch n°" + str(numBatch + 1) + "/" + str(len(trainBatches_x)))
+                        print("val_loss = "+str(loss))
+                        print("val_accuracy = "+str(accuracy))
+                print("VAL_LOSS = " + str(val_loss))
+                print("VAL_ACCURACY = " + str(val_accuracy))
+                if val_loss < minValLoss:
+                    minValLoss = val_loss
+                    lastDecValLoss = 0
+                else:
+                    lastDecValLoss += 1
+
+                if lastDecLoss == 5:
+                    lr = lr / 10
+                    print("adapt learning rate: "+str(lr))
+                    opt = keras.optimizers.Adam(learning_rate=lr)
+                    self._model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+                if lastDecValLoss == 10:
+                    print("Early-stopping!")
+                print("_______________________________________________________________________________________")
+
+            print("Save model")
             self._model.save(DeepAI.ModelFile)
 
     def _storeCrtNode(self):
