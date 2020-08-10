@@ -90,14 +90,17 @@ class DeepAI(AI):
         dbStateIdx = -1
         for dbState in dbStates.values():
             dbStateIdx += 1
-            """if dbStateIdx != 0 and dbStateIdx % 25000 == 0:
-                print(str(dbStateIdx) + " has been seen")"""
+            if dbStateIdx != 0 and dbStateIdx % 25000 == 0:
+                print(str(dbStateIdx) + " has been seen")
             if dbState.isEvaluated():
                 nbSelectedTh += 1
                 cl = dbState.value() if dbState.value() < DeepAI.MaxDepth else DeepAI.MaxDepth
                 class_nb[cl] += 1
                 l = list(range(len(self._trueRuleStates)))
-                x.append([dbState, l])
+                DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
+                state = DarkLogic.getState()
+                DarkLogic.clearAll()
+                x.append([[makeTrueState(state)], l])
                 if dbState.value() > DeepAI.MaxDepth:
                     y.append(nthColounmOfIdentiy(DeepAI.MaxDepth))
                 else:
@@ -198,20 +201,17 @@ class DeepAI(AI):
                     crtBatch = trainBatches_x[numBatch]
                     batch = []
                     for ex in crtBatch:
-                        dbState = ex[0]
+                        state = ex[0]
                         l = ex[1]
-                        DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
-                        state = [makeTrueState(DarkLogic.getState())]
                         for pos in l:
                             state.append(self._trueRuleStates[pos])
                         batch.append(state)
-                        DarkLogic.clearAll()
                     batch = np.array(batch)
                     out = np.array(trainBatches_y[numBatch])
                     history = self._model.train_on_batch(batch, out, class_weight=class_weights)
                     loss = (loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
                     accuracy = (accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
-                    if numBatch % 30 == 0:
+                    if numBatch % 30 == 29:
                         print("batch n°" + str(numBatch + 1) + "/" + str(len(trainBatches_x)))
                         print("loss = "+str(loss))
                         print("accuracy = "+str(accuracy))
@@ -219,9 +219,11 @@ class DeepAI(AI):
                 print("LOSS = " + str(loss))
                 print("ACCURACY = " + str(accuracy))
                 if loss < minLoss:
+                    print("LOSS decreasing!")
                     minLoss = loss
                     lastDecLoss = 0
                 else:
+                    print("LOSS increasing!")
                     lastDecLoss += 1
 
                 # validation...
@@ -230,29 +232,28 @@ class DeepAI(AI):
                     crtBatch = testBatches_x[numBatch]
                     batch = []
                     for ex in crtBatch:
-                        dbState = ex[0]
+                        state = ex[0]
                         l = ex[1]
-                        DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
-                        state = [makeTrueState(DarkLogic.getState())]
                         for pos in l:
                             state.append(self._trueRuleStates[pos])
                         batch.append(state)
-                        DarkLogic.clearAll()
                     batch = np.array(batch)
                     out = np.array(testBatches_y[numBatch])
                     history = self._model.train_on_batch(batch, out, class_weight=class_weights)
                     val_loss = (val_loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
                     val_accuracy = (val_accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
-                    if numBatch % 30 == 0:
-                        print("batch n°" + str(numBatch + 1) + "/" + str(len(trainBatches_x)))
+                    if numBatch % 30 == 29:
+                        print("batch n°" + str(numBatch + 1) + "/" + str(len(testBatches_x)))
                         print("val_loss = "+str(loss))
                         print("val_accuracy = "+str(accuracy))
                 print("VAL_LOSS = " + str(val_loss))
                 print("VAL_ACCURACY = " + str(val_accuracy))
                 if val_loss < minValLoss:
+                    print("VAL_LOSS decreasing")
                     minValLoss = val_loss
                     lastDecValLoss = 0
                 else:
+                    print("VAL_LOSS increasing")
                     lastDecValLoss += 1
 
                 if lastDecLoss == 5:
