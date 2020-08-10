@@ -44,7 +44,7 @@ class DeepAI(AI):
             self._model = createModel(len(self._trueRuleStates) + 1)
         self._modelMutex = Lock()
         self._elo = 1000
-        # self._train()
+        self._train()
 
     def getTrueState(self, threadIdx):
         return [makeTrueState(DarkLogic.getState(threadIdx))] + self._trueRuleStates
@@ -83,13 +83,19 @@ class DeepAI(AI):
         dbStates = self._db.getDatas()
         nbExcludedTh = 0
         nbSelectedTh = 0
+        class_nb = {}
+        for cl in range(DeepAI.MaxDepth + 1):
+            class_nb[cl] = 0
         print("Total number of theorems in database: "+str(len(dbStates)))
         for dbState in dbStates.values():
             if dbState.isEvaluated():
                 nbSelectedTh += 1
                 thCreated = DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
                 if thCreated:
-                    multExamples = DeepAI.MultExamples if dbState.value() < DeepAI.MaxDepth else 1
+                    cl = dbState.value() if dbState.value() < DeepAI.MaxDepth else DeepAI.MaxDepth
+                    class_nb[cl] += 1
+                    # multExamples = DeepAI.MultExamples if dbState.value() < DeepAI.MaxDepth else 1
+                    multExamples = 1
                     for k in range(multExamples):
                         state = [makeTrueState(DarkLogic.getState())]
                         l = list(range(len(self._trueRuleStates)))
@@ -106,6 +112,19 @@ class DeepAI(AI):
                     print("Excluded theorem: "+dbState.theoremContent())
         if nbExcludedTh > 0:
             print("number of excluded theorems: "+str(nbExcludedTh)+"/"+str(nbSelectedTh))
+
+        # check class_weight
+        print("Keep " + str(len(x)) + " examples")
+        class_weights = {}
+        for val in class_nb:
+            nb_cl = class_nb[val]
+            if nb_cl >= len(x) - 1:
+                print("[WARNING] Useless to train if almost all examples are from one class! Exit")
+                return
+            if nb_cl != 0:
+                class_weights[val] = 1 / nb_cl
+            else:
+                class_weights[val] = 0
 
         # shuffle examples
         print("shuffle " + str(len(x)) + " examples ...")
@@ -131,7 +150,7 @@ class DeepAI(AI):
             x_test = x[pos:]
             y_train = y[:pos]
             y_test = y[pos:]
-            print("training on " + str(len(x_train)) + " training examples")
+            print("training on " + str(len(x_train)) + " examples")
             earlyStop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=20, verbose=1)
 
             def schedulerFun(epoch, lr):
@@ -142,7 +161,8 @@ class DeepAI(AI):
             scheduler = tf.keras.callbacks.LearningRateScheduler(schedulerFun)
             callbacks = [earlyStop, scheduler]
             self._model.fit(x_train, y_train,
-                            batch_size=50, epochs=100, validation_data=(x_test, y_test), callbacks=callbacks)
+                            batch_size=50, epochs=100, validation_data=(x_test, y_test), callbacks=callbacks,
+                            class_weight=class_weights)
             self._model.save(DeepAI.ModelFile)
 
     def _storeCrtNode(self):

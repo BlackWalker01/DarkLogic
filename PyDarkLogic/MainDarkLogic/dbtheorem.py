@@ -20,19 +20,21 @@ class Theorem:
 class DbTheorem:
     def __init__(self):
         self._db = {}
-        self.addTheorem("Identity", "b0<=>b0", 1500)
-        self.addTheorem("DoubleNot", "b0<=>!!b0", 1500)
-        self.addTheorem("ExcludedMiddle", "b0||!b0", 1800)
-        self.addTheorem("Peirce law", "((b0=>b1)=>b0)=>b0", 1900)
-        self.addTheorem("Non-contradiction", "!(b0&&!b0)", 800)
-        self.addTheorem("De Morgan law", "!(b0&&b1)<=>(!b0||!b1)", 2000)
-        self.addTheorem("De Morgan law (2)", "!(b0||b1)<=>(!b0&&!b1)", 2000)
-        self.addTheorem("Contraposition", "(b0=>b1)=>(!b1=>!b0)", 1900)
-        self.addTheorem("Modus ponens", "((b0=>b1)&&b0)=>b1", 1900)
-        self.addTheorem("Modus tollens", "((b0=>b1)&&!b1)=>!b0", 2000)
-        self.addTheorem("Modus barbara", "((b0=>b1)&&(b1=>b2))=>(b0=>b2)", 2200)
-        self.addTheorem("&& Distributivity", "(b0&&(b1||b2))<=>((b0&&b1)||(b0&&b2))", 2200)
-        self.addTheorem("|| Distributivity", "(b0||(b1&&b2))<=>((b0||b1)&&(b0||b2))", 2200)
+        self.addTheorem("Identity", "a<=>a", 1500)
+        self.addTheorem("Semi-Identity", "a=>a", 1200)
+        self.addTheorem("DoubleNot", "a<=>!!a", 1500)
+        self.addTheorem("Semi-DoubleNot", "a=>!!a", 1200)
+        self.addTheorem("ExcludedMiddle", "a||!a", 1800)
+        self.addTheorem("Peirce law", "((a=>b)=>a)=>a", 1900)
+        self.addTheorem("Non-contradiction", "!(a&&!a)", 800)
+        self.addTheorem("De Morgan law", "!(a&&b)<=>(!a||!b)", 2000)
+        self.addTheorem("De Morgan law (2)", "!(a||b)<=>(!a&&!b)", 2000)
+        self.addTheorem("Contraposition", "(a=>b)=>(!b=>!a)", 1900)
+        self.addTheorem("Modus ponens", "((a=>b)&&a)=>b", 1900)
+        self.addTheorem("Modus tollens", "((a=>b)&&!b)=>!a", 2000)
+        self.addTheorem("Modus barbara", "((a=>b)&&(b=>c))=>(a=>c)", 2200)
+        self.addTheorem("&& Distributivity", "(a&&(b||c))<=>((a&&b)||(a&&c))", 2200)
+        self.addTheorem("|| Distributivity", "(a||(b&&c))<=>((a||b)&&(a||c))", 2200)
 
     def getRandomTheorem(self):
         keys = []

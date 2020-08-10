@@ -315,7 +315,8 @@ class Node:
             son = self._sons[key]
             if son.value() < minVal:
                 minVal = son.value()
-                minAIVal = son.aiValue()
+                if son.isAIValuated():
+                    minAIVal = son.aiValue()
                 minNodes.clear()
                 minNodes.append(key)
             elif son.value() == minVal:

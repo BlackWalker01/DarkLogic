@@ -23,7 +23,7 @@ class Player:
         self._elo = elo
         comment = ""
         if elo >= exElo:
-            comment = "(+"+str(exElo - elo)+")"
+            comment = "(+"+str(elo - exElo)+")"
         else:
             comment = "(-" + str(exElo - elo) + ")"
         print(self._name+"'s elo is "+str(self._elo)+" "+comment)
