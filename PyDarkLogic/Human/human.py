@@ -36,11 +36,10 @@ def _pushAction(args):
             return True
         if isNumber(args[0]):
             id = int(args[0])
-            if id == args[0]:
-                actions = DarkLogic.getActions()
-                for actionId in actions:
-                    if id == actionId:
-                        return Action(EnumFun.PUSH_ACTION, id)
+            actions = DarkLogic.getActions()
+            for actionId in actions:
+                if id == actionId:
+                    return Action(EnumFun.PUSH_ACTION, id)
         print(args[0] + " is not a valid action")
     elif len(args) == 2:
         ruleName = args[0]

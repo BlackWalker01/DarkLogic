@@ -19,5 +19,11 @@ class Player:
         return self._elo
 
     def setElo(self, elo):
+        exElo = self._elo
         self._elo = elo
-        print(self._name+"'s elo is "+str(self._elo))
+        comment = ""
+        if elo >= exElo:
+            comment = "(+"+str(exElo - elo)+")"
+        else:
+            comment = "(-" + str(exElo - elo) + ")"
+        print(self._name+"'s elo is "+str(self._elo)+" "+comment)

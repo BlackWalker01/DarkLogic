@@ -72,13 +72,14 @@ class LogicGame:
     _actionSwitcher = {EnumFun.GET_ACTION: _printActions,
                        EnumFun.PUSH_ACTION: _pushAction,
                        EnumFun.POP_ACTION: _popAction}
-    _AI_TIMEOUT = 10  # seconds
+    _AI_TIMEOUT = 20  # seconds
 
     def __init__(self, isAuto=False):
         self._mode = Mode.NoMode
         self._player = None
         self._isAuto = isAuto
         self._eloThm = 1500
+        self._nbGames = 0
         self._dbThm = DbTheorem()
 
     def start(self):
@@ -187,8 +188,10 @@ class LogicGame:
 
     def _game(self):
         nbAttempts = 0
-        maxNbAttempts = 10
+        maxNbAttempts = 8
         hasWon = False
+        self._nbGames += 1
+        print("Game n°"+str(self._nbGames))
         while not DarkLogic.isOver():
             print("Attempt n°" + str(nbAttempts + 1) + "/" + str(maxNbAttempts))
             action = self._player.play()
@@ -202,7 +205,7 @@ class LogicGame:
         if nbAttempts == maxNbAttempts:
             print(self._player.name() + " lost! Too much attempts!")
             exElo = self._player.elo()
-            newElo = exElo - 30 / (1 + 10 ** ((self._eloThm - exElo) / 400))
+            newElo = round(exElo - 30 / (1 + 10 ** ((self._eloThm - exElo) / 400)))
             self._player.setElo(newElo)
         elif DarkLogic.hasAlreadyPlayed():
             if DarkLogic.isDemonstrated():
@@ -220,7 +223,7 @@ class LogicGame:
             # update player's elo
             W = 1 if hasWon else 0
             exElo = self._player.elo()
-            newElo = exElo + 30*(W - 1/(1 + 10**((self._eloThm - exElo) / 400)))
+            newElo = round(exElo + 30*(W - 1/(1 + 10**((self._eloThm - exElo) / 400))))
             self._player.setElo(newElo)
         else:
             if DarkLogic.isDemonstrated():

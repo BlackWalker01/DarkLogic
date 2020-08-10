@@ -44,7 +44,7 @@ class DeepAI(AI):
             self._model = createModel(len(self._trueRuleStates) + 1)
         self._modelMutex = Lock()
         self._elo = 1000
-        self._train()
+        # self._train()
 
     def getTrueState(self, threadIdx):
         return [makeTrueState(DarkLogic.getState(threadIdx))] + self._trueRuleStates
@@ -121,28 +121,29 @@ class DeepAI(AI):
         values = newValues
 
         # fit
-        pos = int(0.9 * len(x))
-        x = np.array(x)
-        y = np.array(y)
-        values = np.array(values)
-        # class_weights = class_weight.compute_class_weight('balanced', np.unique(values),values)
-        x_train = x[:pos]
-        x_test = x[pos:]
-        y_train = y[:pos]
-        y_test = y[pos:]
-        print("training on " + str(len(x_train)) + " training examples")
-        earlyStop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=20, verbose=1)
+        if len(x):
+            pos = int(0.9 * len(x))
+            x = np.array(x)
+            y = np.array(y)
+            values = np.array(values)
+            # class_weights = class_weight.compute_class_weight('balanced', np.unique(values),values)
+            x_train = x[:pos]
+            x_test = x[pos:]
+            y_train = y[:pos]
+            y_test = y[pos:]
+            print("training on " + str(len(x_train)) + " training examples")
+            earlyStop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=20, verbose=1)
 
-        def schedulerFun(epoch, lr):
-            if (epoch % 15) == 0 and epoch != 0:
-                return lr / 10
-            else:
-                return lr
-        scheduler = tf.keras.callbacks.LearningRateScheduler(schedulerFun)
-        callbacks = [earlyStop, scheduler]
-        self._model.fit(x_train, y_train,
-                        batch_size=50, epochs=100, validation_data=(x_test, y_test), callbacks=callbacks)
-        self._model.save(DeepAI.ModelFile)
+            def schedulerFun(epoch, lr):
+                if (epoch % 15) == 0 and epoch != 0:
+                    return lr / 10
+                else:
+                    return lr
+            scheduler = tf.keras.callbacks.LearningRateScheduler(schedulerFun)
+            callbacks = [earlyStop, scheduler]
+            self._model.fit(x_train, y_train,
+                            batch_size=50, epochs=100, validation_data=(x_test, y_test), callbacks=callbacks)
+            self._model.save(DeepAI.ModelFile)
 
     def _storeCrtNode(self):
         self._storeNodes.append(self._crtNode)
@@ -185,6 +186,9 @@ class DeepAI(AI):
         if self._crtNode.isAIValuated():
             return self._crtNode.aiValue()
         return self._crtNode.value()
+
+    def canEvaluate(self, state):
+        return len(state.operators()) < DeepAI.NbOperators and len(state.terms()) < DeepAI.NbTerms
 
 
 def makeOrderedOpeTab(ope):

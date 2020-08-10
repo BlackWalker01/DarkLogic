@@ -282,7 +282,10 @@ class Node:
             for action in actions:
                 self._sons[action] = None
             nodeList.append(self)
-            states.append(Node._ai.getTrueState(self._threadId))
+            if self._ai.canEvaluate(DarkLogic.getState(self._threadId)):
+                states.append(Node._ai.getTrueState(self._threadId))
+            else:
+                self._aiValue = Node.VAL_INIT
         self._isEvaluated = True
 
         # unplay crt move
@@ -410,6 +413,7 @@ class Node:
         return self._isLoss
 
     def getDbStates(self):
+        # print("get all nodes from current search tree")
         ret = []
         DarkLogic.getActions()
         name = DarkLogic.theoremName()
@@ -427,9 +431,13 @@ class Node:
 
     def getDeepDbStates(self, dbStates, depth):
         DarkLogic.getActions()
+        # print("apply action :"+str(self._actionId)+" at depth = "+str(depth))
         DarkLogic.apply(self._actionId)
         name = DarkLogic.theoremName()
+        # print("name:" + str(name))
+        # print("content: "+DarkLogic.toStrTheorem())
         content = DarkLogic.toNormStrTheorem()
+        # print("NormContent = " + str(content))
         if self.isEvaluated() and self.value() != Node.VAL_INIT and not (self.value() == Node.VAL_MAX
                                                                          and not self.isLoss()):
             dbStates.append(State(name=name, content=content, value=self._value))
