@@ -44,6 +44,7 @@ class DeepAI(AI):
             # create model
             print("create new DeepAI brain model")
             self._model = createModel(len(self._trueRuleStates) + 1)
+            self._model.save(DeepAI.ModelFile)
         self._modelMutex = Lock()
         self._elo = 1146
         self._train()
@@ -188,38 +189,24 @@ class DeepAI(AI):
             # fit
             minLoss = 10 ** 10
             lastDecLoss = 0  # last epoch since loss has decreased
+            # init minValLoss
+            print("Validation of current model")
+            crtMinValLoss, val_acc = validation(self._model, testBatches_x, testBatches_y,
+                                                batch_size, class_weights, self._trueRuleStates)
+            print("VAL_LOSS = " + str(crtMinValLoss))
+            print("VAL_ACCURACY = " + str(val_acc))
             minValLoss = 10 ** 10
             lastDecValLoss = 0  # last epoch since loss has decreased
             lr = 5 * 10 ** (-5)
+            print("create new model")
+            self._model = createModel(len(self._trueRuleStates) + 1)
             opt = keras.optimizers.Adam(learning_rate=lr)
             self._model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
             for epoch in range(nb_epochs):
                 print("epoch n°" + str(epoch + 1) + "/" + str(nb_epochs))
                 # training...
-                print("training...")
-                loss = 0
-                accuracy = 0
-                val_loss = 0
-                val_accuracy = 0
-                for numBatch in range(len(trainBatches_x)):
-                    crtBatch = trainBatches_x[numBatch]
-                    batch = []
-                    for ex in crtBatch:
-                        state = [ex[0]]
-                        l = ex[1]
-                        for pos in l:
-                            state.append(self._trueRuleStates[pos])
-                        batch.append(state)
-                    batch = np.array(batch)
-                    out = np.array(trainBatches_y[numBatch])
-                    history = self._model.train_on_batch(batch, out, class_weight=class_weights)
-                    loss = (loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
-                    accuracy = (accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
-                    if numBatch % 30 == 29:
-                        print("batch n°" + str(numBatch + 1) + "/" + str(len(trainBatches_x)))
-                        print("loss = "+str(loss))
-                        print("accuracy = "+str(accuracy))
-
+                loss, accuracy = training(self._model, trainBatches_x, trainBatches_y,
+                                          batch_size, class_weights, self._trueRuleStates)
                 print("LOSS = " + str(loss))
                 print("ACCURACY = " + str(accuracy))
                 if loss < minLoss:
@@ -231,38 +218,24 @@ class DeepAI(AI):
                     lastDecLoss += 1
 
                 # validation...
-                print("validation...")
-                for numBatch in range(len(testBatches_x)):
-                    crtBatch = testBatches_x[numBatch]
-                    batch = []
-                    for ex in crtBatch:
-                        state = [ex[0]]
-                        l = ex[1]
-                        for pos in l:
-                            state.append(self._trueRuleStates[pos])
-                        batch.append(state)
-                    batch = np.array(batch)
-                    out = np.array(testBatches_y[numBatch])
-                    history = self._model.train_on_batch(batch, out, class_weight=class_weights)
-                    val_loss = (val_loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
-                    val_accuracy = (val_accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
-                    if numBatch % 30 == 29:
-                        print("batch n°" + str(numBatch + 1) + "/" + str(len(testBatches_x)))
-                        print("val_loss = "+str(val_loss))
-                        print("val_accuracy = "+str(val_accuracy))
+                val_loss, val_accuracy = validation(self._model, testBatches_x, testBatches_y,
+                                                    batch_size, class_weights, self._trueRuleStates)
                 print("VAL_LOSS = " + str(val_loss))
                 print("VAL_ACCURACY = " + str(val_accuracy))
                 if val_loss < minValLoss:
                     print("VAL_LOSS decreasing")
                     minValLoss = val_loss
                     lastDecValLoss = 0
+                    if minValLoss < crtMinValLoss:
+                        print("Improvement compared to old model!!!")
+                        crtMinValLoss = minValLoss
                 else:
                     print("VAL_LOSS increasing")
                     lastDecValLoss += 1
 
                 if lastDecLoss == 3:
                     lr = lr / 10
-                    print("adapt learning rate: "+str(lr))
+                    print("adapt learning rate: " + str(lr))
                     opt = keras.optimizers.Adam(learning_rate=lr)
                     self._model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
                     lastDecLoss = 0
@@ -270,11 +243,12 @@ class DeepAI(AI):
                     print("Early-stopping!")
                     break
 
-                if val_loss == minValLoss:
+                if val_loss <= crtMinValLoss:
                     print("Save model")
                     self._model.save(DeepAI.ModelFile)
                 print("_______________________________________________________________________________________")
             if file_io.file_exists(DeepAI.ModelFile):
+                # load best model
                 self._model = keras.models.load_model(DeepAI.ModelFile)
 
     def _storeCrtNode(self):
@@ -363,7 +337,6 @@ def createModel(inputSize):
     model = keras.Model(inputs, outputs, name="deepai")
     opt = keras.optimizers.Adam(learning_rate=5 * 10 ** (-5))
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
-    model.save(DeepAI.ModelFile)
     return model
 
 
@@ -459,3 +432,54 @@ def eval(outputs):
             k += 1
         ret.append(round(crtVal))
     return ret
+
+
+def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, trueRuleStates):
+    # training...
+    print("training...")
+    loss = 0
+    accuracy = 0
+    for numBatch in range(len(trainBatches_x)):
+        crtBatch = trainBatches_x[numBatch]
+        batch = []
+        for ex in crtBatch:
+            state = [ex[0]]
+            l = ex[1]
+            for pos in l:
+                state.append(trueRuleStates[pos])
+            batch.append(state)
+        batch = np.array(batch)
+        out = np.array(trainBatches_y[numBatch])
+        history = model.train_on_batch(batch, out, class_weight=class_weights)
+        loss = (loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
+        accuracy = (accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
+        if numBatch % 30 == 29:
+            print("batch n°" + str(numBatch + 1) + "/" + str(len(trainBatches_x)))
+            print("loss = " + str(loss))
+            print("accuracy = " + str(accuracy))
+    return loss, accuracy
+
+
+def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, trueRuleStates):
+    print("validation...")
+    val_loss = 0
+    val_accuracy = 0
+    for numBatch in range(len(testBatches_x)):
+        crtBatch = testBatches_x[numBatch]
+        batch = []
+        for ex in crtBatch:
+            state = [ex[0]]
+            l = ex[1]
+            for pos in l:
+                state.append(trueRuleStates[pos])
+            batch.append(state)
+        batch = np.array(batch)
+        out = np.array(testBatches_y[numBatch])
+        history = model.train_on_batch(batch, out, class_weight=class_weights)
+        val_loss = (val_loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
+        val_accuracy = (val_accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
+        if numBatch % 30 == 29:
+            print("batch n°" + str(numBatch + 1) + "/" + str(len(testBatches_x)))
+            print("val_loss = " + str(val_loss))
+            print("val_accuracy = " + str(val_accuracy))
+    return val_loss, val_accuracy
