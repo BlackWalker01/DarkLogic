@@ -192,12 +192,12 @@ class DeepAI(AI):
             # init minValLoss
             print("Validation of current model")
             crtMinValLoss, val_acc = validation(self._model, testBatches_x, testBatches_y,
-                                                batch_size, class_weights, self._trueRuleStates)
+                                                batch_size, self._trueRuleStates)
             print("VAL_LOSS = " + str(crtMinValLoss))
             print("VAL_ACCURACY = " + str(val_acc))
             minValLoss = 10 ** 10
             lastDecValLoss = 0  # last epoch since loss has decreased
-            lr = 5 * 10 ** (-5)
+            lr = 1 * 10 ** (-5)
             print("create new model")
             self._model = createModel(len(self._trueRuleStates) + 1)
             opt = keras.optimizers.Adam(learning_rate=lr)
@@ -219,7 +219,7 @@ class DeepAI(AI):
 
                 # validation...
                 val_loss, val_accuracy = validation(self._model, testBatches_x, testBatches_y,
-                                                    batch_size, class_weights, self._trueRuleStates)
+                                                    batch_size, self._trueRuleStates)
                 print("VAL_LOSS = " + str(val_loss))
                 print("VAL_ACCURACY = " + str(val_accuracy))
                 if val_loss < minValLoss:
@@ -239,7 +239,7 @@ class DeepAI(AI):
                     opt = keras.optimizers.Adam(learning_rate=lr)
                     self._model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
                     lastDecLoss = 0
-                if lastDecValLoss == 7:
+                if lastDecValLoss == 10:
                     print("Early-stopping!")
                     break
 
@@ -249,7 +249,9 @@ class DeepAI(AI):
                 print("_______________________________________________________________________________________")
             if file_io.file_exists(DeepAI.ModelFile):
                 # load best model
+                print("load best model")
                 self._model = keras.models.load_model(DeepAI.ModelFile)
+            print("_______________________________________________________________________________________")
 
     def _storeCrtNode(self):
         self._storeNodes.append(self._crtNode)
@@ -460,7 +462,7 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
     return loss, accuracy
 
 
-def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, trueRuleStates):
+def validation(model, testBatches_x, testBatches_y, batch_size, trueRuleStates):
     print("validation...")
     val_loss = 0
     val_accuracy = 0
@@ -475,7 +477,7 @@ def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, t
             batch.append(state)
         batch = np.array(batch)
         out = np.array(testBatches_y[numBatch])
-        history = model.train_on_batch(batch, out, class_weight=class_weights)
+        history = model.test_on_batch(batch, out)
         val_loss = (val_loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
         val_accuracy = (val_accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
         if numBatch % 30 == 29:
