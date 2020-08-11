@@ -21,7 +21,7 @@ class DeepAI(AI):
     NbTerms = NbOperators
     MaxDepth = 25
     MultExamples = 500
-    MaxGameBefLearning = 1
+    MaxGameBefLearning = 5
     ModelFile = "AI/deepAIModel"
     DbName = "Database/deepaiMemory.csv"
 
@@ -38,12 +38,14 @@ class DeepAI(AI):
         self._db = Database(DeepAI.DbName)
         self._gamesSinceLastLearning = 0
         if file_io.file_exists(DeepAI.ModelFile):
+            print("load DeepAI brain model")
             self._model = keras.models.load_model(DeepAI.ModelFile)
         else:
             # create model
+            print("create new DeepAI brain model")
             self._model = createModel(len(self._trueRuleStates) + 1)
         self._modelMutex = Lock()
-        self._elo = 1000
+        self._elo = 1146
         self._train()
 
     def getTrueState(self, threadIdx):
@@ -100,7 +102,7 @@ class DeepAI(AI):
                 DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
                 state = DarkLogic.getState()
                 DarkLogic.clearAll()
-                x.append([[makeTrueState(state)], l])
+                x.append([makeTrueState(state), l])
                 if dbState.value() > DeepAI.MaxDepth:
                     y.append(nthColounmOfIdentiy(DeepAI.MaxDepth))
                 else:
@@ -188,7 +190,9 @@ class DeepAI(AI):
             lastDecLoss = 0  # last epoch since loss has decreased
             minValLoss = 10 ** 10
             lastDecValLoss = 0  # last epoch since loss has decreased
-            lr = 5 * 10 ** (-4)
+            lr = 5 * 10 ** (-5)
+            opt = keras.optimizers.Adam(learning_rate=lr)
+            self._model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
             for epoch in range(nb_epochs):
                 print("epoch n°" + str(epoch + 1) + "/" + str(nb_epochs))
                 # training...
@@ -201,7 +205,7 @@ class DeepAI(AI):
                     crtBatch = trainBatches_x[numBatch]
                     batch = []
                     for ex in crtBatch:
-                        state = ex[0]
+                        state = [ex[0]]
                         l = ex[1]
                         for pos in l:
                             state.append(self._trueRuleStates[pos])
@@ -232,7 +236,7 @@ class DeepAI(AI):
                     crtBatch = testBatches_x[numBatch]
                     batch = []
                     for ex in crtBatch:
-                        state = ex[0]
+                        state = [ex[0]]
                         l = ex[1]
                         for pos in l:
                             state.append(self._trueRuleStates[pos])
@@ -244,8 +248,8 @@ class DeepAI(AI):
                     val_accuracy = (val_accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
                     if numBatch % 30 == 29:
                         print("batch n°" + str(numBatch + 1) + "/" + str(len(testBatches_x)))
-                        print("val_loss = "+str(loss))
-                        print("val_accuracy = "+str(accuracy))
+                        print("val_loss = "+str(val_loss))
+                        print("val_accuracy = "+str(val_accuracy))
                 print("VAL_LOSS = " + str(val_loss))
                 print("VAL_ACCURACY = " + str(val_accuracy))
                 if val_loss < minValLoss:
@@ -256,17 +260,22 @@ class DeepAI(AI):
                     print("VAL_LOSS increasing")
                     lastDecValLoss += 1
 
-                if lastDecLoss == 5:
+                if lastDecLoss == 3:
                     lr = lr / 10
                     print("adapt learning rate: "+str(lr))
                     opt = keras.optimizers.Adam(learning_rate=lr)
                     self._model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
-                if lastDecValLoss == 10:
+                    lastDecLoss = 0
+                if lastDecValLoss == 7:
                     print("Early-stopping!")
-                print("_______________________________________________________________________________________")
+                    break
 
-            print("Save model")
-            self._model.save(DeepAI.ModelFile)
+                if val_loss == minValLoss:
+                    print("Save model")
+                    self._model.save(DeepAI.ModelFile)
+                print("_______________________________________________________________________________________")
+            if file_io.file_exists(DeepAI.ModelFile):
+                self._model = keras.models.load_model(DeepAI.ModelFile)
 
     def _storeCrtNode(self):
         self._storeNodes.append(self._crtNode)
@@ -277,7 +286,6 @@ class DeepAI(AI):
             DarkLogic.makeTheorem(self._theoremName, self._theorem)
             self._db.export(self._storeNodes[0].getDbStates())
             if self._gamesSinceLastLearning == DeepAI.MaxGameBefLearning:
-                self._model = createModel(len(self._trueRuleStates) + 1)
                 self._train()
                 self._gamesSinceLastLearning = 0
             self._storeNodes.clear()
@@ -353,7 +361,7 @@ def createModel(inputSize):
     outputs = layers.Dense(DeepAI.MaxDepth + 1, activation="softmax")(x)
 
     model = keras.Model(inputs, outputs, name="deepai")
-    opt = keras.optimizers.Adam(learning_rate=0.0005)
+    opt = keras.optimizers.Adam(learning_rate=5 * 10 ** (-5))
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
     model.save(DeepAI.ModelFile)
     return model
