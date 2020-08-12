@@ -23,12 +23,12 @@ class AIThread(Thread):
     _switcher = {Event.EventEnum.START: _start,
                  Event.EventEnum.STOP: _stop}
 
-    def __init__(self, instanceId, ai):
+    def __init__(self, instanceId, ai, master):
         Thread.__init__(self)
 
         self._instanceId = instanceId
         self._ai = ai
-        self._master = ai.getMaster()
+        self._master = master
         self._crtActions = []
 
         # start/stop thread
@@ -91,6 +91,7 @@ class AIThread(Thread):
                 self._eventQueue.pop(0)
             self._hasEvents = False
             if self.mustStop():
+                self._eventQueue.clear()
                 break
 
     def _pushEvent(self, threadIdx_, type_):

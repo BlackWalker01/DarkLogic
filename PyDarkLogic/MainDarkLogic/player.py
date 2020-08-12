@@ -1,6 +1,7 @@
 class Player:
     def __init__(self, name):
-        self._name=name
+        self._name = name
+        self._elo = 1200
 
     def name(self):
         return self._name
@@ -13,3 +14,16 @@ class Player:
 
     def setTheoremInfo(self):
         pass
+
+    def elo(self):
+        return self._elo
+
+    def setElo(self, elo):
+        exElo = self._elo
+        self._elo = elo
+        comment = ""
+        if elo >= exElo:
+            comment = "(+"+str(elo - exElo)+")"
+        else:
+            comment = "(-" + str(exElo - elo) + ")"
+        print(self._name+"'s elo is "+str(self._elo)+" "+comment)

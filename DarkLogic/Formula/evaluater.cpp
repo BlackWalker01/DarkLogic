@@ -13,6 +13,7 @@
 
 #include "evaluater.h"
 #include "Variable/variableexception.h"
+#include <cassert>
 #include <sstream>
 
 using namespace N_DarkLogic;
@@ -218,6 +219,7 @@ void Evaluater::endEval()
 {
 	if (m_canBeDemonstrated)
 	{
+		assert(m_hiddenValue != nullptr);
 		m_evals.clear();
 		m_configs.clear();
 		m_varToEval.clear();

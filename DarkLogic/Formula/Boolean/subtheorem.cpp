@@ -175,10 +175,10 @@ void SubTheorem<And<ASubTheorem>>::initEval()
                     }
 
                     std::vector<Evaluater::ConfigEval> compatibleConfigs = rightProp->getCompatibleConfigs(commonConfig, remainVar);
-                    for (auto& compatibleConfig : compatibleConfigs)
+                    for (const auto& compatibleConfig : compatibleConfigs)
                     {
                         Evaluater::ConfigEval newConfig = config.first;
-                        newConfig.merge(compatibleConfig);
+                        newConfig.insert(compatibleConfig.begin(), compatibleConfig.end());
                         m_eval->pushEvalConfig(newConfig, leftProp->testEvaluate(config.first) && rightProp->testEvaluate(compatibleConfig));
                     }
                 }
@@ -211,10 +211,10 @@ void SubTheorem<And<ASubTheorem>>::initEval()
                     }
 
                     std::vector<Evaluater::ConfigEval> compatibleConfigs = leftProp->getCompatibleConfigs(commonConfig, remainVar);
-                    for (auto& compatibleConfig : compatibleConfigs)
+                    for (const auto& compatibleConfig : compatibleConfigs)
                     {
                         Evaluater::ConfigEval newConfig = config.first;
-                        newConfig.merge(compatibleConfig);
+                        newConfig.insert(compatibleConfig.begin(), compatibleConfig.end());
                         m_eval->pushEvalConfig(newConfig, leftProp->testEvaluate(compatibleConfig) && rightProp->testEvaluate(config.first));
                     }
                 }
@@ -298,10 +298,10 @@ void SubTheorem<Equivalent<ASubTheorem>>::initEval()
                     }
 
                     std::vector<Evaluater::ConfigEval> compatibleConfigs = rightProp->getCompatibleConfigs(commonConfig, remainVar);
-                    for (auto& compatibleConfig : compatibleConfigs)
+                    for (const auto& compatibleConfig : compatibleConfigs)
                     {
                         Evaluater::ConfigEval newConfig = config.first;
-                        newConfig.merge(compatibleConfig);
+                        newConfig.insert(compatibleConfig.begin(), compatibleConfig.end());
                         m_eval->pushEvalConfig(newConfig, leftProp->testEvaluate(config.first) == rightProp->testEvaluate(compatibleConfig));
                     }
                 }
@@ -334,10 +334,10 @@ void SubTheorem<Equivalent<ASubTheorem>>::initEval()
                     }
 
                     std::vector<Evaluater::ConfigEval> compatibleConfigs = leftProp->getCompatibleConfigs(commonConfig, remainVar);
-                    for (auto& compatibleConfig : compatibleConfigs)
+                    for (const auto& compatibleConfig : compatibleConfigs)
                     {
                         Evaluater::ConfigEval newConfig = config.first;
-                        newConfig.merge(compatibleConfig);
+                        newConfig.insert(compatibleConfig.begin(), compatibleConfig.end());
                         m_eval->pushEvalConfig(newConfig, leftProp->testEvaluate(compatibleConfig) == rightProp->testEvaluate(config.first));
                     }
                 }
@@ -441,10 +441,10 @@ void SubTheorem<Implication<ASubTheorem>>::initEval()
                     }
 
                     std::vector<Evaluater::ConfigEval> compatibleConfigs = rightProp->getCompatibleConfigs(commonConfig, remainVar);
-                    for (auto& compatibleConfig : compatibleConfigs)
+                    for (const auto& compatibleConfig : compatibleConfigs)
                     {
                         Evaluater::ConfigEval newConfig = config.first;
-                        newConfig.merge(compatibleConfig);
+                        newConfig.insert(compatibleConfig.begin(), compatibleConfig.end());
                         m_eval->pushEvalConfig(newConfig, !leftProp->testEvaluate(config.first) || rightProp->testEvaluate(compatibleConfig));
                     }
                 }
@@ -477,10 +477,10 @@ void SubTheorem<Implication<ASubTheorem>>::initEval()
                     }
 
                     std::vector<Evaluater::ConfigEval> compatibleConfigs = leftProp->getCompatibleConfigs(commonConfig, remainVar);
-                    for (auto& compatibleConfig : compatibleConfigs)
+                    for (const auto& compatibleConfig : compatibleConfigs)
                     {
                         Evaluater::ConfigEval newConfig = config.first;
-                        newConfig.merge(compatibleConfig);
+                        newConfig.insert(compatibleConfig.begin(), compatibleConfig.end());
                         m_eval->pushEvalConfig(newConfig, !leftProp->testEvaluate(compatibleConfig) || rightProp->testEvaluate(config.first));
                     }
                 }
@@ -580,10 +580,10 @@ void SubTheorem<Or<ASubTheorem>>::initEval()
                     }
 
                     std::vector<Evaluater::ConfigEval> compatibleConfigs = rightProp->getCompatibleConfigs(commonConfig, remainVar);
-                    for (auto& compatibleConfig : compatibleConfigs)
+                    for (const auto& compatibleConfig : compatibleConfigs)
                     {
                         Evaluater::ConfigEval newConfig = config.first;
-                        newConfig.merge(compatibleConfig);
+                        newConfig.insert(compatibleConfig.begin(), compatibleConfig.end());
                         m_eval->pushEvalConfig(newConfig, leftProp->testEvaluate(config.first) || rightProp->testEvaluate(compatibleConfig));
                     }
                 }
@@ -616,10 +616,10 @@ void SubTheorem<Or<ASubTheorem>>::initEval()
                     }
 
                     std::vector<Evaluater::ConfigEval> compatibleConfigs = leftProp->getCompatibleConfigs(commonConfig, remainVar);
-                    for (auto& compatibleConfig : compatibleConfigs)
+                    for (const auto& compatibleConfig : compatibleConfigs)
                     {
                         Evaluater::ConfigEval newConfig = config.first;
-                        newConfig.merge(compatibleConfig);
+                        newConfig.insert(compatibleConfig.begin(),compatibleConfig.end());
                         m_eval->pushEvalConfig(newConfig, leftProp->testEvaluate(compatibleConfig) || rightProp->testEvaluate(config.first));
                     }
                 }
@@ -682,9 +682,7 @@ void SubTheorem<Hyp<ASubTheorem>>::initEval()
         {
             std::vector<std::pair<Evaluater::ConfigEval, bool>> configsDone;
             std::map<Evaluater::ConfigEval, bool> configsDoneHash;
-            std::unordered_map<IDVar, IDVar> varToEvalDone;            
-            std::unordered_map<IDVar, IDVar> remainVar;
-            std::unordered_map<IDVar, IDVar> commonVar;
+            std::unordered_map<IDVar, IDVar> varToEvalDone;
             std::unique_ptr<bool> hiddenValue = std::make_unique<bool>(true);
 
             //first sub-property
@@ -698,7 +696,9 @@ void SubTheorem<Hyp<ASubTheorem>>::initEval()
             }
             else
             {
+                hiddenValue = nullptr;
                 const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configToDo = (*m_son)[0]->getConfigEvals();
+                varToEvalDone = (*m_son)[0]->getVarToEval();
                 for (const auto& config : configToDo)
                 {
                     configsDoneHash[config.first] = config.second;
@@ -709,7 +709,7 @@ void SubTheorem<Hyp<ASubTheorem>>::initEval()
             for (size_t k = 1; k < arity() - 1; k++)
             {
                 const auto& subProp = (*m_son)[k];
-                if (hiddenValue != nullptr && subProp->canBeDemonstrated())
+                if (subProp->canBeDemonstrated())
                 {
                     if (!subProp->getHiddenValue())
                     {
@@ -718,13 +718,15 @@ void SubTheorem<Hyp<ASubTheorem>>::initEval()
                     }
                 }
                 //general case (it is no use to do anything if subProp is true
-                else if(!(subProp->canBeDemonstrated() && subProp->getHiddenValue()))
+                else
                 {
                     hiddenValue = nullptr;
                     std::vector<std::pair<Evaluater::ConfigEval, bool>> newConfigsDone;
                     std::map<Evaluater::ConfigEval, bool> newConfigsDoneHash;
                     const std::vector<std::pair<Evaluater::ConfigEval, bool>>& configToDo = subProp->getConfigEvals();
                     std::unordered_map<IDVar, IDVar> varToEvalToDo = subProp->getVarToEval();
+                    std::unordered_map<IDVar, IDVar> remainVar;
+                    std::unordered_map<IDVar, IDVar> commonVar;
                     if (configsDone.size() > configToDo.size())
                     {
                         //get variables in right property except those from left property
@@ -753,10 +755,10 @@ void SubTheorem<Hyp<ASubTheorem>>::initEval()
                             }
 
                             std::vector<Evaluater::ConfigEval> compatibleConfigs = subProp->getCompatibleConfigs(commonConfig, remainVar);
-                            for (auto& compatibleConfig : compatibleConfigs)
+                            for (const auto& compatibleConfig : compatibleConfigs)
                             {
                                 Evaluater::ConfigEval newConfig = config.first;
-                                newConfig.merge(compatibleConfig);
+                                newConfig.insert(compatibleConfig.begin(), compatibleConfig.end());
                                 bool var = configsDoneHash[config.first] && subProp->testEvaluate(compatibleConfig);
                                 newConfigsDone.push_back({ newConfig,  var});
                                 newConfigsDoneHash[config.first] = var;
@@ -800,26 +802,30 @@ void SubTheorem<Hyp<ASubTheorem>>::initEval()
 
                             std::vector<Evaluater::ConfigEval> compatibleConfigs = Evaluater::getCompatibleConfigs(configsDoneHash, 
                                 commonConfig, remainVar);
-                            for (auto& compatibleConfig : compatibleConfigs)
+                            for (const auto& compatibleConfig : compatibleConfigs)
                             {
                                 Evaluater::ConfigEval newConfig = config.first;
-                                newConfig.merge(compatibleConfig);
+                                newConfig.insert(compatibleConfig.begin(), compatibleConfig.end());
                                 bool var = configsDoneHash[compatibleConfig] && subProp->testEvaluate(config.first);
                                 newConfigsDone.push_back({ newConfig , var });                                
                                 newConfigsDoneHash[newConfig] = var;
                             }
                         }
+                        varToEvalDone = varToEvalToDo;
                     }
 
                     //update configsDone
                     configsDone = newConfigsDone;
                     configsDoneHash = newConfigsDoneHash;
+                    varToEvalDone.insert(remainVar.begin(), remainVar.end());
                 }                
 
             }
 
             //conclusion case
             const auto& subProp = (*m_son)[arity() - 1];
+            std::unordered_map<IDVar, IDVar> remainVar;
+            std::unordered_map<IDVar, IDVar> commonVar;
             //if conclusion can be demonstrated and we come until here, conclusion is necessary false
             if (subProp->canBeDemonstrated())
             {
@@ -868,10 +874,10 @@ void SubTheorem<Hyp<ASubTheorem>>::initEval()
                         }
 
                         std::vector<Evaluater::ConfigEval> compatibleConfigs = subProp->getCompatibleConfigs(commonConfig, remainVar);
-                        for (auto& compatibleConfig : compatibleConfigs)
+                        for (const auto& compatibleConfig : compatibleConfigs)
                         {
                             Evaluater::ConfigEval newConfig = config.first;
-                            newConfig.merge(compatibleConfig);
+                            newConfig.insert(compatibleConfig.begin(), compatibleConfig.end());
                             bool var = !configsDoneHash[config.first] || subProp->testEvaluate(compatibleConfig);
                             m_eval->pushEvalConfig(newConfig, var);
                         }
@@ -906,10 +912,10 @@ void SubTheorem<Hyp<ASubTheorem>>::initEval()
 
                         std::vector<Evaluater::ConfigEval> compatibleConfigs = Evaluater::getCompatibleConfigs(configsDoneHash,
                             commonConfig, remainVar);
-                        for (auto& compatibleConfig : compatibleConfigs)
+                        for (const auto& compatibleConfig : compatibleConfigs)
                         {
                             Evaluater::ConfigEval newConfig = config.first;
-                            newConfig.merge(compatibleConfig);
+                            newConfig.insert(compatibleConfig.begin(), compatibleConfig.end());
                             bool var = !configsDoneHash[compatibleConfig] || subProp->testEvaluate(config.first);
                             m_eval->pushEvalConfig(newConfig, var);
                         }

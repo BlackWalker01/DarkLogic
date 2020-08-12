@@ -4,7 +4,7 @@ from enum import Enum
 from .enumfun import EnumFun
 
 import multiprocessing
-
+from MainDarkLogic.dbtheorem import DbTheorem
 
 class Mode(Enum):
     NoMode = 0
@@ -72,14 +72,18 @@ class LogicGame:
     _actionSwitcher = {EnumFun.GET_ACTION: _printActions,
                        EnumFun.PUSH_ACTION: _pushAction,
                        EnumFun.POP_ACTION: _popAction}
-    _AI_TIMEOUT = 60  # seconds
+    _AI_TIMEOUT = 20  # seconds
 
-    def __init__(self):
+    def __init__(self, isAuto=False):
         self._mode = Mode.NoMode
         self._player = None
+        self._isAuto = isAuto
+        self._eloThm = 1500
+        self._nbGames = 100
+        self._dbThm = DbTheorem()
 
     def start(self):
-        print("Welcome in LogicGame (v1.2.3)!")
+        print("Welcome in LogicGame (v1.2.4)!")
 
         # create player and init Logic
         self._askPlayer()
@@ -132,23 +136,29 @@ class LogicGame:
         thStr = ""
         ok = False
         while not ok:
-            print("Create a new theorem to start a session")
-            thName = input("Theorem name:\n")
-            if thName == "":
-                print("Error in theorem name")
-                continue
-            thStr = input("Theorem content:\n")
-            if thStr == "":
-                print("Error in theorem content")
-                continue
-            ok = DarkLogic.makeTheorem(thName, thStr)
-            if ok and self._mode == Mode.HumanMode:
-                print("-> getAction() : to print all possible actions")
-                print("-> pushAction(id) : to make action identified by id")
-                print("-> pushAction(ruleName, path) : to make action identified by ruleName (name of the rule to "
-                      "apply) and path "
-                      " (list of indexes [id1, id2, ..., idn]) in theorem ")
-                print("-> popAction : to cancel the latest action")
+            if not self._isAuto:
+                print("Create a new theorem to start a session")
+                thName = input("Theorem name:\n")
+                if thName == "":
+                    print("Error in theorem name")
+                    continue
+                thStr = input("Theorem content:\n")
+                if thStr == "":
+                    print("Error in theorem content")
+                    continue
+                ok = DarkLogic.makeTheorem(thName, thStr)
+                if ok and self._mode == Mode.HumanMode:
+                    print("-> getAction() : to print all possible actions")
+                    print("-> pushAction(id) : to make action identified by id")
+                    print("-> pushAction(ruleName, path) : to make action identified by ruleName (name of the rule to "
+                          "apply) and path "
+                          " (list of indexes [id1, id2, ..., idn]) in theorem ")
+                    print("-> popAction : to cancel the latest action")
+            else:
+                thm = self._dbThm.getRandomTheorem()
+                self._eloThm = thm.elo()
+                print(thm.name()+" theorem :'"+thm.content()+"' has been chosen for this game")
+                ok = DarkLogic.makeTheorem(thm.name(), thm.content())
         self._player.setTheoremInfo()
 
     def _pushActionStr(self, action):
@@ -178,7 +188,10 @@ class LogicGame:
 
     def _game(self):
         nbAttempts = 0
-        maxNbAttempts = 10
+        maxNbAttempts = 8
+        hasWon = False
+        self._nbGames += 1
+        print("Game n°"+str(self._nbGames))
         while not DarkLogic.isOver():
             print("Attempt n°" + str(nbAttempts + 1) + "/" + str(maxNbAttempts))
             action = self._player.play()
@@ -191,9 +204,13 @@ class LogicGame:
 
         if nbAttempts == maxNbAttempts:
             print(self._player.name() + " lost! Too much attempts!")
+            exElo = self._player.elo()
+            newElo = round(exElo - 30 / (1 + 10 ** ((self._eloThm - exElo) / 400)))
+            self._player.setElo(newElo)
         elif DarkLogic.hasAlreadyPlayed():
             if DarkLogic.isDemonstrated():
                 print(self._player.name() + " won! " + self._player.name() + " finished the demonstration!")
+                hasWon = True
             elif DarkLogic.isAlreadyPlayed():
                 print(self._player.name() + " lost! Repetition of theorem!")
             elif DarkLogic.isEvaluated():
@@ -202,11 +219,17 @@ class LogicGame:
             elif not DarkLogic.canBeDemonstrated():
                 print(self._player.name() + " lost! This theorem cannot be demonstrated! " +
                       "It can be true or false according to the values of its variables")
+
+            # update player's elo
+            W = 1 if hasWon else 0
+            exElo = self._player.elo()
+            newElo = round(exElo + 30*(W - 1/(1 + 10**((self._eloThm - exElo) / 400))))
+            self._player.setElo(newElo)
         else:
             if DarkLogic.isDemonstrated():
-                print("Game Over! the demonstration is already finished!")
+                print("The demonstration is already finished!")
             elif not DarkLogic.canBeDemonstrated():
-                print("Game Over! This theorem cannot be demonstrated! " +
+                print("This theorem cannot be demonstrated! " +
                       "It can be true or false according to the values of its variables")
 
         # clear Logic State
