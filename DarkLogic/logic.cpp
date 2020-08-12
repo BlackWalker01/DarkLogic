@@ -569,7 +569,7 @@ bool N_DarkLogic::Logic::_makeTheorem(const std::string& name, const std::string
 
         //Log::Debug(theorem->toString());
         //Compute actions
-        _getActions();
+        //_getActions();
 
         return true;
     }
@@ -589,7 +589,7 @@ bool N_DarkLogic::Logic::_makeTheorem(const std::string& name, const std::string
         m_theorem = Parser::createFormula<ASubTheorem>(name, cont);
 
         //Compute actions
-        _getActions(logicIdx);
+        //_getActions(logicIdx);
 
         return true;
     }

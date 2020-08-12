@@ -34,6 +34,7 @@ class DeepAI(AI):
         ruleStates = DarkLogic.getRuleStates()
         for ruleState in ruleStates:
             self._trueRuleStates.append(makeTrueState(ruleState))
+        self._inputSize = (len(self._trueRuleStates)+1) * DeepAI.NbOperators * 19
         self._storeNodes = []
         self._db = Database(DeepAI.DbName)
         self._gamesSinceLastLearning = 0
@@ -93,7 +94,7 @@ class DeepAI(AI):
         dbStateIdx = -1
         for dbState in dbStates.values():
             dbStateIdx += 1
-            if dbStateIdx != 0 and dbStateIdx % 25000 == 0:
+            if dbStateIdx != 0 and dbStateIdx % 10000 == 0:
                 print(str(dbStateIdx) + " has been seen")
             if dbState.isEvaluated():
                 nbSelectedTh += 1
@@ -104,10 +105,15 @@ class DeepAI(AI):
                 state = DarkLogic.getState()
                 DarkLogic.clearAll()
                 x.append([makeTrueState(state), l])
-                if dbState.value() > DeepAI.MaxDepth:
-                    y.append(nthColounmOfIdentiy(DeepAI.MaxDepth))
-                else:
-                    y.append(nthColounmOfIdentiy(dbState.value()))
+                y.append(nthColounmOfIdentiy(cl))
+            else:
+                nbSelectedTh += 1
+                l = list(range(len(self._trueRuleStates)))
+                DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
+                state = DarkLogic.getState()
+                DarkLogic.clearAll()
+                x.append([makeTrueState(state), l])
+                y.append(createZeroTab(DeepAI.MaxDepth + 1))
 
         # if we keep some examples
         if len(x):
@@ -191,8 +197,13 @@ class DeepAI(AI):
             lastDecLoss = 0  # last epoch since loss has decreased
             # init minValLoss
             print("Validation of current model")
+            if file_io.file_exists(DeepAI.ModelFile):
+                # load best model
+                print("load last model")
+                self._model = keras.models.load_model(DeepAI.ModelFile)
+            print("__________________________________________________________________________")
             crtMinValLoss, val_acc = validation(self._model, testBatches_x, testBatches_y,
-                                                batch_size, self._trueRuleStates)
+                                                batch_size, self._trueRuleStates, self._inputSize)
             print("VAL_LOSS = " + str(crtMinValLoss))
             print("VAL_ACCURACY = " + str(val_acc))
             minValLoss = 10 ** 10
@@ -201,12 +212,12 @@ class DeepAI(AI):
             print("create new model")
             self._model = createModel(len(self._trueRuleStates) + 1)
             opt = keras.optimizers.Adam(learning_rate=lr)
-            self._model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+            self._model.compile(loss=['categorical_crossentropy', 'mse'], optimizer=opt, metrics=['accuracy'])
             for epoch in range(nb_epochs):
                 print("epoch n°" + str(epoch + 1) + "/" + str(nb_epochs))
                 # training...
                 loss, accuracy = training(self._model, trainBatches_x, trainBatches_y,
-                                          batch_size, class_weights, self._trueRuleStates)
+                                          batch_size, class_weights, self._trueRuleStates, self._inputSize)
                 print("LOSS = " + str(loss))
                 print("ACCURACY = " + str(accuracy))
                 if loss < minLoss:
@@ -219,7 +230,7 @@ class DeepAI(AI):
 
                 # validation...
                 val_loss, val_accuracy = validation(self._model, testBatches_x, testBatches_y,
-                                                    batch_size, self._trueRuleStates)
+                                                    batch_size, self._trueRuleStates, self._inputSize)
                 print("VAL_LOSS = " + str(val_loss))
                 print("VAL_ACCURACY = " + str(val_accuracy))
                 if val_loss < minValLoss:
@@ -237,7 +248,7 @@ class DeepAI(AI):
                     lr = lr / 10
                     print("adapt learning rate: " + str(lr))
                     opt = keras.optimizers.Adam(learning_rate=lr)
-                    self._model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+                    self._model.compile(loss=['categorical_crossentropy', 'mse'], optimizer=opt, metrics=['accuracy'])
                     lastDecLoss = 0
                 if lastDecValLoss == 10:
                     print("Early-stopping!")
@@ -251,6 +262,7 @@ class DeepAI(AI):
                 # load best model
                 print("load best model")
                 self._model = keras.models.load_model(DeepAI.ModelFile)
+                self._model = extractTestModel(self._model)
             print("_______________________________________________________________________________________")
 
     def _storeCrtNode(self):
@@ -318,7 +330,8 @@ def makeOrderedOpeTab(ope):
 def createModel(inputSize):
     inputs = keras.Input(shape=(inputSize,
                                 DeepAI.NbOperators, 19), name="img")  # shape (H, W, C)
-    x = layers.Conv2D(128, 3, activation="relu")(inputs)
+    norm = tf.keras.layers.LayerNormalization()(inputs)
+    x = layers.Conv2D(128, 3, activation="relu")(norm)
     x = layers.Conv2D(256, 3, activation="relu")(x)
     block_1_output = layers.MaxPooling2D(3)(x)
 
@@ -334,11 +347,33 @@ def createModel(inputSize):
     x = layers.GlobalAveragePooling2D()(x)
     x = layers.Dense(256, activation="relu")(x)
     x = layers.Dropout(0.5)(x)
-    outputs = layers.Dense(DeepAI.MaxDepth + 1, activation="softmax")(x)
+    input_2 = layers.Dense(DeepAI.MaxDepth + 1)(x)
+    outputs = layers.Activation("softmax", name="outputs")(input_2)
 
-    model = keras.Model(inputs, outputs, name="deepai")
+    x = layers.Dense(50, activation="relu")(input_2)
+    x = layers.Dropout(0.5)(x)
+    x = layers.Dense(50, activation="relu")(x)
+    x = layers.Dropout(0.5)(x)
+    x = layers.Dense(inputSize * DeepAI.NbOperators * 19)(x)
+    flat = layers.Flatten()(norm)
+    outputs_2 = layers.subtract([x, flat], name="outputs_2")
+
+    """model = keras.Model(inputs, outputs, name="deepai")
     opt = keras.optimizers.Adam(learning_rate=5 * 10 ** (-5))
-    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])"""
+
+    trainModel = keras.Model(inputs, [outputs, outputs_2], name="deepai_train")
+    opt = keras.optimizers.Adam(learning_rate=5 * 10 ** (-5))
+    trainModel.compile(loss=['categorical_crossentropy','mse'], optimizer=opt, metrics=['accuracy'])
+    # trainModel.summary()
+    # model = extractTestModel(trainModel)
+    return trainModel
+
+
+def extractTestModel(trainModel):
+    inputs = trainModel.get_layer("img").output
+    outputs = trainModel.get_layer("outputs").output
+    model = keras.Model(inputs, outputs, name="deepai_evaluate")
     return model
 
 
@@ -436,7 +471,7 @@ def eval(outputs):
     return ret
 
 
-def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, trueRuleStates):
+def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, trueRuleStates, inputSize):
     # training...
     print("training...")
     loss = 0
@@ -451,8 +486,9 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
                 state.append(trueRuleStates[pos])
             batch.append(state)
         batch = np.array(batch)
-        out = np.array(trainBatches_y[numBatch])
-        history = model.train_on_batch(batch, out, class_weight=class_weights)
+        out = [np.array(trainBatches_y[numBatch]), np.zeros((len(batch), inputSize))]
+        history = model.train_on_batch(batch, out)
+        # history = model.train_on_batch(batch, out, class_weight=class_weights)
         loss = (loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
         accuracy = (accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
         if numBatch % 30 == 29:
@@ -462,7 +498,7 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
     return loss, accuracy
 
 
-def validation(model, testBatches_x, testBatches_y, batch_size, trueRuleStates):
+def validation(model, testBatches_x, testBatches_y, batch_size, trueRuleStates, inputSize):
     print("validation...")
     val_loss = 0
     val_accuracy = 0
@@ -476,7 +512,7 @@ def validation(model, testBatches_x, testBatches_y, batch_size, trueRuleStates):
                 state.append(trueRuleStates[pos])
             batch.append(state)
         batch = np.array(batch)
-        out = np.array(testBatches_y[numBatch])
+        out = [np.array(testBatches_y[numBatch]), np.zeros((len(batch), inputSize))]
         history = model.test_on_batch(batch, out)
         val_loss = (val_loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
         val_accuracy = (val_accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
@@ -485,3 +521,10 @@ def validation(model, testBatches_x, testBatches_y, batch_size, trueRuleStates):
             print("val_loss = " + str(val_loss))
             print("val_accuracy = " + str(val_accuracy))
     return val_loss, val_accuracy
+
+
+def createZeroTab(size):
+    ret = []
+    for k in range(size):
+        ret.append(0)
+    return ret
