@@ -21,7 +21,7 @@ class DeepAI(AI):
     NbTerms = NbOperators
     MaxDepth = 25
     MultExamples = 500
-    MaxGameBefLearning = 5
+    MaxGameBefLearning = 20
     ModelFile = "AI/deepAIModel"
     DbName = "Database/deepaiMemory.csv"
 
@@ -46,7 +46,7 @@ class DeepAI(AI):
             self._model = createModel(len(self._trueRuleStates) + 1)
             self._model.save(DeepAI.ModelFile)
         self._modelMutex = Lock()
-        self._elo = 1146
+        self._elo = 1362
         self._train()
 
     def getTrueState(self, threadIdx):

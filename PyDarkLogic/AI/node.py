@@ -83,11 +83,11 @@ class Node:
                 if Node._ai.mustStop(threadId):
                     break
 
-            if maxDepth >= 3:
+            """"if maxDepth >= 3:
                 end = time.perf_counter()
                 elapsed_seconds = end - start
                 print("[DEBUG] thread id: " + str(threadId) + " has finished depth '" + str(maxDepth)
-                      + "' in " + str(elapsed_seconds) + " seconds")
+                      + "' in " + str(elapsed_seconds) + " seconds")"""
             maxDepth += 1
 
         return self._value
