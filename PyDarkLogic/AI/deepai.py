@@ -21,7 +21,7 @@ class DeepAI(AI):
     NbTerms = NbOperators
     MaxDepth = 25
     MultExamples = 500
-    MaxGameBefLearning = 20
+    MaxGameBefLearning = 50
     ModelFile = "AI/deepAIModel"
     DbName = "Database/deepaiMemory.csv"
 
@@ -34,7 +34,7 @@ class DeepAI(AI):
         ruleStates = DarkLogic.getRuleStates()
         for ruleState in ruleStates:
             self._trueRuleStates.append(makeTrueState(ruleState))
-        self._inputSize = (len(self._trueRuleStates)+1) * DeepAI.NbOperators * 19
+        self._inputSize = (len(self._trueRuleStates) + 1) * DeepAI.NbOperators * 19
         self._storeNodes = []
         self._db = Database(DeepAI.DbName)
         self._gamesSinceLastLearning = 0
@@ -92,28 +92,34 @@ class DeepAI(AI):
             class_nb[cl] = 0
         print("Total number of theorems in database: " + str(len(dbStates)))
         dbStateIdx = -1
-        for dbState in dbStates.values():
+        remDbStates = list(dbStates.values())
+        rand.shuffle(remDbStates)
+        NbMax = 500000
+        for dbState in remDbStates:
             dbStateIdx += 1
             if dbStateIdx != 0 and dbStateIdx % 10000 == 0:
                 print(str(dbStateIdx) + " has been seen")
-            if dbState.isEvaluated():
+            DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
+            state = DarkLogic.getState()
+            DarkLogic.clearAll()
+            if len(state.operators()) > DeepAI.NbOperators:
+                continue
+            else:
                 nbSelectedTh += 1
+            if dbState.isEvaluated():
                 cl = dbState.value() if dbState.value() < DeepAI.MaxDepth else DeepAI.MaxDepth
                 class_nb[cl] += 1
                 l = list(range(len(self._trueRuleStates)))
-                DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
-                state = DarkLogic.getState()
-                DarkLogic.clearAll()
+                rand.shuffle(l)
                 x.append([makeTrueState(state), l])
                 y.append(nthColounmOfIdentiy(cl))
             else:
-                nbSelectedTh += 1
                 l = list(range(len(self._trueRuleStates)))
-                DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
-                state = DarkLogic.getState()
-                DarkLogic.clearAll()
+                rand.shuffle(l)
                 x.append([makeTrueState(state), l])
                 y.append(createZeroTab(DeepAI.MaxDepth + 1))
+            if nbSelectedTh == NbMax:
+                break
 
         # if we keep some examples
         if len(x):
@@ -144,7 +150,7 @@ class DeepAI(AI):
             values = newValues
 
             # prepare for training
-            batch_size = 50
+            batch_size = 100
             nb_epochs = 1000
             pos = int(0.9 * len(x))
             # x = np.array(x)
@@ -155,7 +161,7 @@ class DeepAI(AI):
             y_train = y[:pos]
             y_test = y[pos:]
             print("training on " + str(len(x_train)) + " examples")
-            earlyStop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=20, verbose=1)
+            # earlyStop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=20, verbose=1)
             trainBatches_x = []
             trainBatches_y = []
             testBatches_x = []
@@ -208,11 +214,10 @@ class DeepAI(AI):
             print("VAL_ACCURACY = " + str(val_acc))
             minValLoss = 10 ** 10
             lastDecValLoss = 0  # last epoch since loss has decreased
-            lr = 1 * 10 ** (-5)
+            lr = 5 * 10 ** (-7)
             print("create new model")
             self._model = createModel(len(self._trueRuleStates) + 1)
-            opt = keras.optimizers.Adam(learning_rate=lr)
-            self._model.compile(loss=['categorical_crossentropy', 'mse'], optimizer=opt, metrics=['accuracy'])
+            compileModel(self._model, lr)
             for epoch in range(nb_epochs):
                 print("epoch n°" + str(epoch + 1) + "/" + str(nb_epochs))
                 # training...
@@ -244,12 +249,11 @@ class DeepAI(AI):
                     print("VAL_LOSS increasing")
                     lastDecValLoss += 1
 
-                if lastDecLoss == 3:
+                """if lastDecLoss == 3:
                     lr = lr / 10
                     print("adapt learning rate: " + str(lr))
-                    opt = keras.optimizers.Adam(learning_rate=lr)
-                    self._model.compile(loss=['categorical_crossentropy', 'mse'], optimizer=opt, metrics=['accuracy'])
-                    lastDecLoss = 0
+                    compileModel(self._model, lr)
+                    lastDecLoss = 0"""
                 if lastDecValLoss == 10:
                     print("Early-stopping!")
                     break
@@ -363,8 +367,9 @@ def createModel(inputSize):
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])"""
 
     trainModel = keras.Model(inputs, [outputs, outputs_2], name="deepai_train")
-    opt = keras.optimizers.Adam(learning_rate=5 * 10 ** (-5))
-    trainModel.compile(loss=['categorical_crossentropy','mse'], optimizer=opt, metrics=['accuracy'])
+    opt = keras.optimizers.Adadelta(learning_rate=1 * 10 ** (-5))
+    trainModel.compile(loss=['categorical_crossentropy', 'mse'], loss_weights=[10, 10], optimizer=opt,
+                       metrics=['accuracy'])
     # trainModel.summary()
     # model = extractTestModel(trainModel)
     return trainModel
@@ -486,11 +491,11 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
                 state.append(trueRuleStates[pos])
             batch.append(state)
         batch = np.array(batch)
-        out = [np.array(trainBatches_y[numBatch]), np.zeros((len(batch), inputSize))]
+        out = [np.array(trainBatches_y[numBatch]), np.zeros((len(crtBatch), inputSize))]
         history = model.train_on_batch(batch, out)
         # history = model.train_on_batch(batch, out, class_weight=class_weights)
         loss = (loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
-        accuracy = (accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
+        accuracy = (accuracy * numBatch + history[3] * (len(batch) / batch_size)) / (numBatch + 1)
         if numBatch % 30 == 29:
             print("batch n°" + str(numBatch + 1) + "/" + str(len(trainBatches_x)))
             print("loss = " + str(loss))
@@ -512,10 +517,12 @@ def validation(model, testBatches_x, testBatches_y, batch_size, trueRuleStates, 
                 state.append(trueRuleStates[pos])
             batch.append(state)
         batch = np.array(batch)
-        out = [np.array(testBatches_y[numBatch]), np.zeros((len(batch), inputSize))]
+        out = [np.array(testBatches_y[numBatch]), np.zeros((len(crtBatch), inputSize))]
         history = model.test_on_batch(batch, out)
+        # print(history)
+        # print(model.metrics_names)
         val_loss = (val_loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
-        val_accuracy = (val_accuracy * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
+        val_accuracy = (val_accuracy * numBatch + history[3] * (len(batch) / batch_size)) / (numBatch + 1)
         if numBatch % 30 == 29:
             print("batch n°" + str(numBatch + 1) + "/" + str(len(testBatches_x)))
             print("val_loss = " + str(val_loss))
@@ -528,3 +535,9 @@ def createZeroTab(size):
     for k in range(size):
         ret.append(0)
     return ret
+
+
+def compileModel(model, lr):
+    opt = keras.optimizers.Adadelta(learning_rate=lr)
+    model.compile(loss=['categorical_crossentropy', 'mse'], loss_weights=[10, 10], optimizer=opt,
+                  metrics=['accuracy'])
