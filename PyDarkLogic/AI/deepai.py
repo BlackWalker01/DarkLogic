@@ -86,7 +86,6 @@ class DeepAI(AI):
         # node.getTrainNodes(x, y)
         dbStates = self._db.getDatas()
         nbExcludedTh = 0
-        nbSelectedTh = 0
         class_nb = {}
         for cl in range(DeepAI.MaxDepth + 1):
             class_nb[cl] = 0
@@ -94,7 +93,13 @@ class DeepAI(AI):
         dbStateIdx = -1
         remDbStates = list(dbStates.values())
         rand.shuffle(remDbStates)
-        NbMax = 500000
+        NbMax = 200000
+        NbMaxUnevaluatedThm = NbMax - self._db.nbEvaluatedThm() if NbMax > self._db.nbEvaluatedThm() else 0
+        NbMaxEvaluatedThm = NbMax - NbMaxUnevaluatedThm
+        print("Select "+str(NbMaxUnevaluatedThm)+" unevaluated theorems")
+        print("Select " + str(NbMaxEvaluatedThm) + " evaluated theorems")
+        NbEvaluated = 0
+        NbUnevaluated = 0
         for dbState in remDbStates:
             dbStateIdx += 1
             if dbStateIdx != 0 and dbStateIdx % 10000 == 0:
@@ -104,8 +109,6 @@ class DeepAI(AI):
             DarkLogic.clearAll()
             if len(state.operators()) > DeepAI.NbOperators:
                 continue
-            else:
-                nbSelectedTh += 1
             if dbState.isEvaluated():
                 cl = dbState.value() if dbState.value() < DeepAI.MaxDepth else DeepAI.MaxDepth
                 class_nb[cl] += 1
@@ -113,13 +116,17 @@ class DeepAI(AI):
                 rand.shuffle(l)
                 x.append([makeTrueState(state), l])
                 y.append(nthColounmOfIdentiy(cl))
+                NbEvaluated += 1
+                if NbUnevaluated == NbMaxUnevaluatedThm and NbEvaluated == NbMaxEvaluatedThm:
+                    break
             else:
                 l = list(range(len(self._trueRuleStates)))
                 rand.shuffle(l)
                 x.append([makeTrueState(state), l])
                 y.append(createZeroTab(DeepAI.MaxDepth + 1))
-            if nbSelectedTh == NbMax:
-                break
+                NbUnevaluated += 1
+                if NbUnevaluated == NbMaxUnevaluatedThm and NbEvaluated == NbMaxEvaluatedThm:
+                    break
 
         # if we keep some examples
         if len(x):
