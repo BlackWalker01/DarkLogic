@@ -97,7 +97,7 @@ class DeepAI(AI):
         NbMax = 200000
         NbMaxUnevaluatedThm = NbMax - self._db.nbEvaluatedThm() if NbMax > self._db.nbEvaluatedThm() else 0
         NbMaxEvaluatedThm = NbMax - NbMaxUnevaluatedThm
-        print("Must select "+str(NbMaxUnevaluatedThm)+" unevaluated theorems")
+        print("Must select " + str(NbMaxUnevaluatedThm) + " unevaluated theorems")
         print("Must select " + str(NbMaxEvaluatedThm) + " evaluated theorems")
         NbEvaluated = 0
         NbUnevaluated = 0
@@ -127,7 +127,8 @@ class DeepAI(AI):
                 l = list(range(len(self._trueRuleStates)))
                 rand.shuffle(l)
                 x.append([makeTrueState(state), l])
-                y.append(nthColounmOfIdentiy(cl))
+                # y.append(nthColounmOfIdentiy(cl))
+                y.append(cl)
                 NbEvaluated += 1
                 if NbUnevaluated == NbMaxUnevaluatedThm and NbEvaluated == NbMaxEvaluatedThm:
                     break
@@ -137,7 +138,8 @@ class DeepAI(AI):
                 l = list(range(len(self._trueRuleStates)))
                 rand.shuffle(l)
                 x.append([makeTrueState(state), l])
-                y.append(createZeroTab(DeepAI.MaxDepth + 1))
+                # y.append(createZeroTab(DeepAI.MaxDepth + 1))
+                y.append(-1)
                 NbUnevaluated += 1
                 if NbUnevaluated == NbMaxUnevaluatedThm and NbEvaluated == NbMaxEvaluatedThm:
                     break
@@ -235,7 +237,7 @@ class DeepAI(AI):
                 compileModel(self._model, lr)
             print("__________________________________________________________________________")
             crtMinValLoss, val_acc = validation(self._model, testBatches_x, testBatches_y,
-                                                batch_size, self._trueRuleStates, self._inputSize)
+                                                batch_size, class_weights, self._trueRuleStates, self._inputSize)
             print("VAL_LOSS = " + str(crtMinValLoss))
             print("VAL_ACCURACY = " + str(val_acc))
             minValLoss = 10 ** 10
@@ -261,7 +263,7 @@ class DeepAI(AI):
 
                 # validation...
                 val_loss, val_accuracy = validation(self._model, testBatches_x, testBatches_y,
-                                                    batch_size, self._trueRuleStates, self._inputSize)
+                                                    batch_size, class_weights, self._trueRuleStates, self._inputSize)
                 print("VAL_LOSS = " + str(val_loss))
                 print("VAL_ACCURACY = " + str(val_accuracy))
                 if val_loss < minValLoss:
@@ -517,15 +519,23 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
     for numBatch in range(len(trainBatches_x)):
         crtBatch = trainBatches_x[numBatch]
         batch = []
-        for ex in crtBatch:
+        out_1 = []
+        sample_weight = []
+        for ex, cl in zip(crtBatch, trainBatches_y[numBatch]):
             state = [ex[0]]
             l = ex[1]
             for pos in l:
                 state.append(trueRuleStates[pos])
             batch.append(state)
+            if cl >= 0:
+                out_1.append(nthColounmOfIdentiy(cl))
+                sample_weight.append(class_weights[cl])
+            else:
+                out_1.append(createZeroTab(DeepAI.MaxDepth + 1))
+                sample_weight.append(0)
         batch = np.array(batch)
-        out = [np.array(trainBatches_y[numBatch]), np.zeros((len(crtBatch), inputSize))]
-        history = model.train_on_batch(batch, out)
+        out = [np.array(out_1), np.zeros((len(crtBatch), inputSize))]
+        history = model.train_on_batch(batch, out, sample_weight=sample_weight)
         # history = model.train_on_batch(batch, out, class_weight=class_weights)
         loss = (loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
         accuracy = (accuracy * numBatch + history[3] * (len(batch) / batch_size)) / (numBatch + 1)
@@ -536,22 +546,30 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
     return loss, accuracy
 
 
-def validation(model, testBatches_x, testBatches_y, batch_size, trueRuleStates, inputSize):
+def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, trueRuleStates, inputSize):
     print("validation...")
     val_loss = 0
     val_accuracy = 0
     for numBatch in range(len(testBatches_x)):
         crtBatch = testBatches_x[numBatch]
         batch = []
-        for ex in crtBatch:
+        out_1 = []
+        sample_weight = []
+        for ex, cl in zip(crtBatch, testBatches_y[numBatch]):
             state = [ex[0]]
             l = ex[1]
             for pos in l:
                 state.append(trueRuleStates[pos])
             batch.append(state)
+            if cl >= 0:
+                out_1.append(nthColounmOfIdentiy(cl))
+                sample_weight.append(class_weights[cl])
+            else:
+                out_1.append(createZeroTab(DeepAI.MaxDepth + 1))
+                sample_weight.append(0)
         batch = np.array(batch)
-        out = [np.array(testBatches_y[numBatch]), np.zeros((len(crtBatch), inputSize))]
-        history = model.test_on_batch(batch, out)
+        out = [np.array(out_1), np.zeros((len(crtBatch), inputSize))]
+        history = model.test_on_batch(batch, out, sample_weight=sample_weight)
         # print(history)
         # print(model.metrics_names)
         val_loss = (val_loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
