@@ -79,7 +79,7 @@ class LogicGame:
         self._player = None
         self._isAuto = isAuto
         self._eloThm = 1500
-        self._nbGames = 100
+        self._nbGames = 0
         self._dbThm = DbTheorem()
 
     def start(self):

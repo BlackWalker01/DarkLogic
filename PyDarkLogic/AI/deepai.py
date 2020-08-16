@@ -46,8 +46,9 @@ class DeepAI(AI):
             print("create new DeepAI brain model")
             self._model = createModel(len(self._trueRuleStates) + 1)
             self._model.save(DeepAI.ModelFile)
+        self._model = extractTestModel(self._model)
         self._modelMutex = Lock()
-        self._elo = 1362
+        self._elo = 1200  # 1418
         self._train()
 
     def getTrueState(self, threadIdx):
@@ -96,20 +97,31 @@ class DeepAI(AI):
         NbMax = 200000
         NbMaxUnevaluatedThm = NbMax - self._db.nbEvaluatedThm() if NbMax > self._db.nbEvaluatedThm() else 0
         NbMaxEvaluatedThm = NbMax - NbMaxUnevaluatedThm
-        print("Select "+str(NbMaxUnevaluatedThm)+" unevaluated theorems")
-        print("Select " + str(NbMaxEvaluatedThm) + " evaluated theorems")
+        print("Must select "+str(NbMaxUnevaluatedThm)+" unevaluated theorems")
+        print("Must select " + str(NbMaxEvaluatedThm) + " evaluated theorems")
         NbEvaluated = 0
         NbUnevaluated = 0
+        lastEvalPrint = 0
+        lastUnevalPrint = 0
         for dbState in remDbStates:
             dbStateIdx += 1
-            if dbStateIdx != 0 and dbStateIdx % 10000 == 0:
-                print(str(dbStateIdx) + " has been seen")
+            if NbEvaluated > lastEvalPrint and NbEvaluated % 10000 == 0:
+                lastEvalPrint = NbEvaluated
+                print(str(NbEvaluated) + " evaluated theorems have been seen")
+            if NbUnevaluated > lastUnevalPrint and NbUnevaluated % 10000 == 0:
+                lastUnevalPrint = NbUnevaluated
+                print(str(NbUnevaluated) + " unevaluated theorems have been seen")
             DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
             state = DarkLogic.getState()
             DarkLogic.clearAll()
             if len(state.operators()) > DeepAI.NbOperators:
+                if dbState.isEvaluated() and NbMaxEvaluatedThm == self._db.nbEvaluatedThm():
+                    NbMaxUnevaluatedThm += 1
+                    NbMaxEvaluatedThm -= 1
                 continue
             if dbState.isEvaluated():
+                if NbEvaluated == NbMaxEvaluatedThm:
+                    continue
                 cl = dbState.value() if dbState.value() < DeepAI.MaxDepth else DeepAI.MaxDepth
                 class_nb[cl] += 1
                 l = list(range(len(self._trueRuleStates)))
@@ -120,6 +132,8 @@ class DeepAI(AI):
                 if NbUnevaluated == NbMaxUnevaluatedThm and NbEvaluated == NbMaxEvaluatedThm:
                     break
             else:
+                if NbUnevaluated == NbMaxUnevaluatedThm:
+                    continue
                 l = list(range(len(self._trueRuleStates)))
                 rand.shuffle(l)
                 x.append([makeTrueState(state), l])
@@ -127,6 +141,9 @@ class DeepAI(AI):
                 NbUnevaluated += 1
                 if NbUnevaluated == NbMaxUnevaluatedThm and NbEvaluated == NbMaxEvaluatedThm:
                     break
+
+        print("Selected " + str(NbUnevaluated) + " unevaluated theorems")
+        print("Selected " + str(NbEvaluated) + " evaluated theorems")
 
         # if we keep some examples
         if len(x):
@@ -206,6 +223,7 @@ class DeepAI(AI):
                 batch_y = []
 
             # fit
+            lr = 2 * 10 ** (-8)
             minLoss = 10 ** 10
             lastDecLoss = 0  # last epoch since loss has decreased
             # init minValLoss
@@ -214,6 +232,7 @@ class DeepAI(AI):
                 # load best model
                 print("load last model")
                 self._model = keras.models.load_model(DeepAI.ModelFile)
+                compileModel(self._model, lr)
             print("__________________________________________________________________________")
             crtMinValLoss, val_acc = validation(self._model, testBatches_x, testBatches_y,
                                                 batch_size, self._trueRuleStates, self._inputSize)
@@ -221,7 +240,7 @@ class DeepAI(AI):
             print("VAL_ACCURACY = " + str(val_acc))
             minValLoss = 10 ** 10
             lastDecValLoss = 0  # last epoch since loss has decreased
-            lr = 5 * 10 ** (-7)
+
             print("create new model")
             self._model = createModel(len(self._trueRuleStates) + 1)
             compileModel(self._model, lr)
@@ -256,11 +275,11 @@ class DeepAI(AI):
                     print("VAL_LOSS increasing")
                     lastDecValLoss += 1
 
-                """if lastDecLoss == 3:
+                if lastDecLoss == 3:
                     lr = lr / 10
                     print("adapt learning rate: " + str(lr))
                     compileModel(self._model, lr)
-                    lastDecLoss = 0"""
+                    lastDecLoss = 0
                 if lastDecValLoss == 10:
                     print("Early-stopping!")
                     break
@@ -283,6 +302,13 @@ class DeepAI(AI):
         if len(self._storeNodes) > 0:
             self._gamesSinceLastLearning += 1
             DarkLogic.makeTheorem(self._theoremName, self._theorem)
+            # update if deepAI found a demonstration
+            revNodes = self._storeNodes[::-1]
+            if revNodes[0].value() < DeepAI.MaxDepth:
+                val = revNodes[0].value()
+                for k in range(1, len(revNodes)):
+                    node = revNodes[k]
+                    node.setValue(val + k)
             self._db.export(self._storeNodes[0].getDbStates())
             if self._gamesSinceLastLearning == DeepAI.MaxGameBefLearning:
                 self._train()
@@ -374,9 +400,9 @@ def createModel(inputSize):
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])"""
 
     trainModel = keras.Model(inputs, [outputs, outputs_2], name="deepai_train")
-    opt = keras.optimizers.Adadelta(learning_rate=1 * 10 ** (-5))
+    """opt = keras.optimizers.Adam(learning_rate=1 * 10 ** (-5))
     trainModel.compile(loss=['categorical_crossentropy', 'mse'], loss_weights=[10, 10], optimizer=opt,
-                       metrics=['accuracy'])
+                       metrics=['accuracy'])"""
     # trainModel.summary()
     # model = extractTestModel(trainModel)
     return trainModel
@@ -544,7 +570,7 @@ def createZeroTab(size):
     return ret
 
 
-def compileModel(model, lr):
-    opt = keras.optimizers.Adadelta(learning_rate=lr)
+def compileModel(model, lr=0.001):
+    opt = keras.optimizers.Adam(learning_rate=lr)
     model.compile(loss=['categorical_crossentropy', 'mse'], loss_weights=[10, 10], optimizer=opt,
                   metrics=['accuracy'])

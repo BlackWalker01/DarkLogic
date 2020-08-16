@@ -40,6 +40,9 @@ class Node:
     def value(self):
         return self._value
 
+    def setValue(self, value):
+        self._value = value
+
     def aiValue(self):
         return self._aiValue
 
@@ -382,7 +385,7 @@ class Node:
 
     def getTrainNodes(self, x, y):
         DarkLogic.getActions()
-        print(str(len(self._sons))+" nodes to explore")
+        print(str(len(self._sons)) + " nodes to explore")
         for key in self._sons:
             node = self._sons[key]
             if node:
@@ -419,8 +422,8 @@ class Node:
         DarkLogic.getActions()
         name = DarkLogic.theoremName()
         content = DarkLogic.toNormStrTheorem()
-        if self.isEvaluated() and self.value() != Node.VAL_INIT and not (self.value() == Node.VAL_MAX
-                                                                         and not self.isLoss()):
+        if self.value() != Node.VAL_INIT and not (self.value() == Node.VAL_MAX
+                                                  and not self.isLoss()):
             ret.append(State(name=name, content=content, value=self._value))
         else:
             ret.append(State(name=name, content=content))
@@ -439,8 +442,8 @@ class Node:
         # print("content: "+DarkLogic.toStrTheorem())
         content = DarkLogic.toNormStrTheorem()
         # print("NormContent = " + str(content))
-        if self.isEvaluated() and self.value() != Node.VAL_INIT and not (self.value() == Node.VAL_MAX
-                                                                         and not self.isLoss()):
+        if self.value() != Node.VAL_INIT and not (self.value() == Node.VAL_MAX
+                                                  and not self.isLoss()):
             dbStates.append(State(name=name, content=content, value=self._value))
         else:
             dbStates.append(State(name=name, content=content))
