@@ -48,7 +48,7 @@ class DeepAI(AI):
             self._model.save(DeepAI.ModelFile)
         self._model = extractTestModel(self._model)
         self._modelMutex = Lock()
-        self._elo = 1200  # 1418
+        self._elo = 1340  # 1418
         self._train()
 
     def getTrueState(self, threadIdx):
@@ -520,7 +520,8 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
         crtBatch = trainBatches_x[numBatch]
         batch = []
         out_1 = []
-        sample_weight = []
+        sample_weight_1 = []
+        sample_weight_2 = []
         for ex, cl in zip(crtBatch, trainBatches_y[numBatch]):
             state = [ex[0]]
             l = ex[1]
@@ -529,13 +530,20 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
             batch.append(state)
             if cl >= 0:
                 out_1.append(nthColounmOfIdentiy(cl))
-                sample_weight.append(class_weights[cl])
+                sample_weight_1.append(class_weights[cl])
             else:
                 out_1.append(createZeroTab(DeepAI.MaxDepth + 1))
-                sample_weight.append(0)
+                sample_weight_1.append(1)
+            sample_weight_2.append(1)
         batch = np.array(batch)
         out = [np.array(out_1), np.zeros((len(crtBatch), inputSize))]
+        sample_weight_1 = np.array(sample_weight_1)
+        sample_weight_2 = np.array(sample_weight_2)
+        sample_weight = {"outputs": sample_weight_1,
+                         "outputs_2": sample_weight_2}
         history = model.train_on_batch(batch, out, sample_weight=sample_weight)
+        # print(history)
+        # print(model.metrics_names)
         # history = model.train_on_batch(batch, out, class_weight=class_weights)
         loss = (loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
         accuracy = (accuracy * numBatch + history[3] * (len(batch) / batch_size)) / (numBatch + 1)
@@ -554,7 +562,8 @@ def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, t
         crtBatch = testBatches_x[numBatch]
         batch = []
         out_1 = []
-        sample_weight = []
+        sample_weight_1 = []
+        sample_weight_2 = []
         for ex, cl in zip(crtBatch, testBatches_y[numBatch]):
             state = [ex[0]]
             l = ex[1]
@@ -563,12 +572,17 @@ def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, t
             batch.append(state)
             if cl >= 0:
                 out_1.append(nthColounmOfIdentiy(cl))
-                sample_weight.append(class_weights[cl])
+                sample_weight_1.append(class_weights[cl])
             else:
                 out_1.append(createZeroTab(DeepAI.MaxDepth + 1))
-                sample_weight.append(0)
+                sample_weight_1.append(1)
+            sample_weight_2.append(1)
         batch = np.array(batch)
         out = [np.array(out_1), np.zeros((len(crtBatch), inputSize))]
+        sample_weight_1 = np.array(sample_weight_1)
+        sample_weight_2 = np.array(sample_weight_2)
+        sample_weight = {"outputs": sample_weight_1,
+                         "outputs_2": sample_weight_2}
         history = model.test_on_batch(batch, out, sample_weight=sample_weight)
         # print(history)
         # print(model.metrics_names)
@@ -590,5 +604,5 @@ def createZeroTab(size):
 
 def compileModel(model, lr=0.001):
     opt = keras.optimizers.Adam(learning_rate=lr)
-    model.compile(loss=['categorical_crossentropy', 'mse'], loss_weights=[10, 10], optimizer=opt,
+    model.compile(loss=['categorical_crossentropy', 'mse'], loss_weights=[5 * 10 ** 5, 100], optimizer=opt,
                   metrics=['accuracy'])
