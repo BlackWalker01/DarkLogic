@@ -146,6 +146,7 @@ class DeepAI(AI):
 
         print("Selected " + str(NbUnevaluated) + " unevaluated theorems")
         print("Selected " + str(NbEvaluated) + " evaluated theorems")
+        class_nb[-1] = 1 / NbUnevaluated
 
         # if we keep some examples
         if len(x):
@@ -366,42 +367,128 @@ def makeOrderedOpeTab(ope):
     return ret
 
 
+class Residual(tf.keras.Model):  # @save
+    def __init__(self, num_channels, use_1x1conv=False, strides=1):
+        super().__init__()
+        self.conv1 = tf.keras.layers.Conv2D(
+            num_channels, padding='same', kernel_size=3, strides=strides)
+        self.conv2 = tf.keras.layers.Conv2D(
+            num_channels, kernel_size=3, padding='same')
+        self.conv3 = None
+        if use_1x1conv:
+            self.conv3 = tf.keras.layers.Conv2D(
+                num_channels, kernel_size=1, strides=strides)
+        self.bn1 = tf.keras.layers.BatchNormalization()
+        self.bn2 = tf.keras.layers.BatchNormalization()
+
+    def call(self, x, training=None, mask=None):
+        y = tf.keras.activations.relu(self.bn1(self.conv1(x)))
+        y = self.bn2(self.conv2(y))
+        if self.conv3 is not None:
+            x = self.conv3(x)
+        y += x
+        return tf.keras.activations.relu(y)
+
+
+class ResnetBlock(tf.keras.layers.Layer):
+    def __init__(self, num_channels, num_residuals, first_block=False,
+                 **kwargs):
+        super(ResnetBlock, self).__init__(**kwargs)
+        self.residual_layers = []
+        for i in range(num_residuals):
+            if i == 0 and not first_block:
+                self.residual_layers.append(
+                    Residual(num_channels, use_1x1conv=True, strides=2))
+            else:
+                self.residual_layers.append(Residual(num_channels))
+
+    def call(self, X, training=True, mask=None):
+        for layer in self.residual_layers.layers:
+            X = layer(X)
+        return X
+
+
+class DeResidual(tf.keras.Model):  # @save
+    def __init__(self, num_channels, strides=1):
+        super().__init__()
+        self.conv1 = tf.keras.layers.Conv2DTranspose(
+            num_channels, padding='same', kernel_size=3, strides=strides)
+        self.conv2 = tf.keras.layers.Conv2DTranspose(
+            num_channels, kernel_size=3, padding='same')
+        self.bn1 = tf.keras.layers.BatchNormalization()
+        self.bn2 = tf.keras.layers.BatchNormalization()
+
+    def call(self, x, training=None, mask=None):
+        y = tf.keras.activations.relu(self.bn1(self.conv1(x)))
+        y = self.bn2(self.conv2(y))
+        return tf.keras.activations.relu(y)
+
+
+class DeResnetBlock(tf.keras.layers.Layer):
+    def __init__(self, num_channels, num_residuals, first_block=False,
+                 **kwargs):
+        super(DeResnetBlock, self).__init__(**kwargs)
+        self.residual_layers = []
+        for i in range(num_residuals):
+            if i == 0 and not first_block:
+                self.residual_layers.append(
+                    DeResidual(num_channels, strides=2))
+            else:
+                self.residual_layers.append(DeResidual(num_channels))
+
+    def call(self, X, training=True, mask=None):
+        for layer in self.residual_layers.layers:
+            X = layer(X)
+        return X
+
+
 def createModel(inputSize):
     inputs = keras.Input(shape=(inputSize,
                                 DeepAI.NbOperators, 19), name="img")  # shape (H, W, C)
     norm = tf.keras.layers.LayerNormalization()(inputs)
-    x = layers.Conv2D(128, 3, activation="relu")(norm)
-    x = layers.Conv2D(256, 3, activation="relu")(x)
-    block_1_output = layers.MaxPooling2D(3)(x)
+    x = tf.keras.layers.Conv2D(64, kernel_size=3, padding='same')(norm)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Activation('relu')(x)
+    block_1_output = tf.keras.layers.MaxPool2D(pool_size=3, padding='same')(x)
 
-    x = layers.Conv2D(256, 3, activation="relu", padding="same")(block_1_output)
-    x = layers.Conv2D(256, 3, activation="relu", padding="same")(x)
-    block_2_output = layers.add([x, block_1_output])
+    block_2_output = ResnetBlock(64, 2, first_block=True)(block_1_output)
 
-    x = layers.Conv2D(256, 3, activation="relu", padding="same")(block_2_output)
-    x = layers.Conv2D(256, 3, activation="relu", padding="same")(x)
-    block_3_output = layers.add([x, block_2_output])
+    block_3_output = ResnetBlock(256, 2)(block_2_output)
 
-    x = layers.Conv2D(256, 3, activation="relu")(block_3_output)
-    x = layers.GlobalAveragePooling2D()(x)
+    dense_input = layers.GlobalAveragePooling2D()(block_3_output)
+    dense_1 = layers.Dense(256, activation="relu")(dense_input)
+    x = layers.Dropout(0.5)(dense_1)
+    dense_2 = layers.Dense(DeepAI.MaxDepth + 1)(x)
+    main_output = layers.Activation("softmax", name="main_output")(dense_2)
+
+    # reverse network
+    x = layers.Dense(256, activation="relu")(dense_2)
+    output_0 = layers.subtract([x, dense_input], name="output_0")
+
+    x = layers.Dropout(0.5)(x)
     x = layers.Dense(256, activation="relu")(x)
-    x = layers.Dropout(0.5)(x)
-    input_2 = layers.Dense(DeepAI.MaxDepth + 1)(x)
-    outputs = layers.Activation("softmax", name="outputs")(input_2)
+    output_1 = layers.subtract([x, dense_input], name="output_1")
 
-    x = layers.Dense(50, activation="relu")(input_2)
-    x = layers.Dropout(0.5)(x)
-    x = layers.Dense(50, activation="relu")(x)
-    x = layers.Dropout(0.5)(x)
-    x = layers.Dense(inputSize * DeepAI.NbOperators * 19)(x)
-    flat = layers.Flatten()(norm)
-    outputs_2 = layers.subtract([x, flat], name="outputs_2")
+    x = tf.keras.layers.Reshape((1, 1, 256))(x)
+    x = tf.keras.layers.UpSampling2D((16, 5))(x)
+    x = DeResnetBlock(64, 2)(x)
+    output_2 = layers.subtract([x, block_2_output], name="output_2")
+
+    x = tf.keras.layers.MaxPool2D((2, 2), strides=2)(x)
+    x = DeResnetBlock(64, 2)(x)
+    output_3 = layers.subtract([x, block_1_output], name="output_3")
+
+    x = tf.keras.layers.UpSampling2D((3, 3))(x)
+    x = tf.keras.layers.MaxPool2D(3, strides=1)(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Conv2DTranspose(19, kernel_size=(2, 3))(x)
+    output_4 = layers.subtract([x, norm], name="output_4")
 
     """model = keras.Model(inputs, outputs, name="deepai")
     opt = keras.optimizers.Adam(learning_rate=5 * 10 ** (-5))
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])"""
 
-    trainModel = keras.Model(inputs, [outputs, outputs_2], name="deepai_train")
+    trainModel = keras.Model(inputs, [main_output, output_0, output_1, output_2, output_3, output_4], name="deepai_train")
     """opt = keras.optimizers.Adam(learning_rate=1 * 10 ** (-5))
     trainModel.compile(loss=['categorical_crossentropy', 'mse'], loss_weights=[10, 10], optimizer=opt,
                        metrics=['accuracy'])"""
@@ -412,7 +499,7 @@ def createModel(inputSize):
 
 def extractTestModel(trainModel):
     inputs = trainModel.get_layer("img").output
-    outputs = trainModel.get_layer("outputs").output
+    outputs = trainModel.get_layer("main_output").output
     model = keras.Model(inputs, outputs, name="deepai_evaluate")
     return model
 
@@ -527,14 +614,19 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
             for pos in l:
                 state.append(trueRuleStates[pos])
             batch.append(state)
+            sample_weight.append(class_weights[cl])
             if cl >= 0:
                 out_1.append(nthColounmOfIdentiy(cl))
-                sample_weight.append(class_weights[cl])
             else:
                 out_1.append(createZeroTab(DeepAI.MaxDepth + 1))
-                sample_weight.append(0)
         batch = np.array(batch)
-        out = [np.array(out_1), np.zeros((len(crtBatch), inputSize))]
+        out = [np.array(out_1)]
+        for k in range(1, len(model.outputs)):
+            output = model.outputs[k]
+            shape = [len(trainBatches_x)]
+            for i in range(1, len(output.shape)):
+                shape.append(output.shape[i])
+            out.append(np.zeros(shape))
         history = model.train_on_batch(batch, out, sample_weight=sample_weight)
         # history = model.train_on_batch(batch, out, class_weight=class_weights)
         loss = (loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
@@ -561,17 +653,22 @@ def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, t
             for pos in l:
                 state.append(trueRuleStates[pos])
             batch.append(state)
+            sample_weight.append(class_weights[cl])
             if cl >= 0:
                 out_1.append(nthColounmOfIdentiy(cl))
-                sample_weight.append(class_weights[cl])
             else:
                 out_1.append(createZeroTab(DeepAI.MaxDepth + 1))
-                sample_weight.append(0)
         batch = np.array(batch)
-        out = [np.array(out_1), np.zeros((len(crtBatch), inputSize))]
+        out = [np.array(out_1)]
+        for k in range(1, len(model.outputs)):
+            output = model.outputs[k]
+            shape = [len(testBatches_x)]
+            for i in range(1, len(output.shape)):
+                shape.append(output.shape[i])
+            out.append(np.zeros(shape))
         history = model.test_on_batch(batch, out, sample_weight=sample_weight)
-        # print(history)
-        # print(model.metrics_names)
+        print(history)
+        print(model.metrics_names)
         val_loss = (val_loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
         val_accuracy = (val_accuracy * numBatch + history[3] * (len(batch) / batch_size)) / (numBatch + 1)
         if numBatch % 30 == 29:
@@ -590,5 +687,5 @@ def createZeroTab(size):
 
 def compileModel(model, lr=0.001):
     opt = keras.optimizers.Adam(learning_rate=lr)
-    model.compile(loss=['categorical_crossentropy', 'mse'], loss_weights=[10, 10], optimizer=opt,
+    model.compile(loss=['categorical_crossentropy', 'mse'], loss_weights=[10, 10, 10, 10, 10, 10], optimizer=opt,
                   metrics=['accuracy'])
