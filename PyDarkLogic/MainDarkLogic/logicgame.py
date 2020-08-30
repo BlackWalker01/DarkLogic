@@ -188,7 +188,7 @@ class LogicGame:
 
     def _game(self):
         nbAttempts = 0
-        maxNbAttempts = 8
+        maxNbAttempts = 15
         hasWon = False
         self._nbGames += 1
         print("Game n°"+str(self._nbGames))

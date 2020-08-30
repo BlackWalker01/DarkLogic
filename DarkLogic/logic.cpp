@@ -532,7 +532,21 @@ bool N_DarkLogic::Logic::_isAlreadyPlayed()
 
 bool N_DarkLogic::Logic::_canBeDemonstrated()
 {    
-    return m_theorem->canBeDemonstrated();    
+    if (m_theorem->canBeDemonstrated())
+    {
+        if (m_theorem->isEvaluated())
+        {
+            if (!m_theorem->evaluate())
+            {
+                return m_isLastRuleSymetric;
+            }
+        }
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 bool N_DarkLogic::Logic::_evaluate()
