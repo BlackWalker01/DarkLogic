@@ -45,21 +45,37 @@ public:
 		std::unique_ptr<DLVariant> m_val;
 	};
 
+	class LOGICSHARED_EXPORT ParentOperator
+	{
+	public:
+		friend class State;
+
+		ParentOperator(Name name_, unsigned int idx_);
+
+		Name name() const;
+		unsigned int idx() const;
+
+	private:
+		void incrIdx();
+
+		Name m_name;
+		unsigned int m_idx;
+	};
+
 	/**
 	* Class which encapsulates operators to order them
 	*/
 	class LOGICSHARED_EXPORT OrderedName
 	{
 	public:
-		OrderedName(Name name_, const unsigned int& nbHyps_, const unsigned int& argIdx_);
+		OrderedName(Name name_, const std::vector<ParentOperator>& parentOpe);
 
 		Name name() const; //name enum of current operator
-		unsigned int nbHyps() const; //number of hypothesis operators in which current operator is
-		unsigned int argIdx() const;
+		const std::vector<ParentOperator>& parentOperators() const;
+
 	private:
 		Name m_name;
-		unsigned int m_nbHyps;
-		unsigned int m_argIdx;
+		std::vector<ParentOperator> m_parentOpe;
 	};
 
 	//Constructors

@@ -83,7 +83,7 @@ class LogicGame:
         self._dbThm = DbTheorem()
 
     def start(self):
-        print("Welcome in LogicGame (v1.2.4)!")
+        print("Welcome in LogicGame (v1.3.0)!")
 
         # create player and init Logic
         self._askPlayer()

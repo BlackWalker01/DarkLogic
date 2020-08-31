@@ -76,8 +76,11 @@ PYBIND11_MODULE(DarkLogic, m)
 
 	py::class_<State::OrderedName> orderedName(m, "OrderedName");
 	orderedName.def("name", &State::OrderedName::name)
-		.def("nbHyps", &State::OrderedName::nbHyps)
-		.def("argIdx", &State::OrderedName::argIdx);
+		.def("parentOperators", &State::OrderedName::parentOperators);
+
+	py::class_<State::ParentOperator> parentOperator(m, "ParentOperator");
+	parentOperator.def("name", &State::ParentOperator::name)
+		.def("idx", &State::ParentOperator::idx);
 
 	py::enum_<Name> name(m, "name");
 	name.value("NONE", Name::NONE)
