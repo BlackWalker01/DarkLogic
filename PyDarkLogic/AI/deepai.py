@@ -152,11 +152,11 @@ class DeepAI(AI):
 
         print("Selected " + str(NbUnevaluated) + " unevaluated theorems")
         print("Selected " + str(NbEvaluated) + " evaluated theorems")
-        class_nb[-1] = 1 / NbUnevaluated
 
         # if we keep some examples
         if len(x):
             # check class_weight
+            class_nb[-1] = 1 / NbUnevaluated
             print("Keep " + str(len(x)) + " examples")
             class_weights = {}
             for val in class_nb:
@@ -358,18 +358,12 @@ class DeepAI(AI):
 
 def makeOrderedOpeTab(ope):
     ret = []
-    opeId = int(ope.name())
-    k = 0
-    while k < opeId:
+    opeId = float(ope.name())
+    ret.append(opeId)
+    for parentOpe in ope.parentOperators():
+        ret.append(float(parentOpe.idx() + 1))
+    for k in range(DeepAI.NbOperators - len(ret)):
         ret.append(0.0)
-        k += 1
-    ret.append(1.0)
-    k += 1
-    while k < DeepAI.NbDiffOperators:
-        ret.append(0.0)
-        k += 1
-    ret.append(float(ope.nbHyps()))
-    ret.append(float(ope.argIdx()))
     return ret
 
 
@@ -450,7 +444,7 @@ class DeResnetBlock(tf.keras.layers.Layer):
 
 def createModel(inputSize):
     inputs = keras.Input(shape=(inputSize,
-                                DeepAI.NbOperators, 19), name="img")  # shape (H, W, C)
+                                DeepAI.NbOperators, DeepAI.NbOperators + 3), name="img")  # shape (H, W, C)
     norm = tf.keras.layers.LayerNormalization()(inputs)
     x = tf.keras.layers.Conv2D(64, kernel_size=3, padding='same')(norm)
     x = tf.keras.layers.BatchNormalization()(x)
@@ -487,7 +481,7 @@ def createModel(inputSize):
     x = tf.keras.layers.UpSampling2D((3, 3))(x)
     x = tf.keras.layers.MaxPool2D(3, strides=1)(x)
     x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Conv2DTranspose(19, kernel_size=(2, 3))(x)
+    x = tf.keras.layers.Conv2DTranspose(DeepAI.NbOperators + 3, kernel_size=(2, 3))(x)
     output_4 = layers.subtract([x, norm], name="output_4")
 
     """model = keras.Model(inputs, outputs, name="deepai")
@@ -509,22 +503,6 @@ def extractTestModel(trainModel):
     model = keras.Model(inputs, outputs, name="deepai_evaluate")
     return model
 
-
-def makeOpeTab(opeName):
-    ret = []
-    opeId = int(opeName)
-    k = 0
-    while k < opeId:
-        ret.append(0.0)
-        k += 1
-    ret.append(1.0)
-    k += 1
-    while k < DeepAI.NbDiffOperators:
-        ret.append(0.0)
-        k += 1
-    return ret
-
-
 def makeZeroTab(n):
     ret = []
     for k in range(n):
@@ -534,10 +512,8 @@ def makeZeroTab(n):
 
 def makeTrueState(state):
     priorityOpes = state.priorityOpe()
-    opes = state.operators()
     terms = state.terms()
     priorityState = []
-    opeState = []
     termState = []
     idToPos = {}
     pos = 0
@@ -546,13 +522,7 @@ def makeTrueState(state):
     for ope in priorityOpes:
         priorityState.append(makeOrderedOpeTab(ope))
     for k in range(DeepAI.NbOperators - len(priorityState)):
-        priorityState.append(makeZeroTab(DeepAI.OperatorParams))
-
-    # operators
-    for ope in opes:
-        opeState.append(makeOpeTab(ope))
-    for k in range(DeepAI.NbOperators - len(opeState)):
-        opeState.append(makeZeroTab(DeepAI.NbDiffOperators))
+        priorityState.append(makeZeroTab(DeepAI.NbOperators))
 
     # terms
     for term in terms:
@@ -572,8 +542,8 @@ def makeTrueState(state):
         termState.append(makeZeroTab(3))
 
     ret = []
-    for priorOpe, ope, term in zip(priorityState, opeState, termState):
-        ret.append(priorOpe + ope + term)
+    for priorOpe, term in zip(priorityState, termState):
+        ret.append(priorOpe + term)
     return ret
 
 
