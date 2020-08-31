@@ -289,7 +289,8 @@ class Node:
             self._value = Node.VAL_MAX
         elif not DarkLogic.canBeDemonstrated(self._threadId):
             self._value = Node.VAL_MAX
-            self._isLoss = True
+            if not DarkLogic.isEvaluated(self._threadId):
+                self._isLoss = True
         # check if it is a node which leads to win
         elif DarkLogic.isDemonstrated(self._threadId):
             self._value = 0

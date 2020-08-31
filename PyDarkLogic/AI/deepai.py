@@ -45,7 +45,7 @@ class DeepAI(AI):
             # create model
             print("create new DeepAI brain model")
             self._model = createModel(len(self._trueRuleStates) + 1)
-            compileModel(self._model, 2 * 10 ** (-7))
+            compileModel(self._model, 1 * 10 ** (-6))
             self._model.save(DeepAI.ModelFile)
         self._model = extractTestModel(self._model)
         self._modelMutex = Lock()
@@ -96,7 +96,7 @@ class DeepAI(AI):
         remDbStates = list(dbStates.values())
         rand.shuffle(remDbStates)
         # NbMax = 200000
-        NbMax = 500000
+        NbMax = 200000
         if NbMax < len(dbStates):
             NbMaxUnevaluatedThm = NbMax - self._db.nbEvaluatedThm() if NbMax > self._db.nbEvaluatedThm() else 0
             NbMaxEvaluatedThm = NbMax - NbMaxUnevaluatedThm
@@ -232,7 +232,7 @@ class DeepAI(AI):
                 batch_y = []
 
             # fit
-            lr = 2 * 10 ** (-7)
+            lr = 1 * 10 ** (-6)
             minLoss = 10 ** 100
             lastDecLoss = 0  # last epoch since loss has decreased
             # init minValLoss
@@ -606,7 +606,6 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
         history = model.train_on_batch(batch, out, sample_weight=sample_weight)
         # print(history)
         # print(model.metrics_names)
-        # exit(0)
         loss = (loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
         accuracy = (accuracy * numBatch + history[7] * (len(batch) / batch_size)) / (numBatch + 1)
         if numBatch % 30 == 29:
@@ -666,5 +665,5 @@ def createZeroTab(size):
 def compileModel(model, lr=0.001):
     opt = keras.optimizers.Adam(learning_rate=lr)
     model.compile(loss=['categorical_crossentropy', 'mse', 'mse', 'mse', 'mse', 'mse'],
-                  loss_weights=[5 * 10 ** -5, 10 ** -5, 10 ** -5, 10 ** -6, 10 ** -6, 10 ** -6], optimizer=opt,
+                  loss_weights=[5 * 10 ** -4, 10 ** -6, 10 ** -7, 10 ** -7, 10 ** -7, 10 ** -7], optimizer=opt,
                   metrics=['accuracy'])

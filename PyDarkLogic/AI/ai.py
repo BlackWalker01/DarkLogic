@@ -22,7 +22,7 @@ class AI(Player):
         self._eventQueue = []
         self._mutex = Lock()
         self._condition_var = Condition(self._mutex)
-        self._elo = 1565
+        self._elo = 1800
 
     def play(self):
         # start chrono
