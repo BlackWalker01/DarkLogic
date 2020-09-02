@@ -10,6 +10,7 @@ class Node:
     _ai = None
     VAL_MAX = 101
     VAL_INIT = VAL_MAX - 1
+    INIT_SUBVALUE = 10 ** 6
 
     def __init__(self, **kwargs):
         # First Root node
@@ -23,6 +24,7 @@ class Node:
             self._threadId = kwargs["threadId"]
             self._depth = kwargs["depth"]
         self._value = Node.VAL_INIT
+        self._subValue = Node.INIT_SUBVALUE
         self._isEvaluated = False
         self._aiValue = None
         self._sons = {}
@@ -40,11 +42,17 @@ class Node:
     def value(self):
         return self._value
 
+    def setValue(self, value):
+        self._value = value
+
     def aiValue(self):
         return self._aiValue
 
     def setAIValue(self, aivalue):
         self._aiValue = aivalue
+
+    def subValue(self):
+        return self._subValue
 
     def isEvaluated(self):
         return self._isEvaluated
@@ -108,6 +116,11 @@ class Node:
                 self._value = 0
                 # stop reflexion because AI found a demonstration
                 Node._ai.stopThread(self._threadId)
+            else:
+                self._subValue = len(DarkLogic.getState(self._threadId).operators())
+                """print("theorem is "+DarkLogic.toStrTheorem(self._threadId)+", subValue = "+str(self._subValue))
+                if self._subValue == 0:
+                    exit(0)"""
         elif not Node._ai.mustStop(self._threadId):
             # get actions
             actions = DarkLogic.getActions(self._threadId)
@@ -119,6 +132,7 @@ class Node:
 
             # explore subNodes
             hasOnlyLosses = True
+            self._subValue = Node.INIT_SUBVALUE
             for action in actions:
                 # explore node associated with action
                 node = self._sons[action]
@@ -136,6 +150,10 @@ class Node:
                         self._value = Node.VAL_INIT
                     elif self._value > retValue + 1:
                         self._value = retValue + 1
+
+                    # update subValue
+                    if self._subValue > node.subValue():
+                        self._subValue = node.subValue()
 
                 # if must stop exploration, stop it
                 if Node._ai.mustStop(self._threadId):
@@ -271,7 +289,8 @@ class Node:
             self._value = Node.VAL_MAX
         elif not DarkLogic.canBeDemonstrated(self._threadId):
             self._value = Node.VAL_MAX
-            self._isLoss = True
+            if not DarkLogic.isEvaluated(self._threadId):
+                self._isLoss = True
         # check if it is a node which leads to win
         elif DarkLogic.isDemonstrated(self._threadId):
             self._value = 0
@@ -294,14 +313,20 @@ class Node:
     def getBestNode(self):
         minNodes = []
         minVal = Node.VAL_MAX
+        minSubVal = Node.INIT_SUBVALUE
         for key in self._sons.keys():
             son = self._sons[key]
             if son.value() < minVal:
                 minVal = son.value()
+                minSubVal = son.subValue()
                 minNodes.clear()
                 minNodes.append(key)
             elif son.value() == minVal:
-                minNodes.append(key)
+                if son.subValue() < minSubVal:
+                    minSubVal = son.subValue()
+                    minNodes = [key]
+                elif son.subValue() == minSubVal:
+                    minNodes.append(key)
         valWinner = minNodes[rand.randint(0, len(minNodes) - 1)]
         winner = self._sons[valWinner]
         # self._sons.clear()
@@ -382,7 +407,7 @@ class Node:
 
     def getTrainNodes(self, x, y):
         DarkLogic.getActions()
-        print(str(len(self._sons))+" nodes to explore")
+        print(str(len(self._sons)) + " nodes to explore")
         for key in self._sons:
             node = self._sons[key]
             if node:
@@ -419,8 +444,8 @@ class Node:
         DarkLogic.getActions()
         name = DarkLogic.theoremName()
         content = DarkLogic.toNormStrTheorem()
-        if self.isEvaluated() and self.value() != Node.VAL_INIT and not (self.value() == Node.VAL_MAX
-                                                                         and not self.isLoss()):
+        if self.value() != Node.VAL_INIT and not (self.value() == Node.VAL_MAX
+                                                  and not self.isLoss()):
             ret.append(State(name=name, content=content, value=self._value))
         else:
             ret.append(State(name=name, content=content))
@@ -439,8 +464,8 @@ class Node:
         # print("content: "+DarkLogic.toStrTheorem())
         content = DarkLogic.toNormStrTheorem()
         # print("NormContent = " + str(content))
-        if self.isEvaluated() and self.value() != Node.VAL_INIT and not (self.value() == Node.VAL_MAX
-                                                                         and not self.isLoss()):
+        if self.value() != Node.VAL_INIT and not (self.value() == Node.VAL_MAX
+                                                  and not self.isLoss()):
             dbStates.append(State(name=name, content=content, value=self._value))
         else:
             dbStates.append(State(name=name, content=content))

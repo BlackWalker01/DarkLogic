@@ -53,7 +53,7 @@ def _pushAction(args):
                 nbBracket += 1
             elif arg[k] == ']':
                 nbBracket -= 1
-                if nbBracket == 0:
+                if nbBracket == 0 and crtIdStr != "":
                     id = int(crtIdStr)
                     path.append(id)
                     crtIdStr = ""

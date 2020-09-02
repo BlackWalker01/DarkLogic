@@ -177,8 +177,17 @@ std::vector<State::OrderedName> orderOperators(Name headOpe, const State& subSta
 {
 	std::vector<State::OrderedName> ret;
 	const auto& orderedOpeSub = subState.priorityOpe();
-	ret.push_back(State::OrderedName(headOpe, 0, 0));
-    ret.insert(ret.end(), orderedOpeSub.begin(), orderedOpeSub.end());
+    ret.push_back(State::OrderedName(headOpe, {}));
+    for (const auto& ope : orderedOpeSub)
+    {
+        std::vector<State::ParentOperator> parentOpe;
+        parentOpe.push_back(State::ParentOperator(headOpe, 0));
+        for (const auto& parOpe : ope.parentOperators())
+        {
+            parentOpe.push_back(State::ParentOperator(parOpe.name(), parOpe.idx() + 1));
+        }
+        ret.push_back(State::OrderedName(ope.name(), parentOpe));
+    }
 	return ret;
 }
 
@@ -188,16 +197,54 @@ std::vector<State::OrderedName> orderOperators(Name headOpe, const State& leftSt
 	const auto& leftOrderedOpe = leftState.priorityOpe();
 	const auto& rightOrderedOpe = rightState.priorityOpe();
 	std::vector<State::OrderedName> orderedOpe;
-	ret.push_back(State::OrderedName(headOpe, 0, 0));
+    ret.push_back(State::OrderedName(headOpe, {}));
     if (associativityFromName(headOpe) == Associativity::LEFT)
     {
-        ret.insert(ret.end(), leftOrderedOpe.begin(), leftOrderedOpe.end());
-        ret.insert(ret.end(), rightOrderedOpe.begin(), rightOrderedOpe.end());
+        for (const auto& ope : leftOrderedOpe)
+        {
+            std::vector<State::ParentOperator> parentOpe;
+            parentOpe.push_back(State::ParentOperator(headOpe, 0));
+            for (const auto& parOpe : ope.parentOperators())
+            {
+                parentOpe.push_back(State::ParentOperator(parOpe.name(), parOpe.idx() + 1));
+            }
+            ret.push_back(State::OrderedName(ope.name(), parentOpe));
+        }
+
+        for (const auto& ope : rightOrderedOpe)
+        {
+            std::vector<State::ParentOperator> parentOpe;
+            parentOpe.push_back(State::ParentOperator(headOpe, 0));
+            for (const auto& parOpe : ope.parentOperators())
+            {
+                parentOpe.push_back(State::ParentOperator(parOpe.name(), parOpe.idx() + 1));
+            }
+            ret.push_back(State::OrderedName(ope.name(), parentOpe));
+        }
     }
     else
     {
-        ret.insert(ret.end(), rightOrderedOpe.begin(), rightOrderedOpe.end());
-        ret.insert(ret.end(), leftOrderedOpe.begin(), leftOrderedOpe.end());
+        for (const auto& ope : rightOrderedOpe)
+        {
+            std::vector<State::ParentOperator> parentOpe;
+            parentOpe.push_back(State::ParentOperator(headOpe, 0));
+            for (const auto& parOpe : ope.parentOperators())
+            {
+                parentOpe.push_back(State::ParentOperator(parOpe.name(), parOpe.idx() + 1));
+            }
+            ret.push_back(State::OrderedName(ope.name(), parentOpe));
+        }
+
+        for (const auto& ope : leftOrderedOpe)
+        {
+            std::vector<State::ParentOperator> parentOpe;
+            parentOpe.push_back(State::ParentOperator(headOpe, 0));
+            for (const auto& parOpe : ope.parentOperators())
+            {
+                parentOpe.push_back(State::ParentOperator(parOpe.name(), parOpe.idx() + 1));
+            }
+            ret.push_back(State::OrderedName(ope.name(), parentOpe));
+        }
     }
 	return ret;
 }
@@ -206,26 +253,20 @@ std::vector<State::OrderedName> orderOperators(Name headOpe, const std::vector<S
 {
     std::vector<State::OrderedName> ret;
     std::vector<State::OrderedName> orderedOpe;
-    ret.push_back(State::OrderedName(headOpe, 0, 0));
-    size_t argIdx = 0;
+    ret.push_back(State::OrderedName(headOpe, {}));
     for (const auto& subState : subStates)
     {
         const auto& orderedOpeSub = subState.priorityOpe();
-        if (orderedOpeSub.size())
+        for (const auto& ope : orderedOpeSub)
         {
-            for (const auto& crtOpe : orderedOpeSub)
+            std::vector<State::ParentOperator> parentOpe;
+            parentOpe.push_back(State::ParentOperator(headOpe, 0));
+            for (const auto& parOpe : ope.parentOperators())
             {
-                if (crtOpe.nbHyps() == 0)
-                {
-                    ret.push_back(State::OrderedName(crtOpe.name(), 1, argIdx));
-                }
-                else
-                {
-                    ret.push_back(State::OrderedName(crtOpe.name(), crtOpe.nbHyps() + 1, crtOpe.argIdx()));
-                }
+                parentOpe.push_back(State::ParentOperator(parOpe.name(), parOpe.idx() + 1));
             }
+            ret.push_back(State::OrderedName(ope.name(), parentOpe));
         }
-        argIdx++;
     }
     return ret;
 }
@@ -312,9 +353,8 @@ const DLVariant& N_DarkLogic::State::Term::val() const
 	return *m_val;
 }
 
-N_DarkLogic::State::OrderedName::OrderedName(Name name_, const unsigned int& nbHyps_, 
-    const unsigned int& argIdx_):
-	m_name(name_), m_nbHyps(nbHyps_), m_argIdx(argIdx_)
+N_DarkLogic::State::OrderedName::OrderedName(Name name_, const std::vector<ParentOperator>& parentOpe):
+	m_name(name_), m_parentOpe(parentOpe)
 {
 }
 
@@ -323,12 +363,29 @@ Name N_DarkLogic::State::OrderedName::name() const
 	return m_name;
 }
 
-unsigned int N_DarkLogic::State::OrderedName::nbHyps() const
+const std::vector<State::ParentOperator>& N_DarkLogic::State::OrderedName::parentOperators() const
 {
-    return m_nbHyps;
+    return m_parentOpe;
 }
 
-unsigned int N_DarkLogic::State::OrderedName::argIdx() const
+
+State::ParentOperator::ParentOperator(Name name_, unsigned int idx_):
+    m_name(name_), m_idx(idx_)
 {
-	return m_argIdx;
+
+}
+
+Name N_DarkLogic::State::ParentOperator::name() const
+{
+    return m_name;
+}
+
+unsigned int N_DarkLogic::State::ParentOperator::idx() const
+{
+    return m_idx;
+}
+
+void N_DarkLogic::State::ParentOperator::incrIdx()
+{
+    m_idx++;
 }

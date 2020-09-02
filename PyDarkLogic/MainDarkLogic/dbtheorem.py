@@ -20,21 +20,21 @@ class Theorem:
 class DbTheorem:
     def __init__(self):
         self._db = {}
-        self.addTheorem("Identity", "a<=>a", 1500)
-        self.addTheorem("Semi-Identity", "a=>a", 1200)
-        self.addTheorem("DoubleNot", "a<=>!!a", 1500)
-        self.addTheorem("Semi-DoubleNot", "a=>!!a", 1200)
-        self.addTheorem("ExcludedMiddle", "a||!a", 1800)
-        self.addTheorem("Peirce law", "((a=>b)=>a)=>a", 1900)
-        self.addTheorem("Non-contradiction", "!(a&&!a)", 800)
-        self.addTheorem("De Morgan law", "!(a&&b)<=>(!a||!b)", 2000)
-        self.addTheorem("De Morgan law (2)", "!(a||b)<=>(!a&&!b)", 2000)
-        self.addTheorem("Contraposition", "(a=>b)=>(!b=>!a)", 1900)
-        self.addTheorem("Modus ponens", "((a=>b)&&a)=>b", 1900)
-        self.addTheorem("Modus tollens", "((a=>b)&&!b)=>!a", 2000)
-        self.addTheorem("Modus barbara", "((a=>b)&&(b=>c))=>(a=>c)", 2200)
-        self.addTheorem("&& Distributivity", "(a&&(b||c))<=>((a&&b)||(a&&c))", 2200)
-        self.addTheorem("|| Distributivity", "(a||(b&&c))<=>((a||b)&&(a||c))", 2200)
+        self.addTheorem("Identity", "a<=>a", 1200)
+        self.addTheorem("Semi-Identity", "a=>a", 700)
+        self.addTheorem("DoubleNot", "a<=>!!a", 1450)
+        self.addTheorem("Semi-DoubleNot", "a=>!!a", 750)
+        self.addTheorem("ExcludedMiddle", "a||!a", 2100)
+        self.addTheorem("Peirce law", "((a=>b)=>a)=>a", 2100)
+        self.addTheorem("Non-contradiction", "!(a&&!a)", 500)
+        self.addTheorem("De Morgan law", "!(a&&b)<=>(!a||!b)", 2200)
+        self.addTheorem("De Morgan law (2)", "!(a||b)<=>(!a&&!b)", 2200)
+        self.addTheorem("Contraposition", "(a=>b)=>(!b=>!a)", 1500)
+        self.addTheorem("Modus ponens", "((a=>b)&&a)=>b", 2100)
+        self.addTheorem("Modus tollens", "((a=>b)&&!b)=>!a", 2250)
+        self.addTheorem("Modus barbara", "((a=>b)&&(b=>c))=>(a=>c)", 2400)
+        self.addTheorem("&& Distributivity", "(a&&(b||c))<=>((a&&b)||(a&&c))", 2400)
+        self.addTheorem("|| Distributivity", "(a||(b&&c))<=>((a||b)&&(a||c))", 2400)
 
     def getRandomTheorem(self):
         keys = []

@@ -532,7 +532,21 @@ bool N_DarkLogic::Logic::_isAlreadyPlayed()
 
 bool N_DarkLogic::Logic::_canBeDemonstrated()
 {    
-    return m_theorem->canBeDemonstrated();    
+    if (m_theorem->canBeDemonstrated())
+    {
+        if (m_theorem->isEvaluated())
+        {
+            if (!m_theorem->evaluate())
+            {
+                return m_isLastRuleSymetric;
+            }
+        }
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 bool N_DarkLogic::Logic::_evaluate()
@@ -569,7 +583,7 @@ bool N_DarkLogic::Logic::_makeTheorem(const std::string& name, const std::string
 
         //Log::Debug(theorem->toString());
         //Compute actions
-        _getActions();
+        //_getActions();
 
         return true;
     }
@@ -589,7 +603,7 @@ bool N_DarkLogic::Logic::_makeTheorem(const std::string& name, const std::string
         m_theorem = Parser::createFormula<ASubTheorem>(name, cont);
 
         //Compute actions
-        _getActions(logicIdx);
+        //_getActions(logicIdx);
 
         return true;
     }

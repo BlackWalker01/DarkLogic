@@ -9,6 +9,7 @@ class Database:
     def __init__(self, name):
         self._name = name
         self._theoremDb = {}
+        self._nbEvaluatedThm = 0
         print("loading memory...")
         self.load()
         print("memory loaded")
@@ -21,6 +22,7 @@ class Database:
                 for row in reader:
                     state = None
                     if row["value"] != "_":
+                        self._nbEvaluatedThm += 1
                         state = State(content=row["content"], name=row["name"],
                                       value=int(row["value"]))
                     else:
@@ -35,6 +37,9 @@ class Database:
 
     def getDatas(self):
         return self._theoremDb
+
+    def nbEvaluatedThm(self):
+        return self._nbEvaluatedThm
 
     def export(self, states):
         # update local database

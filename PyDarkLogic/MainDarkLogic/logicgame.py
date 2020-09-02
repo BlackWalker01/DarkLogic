@@ -79,11 +79,11 @@ class LogicGame:
         self._player = None
         self._isAuto = isAuto
         self._eloThm = 1500
-        self._nbGames = 100
+        self._nbGames = 0
         self._dbThm = DbTheorem()
 
     def start(self):
-        print("Welcome in LogicGame (v1.2.4)!")
+        print("Welcome in LogicGame (v1.3.0)!")
 
         # create player and init Logic
         self._askPlayer()
@@ -188,7 +188,7 @@ class LogicGame:
 
     def _game(self):
         nbAttempts = 0
-        maxNbAttempts = 8
+        maxNbAttempts = 10
         hasWon = False
         self._nbGames += 1
         print("Game n°"+str(self._nbGames))
