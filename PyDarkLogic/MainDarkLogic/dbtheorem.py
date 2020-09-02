@@ -21,12 +21,12 @@ class DbTheorem:
     def __init__(self):
         self._db = {}
         self.addTheorem("Identity", "a<=>a", 1200)
-        self.addTheorem("Semi-Identity", "a=>a", 1000)
+        self.addTheorem("Semi-Identity", "a=>a", 700)
         self.addTheorem("DoubleNot", "a<=>!!a", 1450)
-        self.addTheorem("Semi-DoubleNot", "a=>!!a", 1050)
+        self.addTheorem("Semi-DoubleNot", "a=>!!a", 750)
         self.addTheorem("ExcludedMiddle", "a||!a", 2100)
         self.addTheorem("Peirce law", "((a=>b)=>a)=>a", 2100)
-        self.addTheorem("Non-contradiction", "!(a&&!a)", 700)
+        self.addTheorem("Non-contradiction", "!(a&&!a)", 500)
         self.addTheorem("De Morgan law", "!(a&&b)<=>(!a||!b)", 2200)
         self.addTheorem("De Morgan law (2)", "!(a||b)<=>(!a&&!b)", 2200)
         self.addTheorem("Contraposition", "(a=>b)=>(!b=>!a)", 1500)

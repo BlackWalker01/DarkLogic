@@ -22,6 +22,7 @@ class DeepAI(AI):
     MaxDepth = 25
     MultExamples = 500
     MaxGameBefLearning = 50
+    INIT_LR = 4 * 10 ** -7
     ModelFile = "AI/deepAIModel"
     DbName = "Database/deepaiMemory.csv"
 
@@ -45,11 +46,11 @@ class DeepAI(AI):
             # create model
             print("create new DeepAI brain model")
             self._model = createModel(len(self._trueRuleStates) + 1)
-            compileModel(self._model, 1 * 10 ** (-6))
+            compileModel(self._model, DeepAI.INIT_LR)
             self._model.save(DeepAI.ModelFile)
         self._model = extractTestModel(self._model)
         self._modelMutex = Lock()
-        self._elo = 1410  # 1418
+        self._elo = 1000  # 1418
         self._train()
 
     def getTrueState(self, threadIdx):
@@ -232,7 +233,7 @@ class DeepAI(AI):
                 batch_y = []
 
             # fit
-            lr = 1 * 10 ** (-6)
+            lr = DeepAI.INIT_LR
             minLoss = 10 ** 100
             lastDecLoss = 0  # last epoch since loss has decreased
             # init minValLoss
@@ -371,13 +372,13 @@ class Residual(tf.keras.Model):  # @save
     def __init__(self, num_channels, use_1x1conv=False, strides=1):
         super().__init__()
         self.conv1 = tf.keras.layers.Conv2D(
-            num_channels, padding='same', kernel_size=3, strides=strides)
+            num_channels, padding='same', kernel_size=3, strides=strides, kernel_initializer="random_normal")
         self.conv2 = tf.keras.layers.Conv2D(
-            num_channels, kernel_size=3, padding='same')
+            num_channels, kernel_size=3, padding='same', kernel_initializer="random_normal")
         self.conv3 = None
         if use_1x1conv:
             self.conv3 = tf.keras.layers.Conv2D(
-                num_channels, kernel_size=1, strides=strides)
+                num_channels, kernel_size=1, strides=strides, kernel_initializer="random_normal")
         self.bn1 = tf.keras.layers.BatchNormalization()
         self.bn2 = tf.keras.layers.BatchNormalization()
 
@@ -412,9 +413,9 @@ class DeResidual(tf.keras.Model):  # @save
     def __init__(self, num_channels, strides=1):
         super().__init__()
         self.conv1 = tf.keras.layers.Conv2DTranspose(
-            num_channels, padding='same', kernel_size=3, strides=strides)
+            num_channels, padding='same', kernel_size=3, strides=strides, kernel_initializer="random_normal")
         self.conv2 = tf.keras.layers.Conv2DTranspose(
-            num_channels, kernel_size=3, padding='same')
+            num_channels, kernel_size=3, padding='same', kernel_initializer="random_normal")
         self.bn1 = tf.keras.layers.BatchNormalization()
         self.bn2 = tf.keras.layers.BatchNormalization()
 
@@ -446,7 +447,7 @@ def createModel(inputSize):
     inputs = keras.Input(shape=(inputSize,
                                 DeepAI.NbOperators, DeepAI.NbOperators + 3), name="img")  # shape (H, W, C)
     norm = tf.keras.layers.LayerNormalization()(inputs)
-    x = tf.keras.layers.Conv2D(64, kernel_size=3, padding='same')(norm)
+    x = tf.keras.layers.Conv2D(64, kernel_size=3, padding='same', kernel_initializer="random_normal")(norm)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.Activation('relu')(x)
     block_1_output = tf.keras.layers.MaxPool2D(pool_size=3, padding='same')(x)
@@ -456,17 +457,17 @@ def createModel(inputSize):
     block_3_output = ResnetBlock(256, 2)(block_2_output)
 
     dense_input = layers.GlobalAveragePooling2D()(block_3_output)
-    dense_1 = layers.Dense(256, activation="relu")(dense_input)
+    dense_1 = layers.Dense(256, activation="relu", kernel_initializer="random_normal")(dense_input)
     x = layers.Dropout(0.5)(dense_1)
-    dense_2 = layers.Dense(DeepAI.MaxDepth + 1)(x)
+    dense_2 = layers.Dense(DeepAI.MaxDepth + 1, kernel_initializer="random_normal")(x)
     main_output = layers.Activation("softmax", name="main_output")(dense_2)
 
     # reverse network
-    x = layers.Dense(256, activation="relu")(dense_2)
+    x = layers.Dense(256, activation="relu", kernel_initializer="random_normal")(dense_2)
     output_0 = layers.subtract([x, dense_input], name="output_0")
 
     x = layers.Dropout(0.5)(x)
-    x = layers.Dense(256, activation="relu")(x)
+    x = layers.Dense(256, activation="relu", kernel_initializer="random_normal")(x)
     output_1 = layers.subtract([x, dense_input], name="output_1")
 
     x = tf.keras.layers.Reshape((1, 1, 256))(x)
@@ -481,7 +482,8 @@ def createModel(inputSize):
     x = tf.keras.layers.UpSampling2D((3, 3))(x)
     x = tf.keras.layers.MaxPool2D(3, strides=1)(x)
     x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Conv2DTranspose(DeepAI.NbOperators + 3, kernel_size=(2, 3))(x)
+    x = tf.keras.layers.Conv2DTranspose(DeepAI.NbOperators + 3, kernel_size=(2, 3),
+                                        kernel_initializer="random_normal")(x)
     output_4 = layers.subtract([x, norm], name="output_4")
 
     """model = keras.Model(inputs, outputs, name="deepai")
@@ -578,6 +580,8 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
     # training...
     print("training...")
     loss = 0
+    main_output_loss = 0
+    output_losses = [0 for i in range(1, len(model.outputs))]
     accuracy = 0
     for numBatch in range(len(trainBatches_x)):
         crtBatch = trainBatches_x[numBatch]
@@ -607,11 +611,19 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
         # print(history)
         # print(model.metrics_names)
         loss = (loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
+        main_output_loss = (main_output_loss * numBatch + history[1] * (len(batch) / batch_size)) / (numBatch + 1)
+        for k in range(len(output_losses)):
+            output_losses[k] = (output_losses[k] * numBatch + history[k + 2] *
+                                (len(batch) / batch_size)) / (numBatch + 1)
         accuracy = (accuracy * numBatch + history[7] * (len(batch) / batch_size)) / (numBatch + 1)
         if numBatch % 30 == 29:
             print("batch n°" + str(numBatch + 1) + "/" + str(len(trainBatches_x)))
             print("loss = " + str(loss))
+            print("main_output loss "+str(main_output_loss))
+            for k in range(len(output_losses)):
+                print("output_"+str(k)+" loss " + str(output_losses[k]))
             print("accuracy = " + str(accuracy))
+            print("____________")
     return loss, accuracy
 
 
@@ -665,5 +677,5 @@ def createZeroTab(size):
 def compileModel(model, lr=0.001):
     opt = keras.optimizers.Adam(learning_rate=lr)
     model.compile(loss=['categorical_crossentropy', 'mse', 'mse', 'mse', 'mse', 'mse'],
-                  loss_weights=[5 * 10 ** -4, 10 ** -6, 10 ** -7, 10 ** -7, 10 ** -7, 10 ** -7], optimizer=opt,
+                  loss_weights=[5 * 10 ** -4, 10 ** -6, 10 ** -8, 10 ** -8, 10 ** -8, 10 ** -8], optimizer=opt,
                   metrics=['accuracy'])
