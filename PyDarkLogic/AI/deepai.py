@@ -22,7 +22,7 @@ class DeepAI(AI):
     MaxDepth = 25
     MultExamples = 500
     MaxGameBefLearning = 50
-    INIT_LR = 4 * 10 ** -7
+    INIT_LR = 4 * 10 ** -6
     ModelFile = "AI/deepAIModel"
     DbName = "Database/deepaiMemory.csv"
 
@@ -290,6 +290,8 @@ class DeepAI(AI):
                     print("adapt learning rate: " + str(lr))
                     compileModel(self._model, lr)
                     lastDecLoss = 0
+                    minLoss = loss  # keep latest loss for minimal loss
+                    print("new current minimal loss: "+str(minLoss))
                 if lastDecValLoss == 10:
                     print("Early-stopping!")
                     break
@@ -447,16 +449,16 @@ def createModel(inputSize):
     inputs = keras.Input(shape=(inputSize,
                                 DeepAI.NbOperators, DeepAI.NbOperators + 3), name="img")  # shape (H, W, C)
     norm = tf.keras.layers.LayerNormalization()(inputs)
-    x = tf.keras.layers.Conv2D(64, kernel_size=3, padding='same', kernel_initializer="random_normal")(norm)
+    x = tf.keras.layers.Conv2D(128, kernel_size=3, padding='same', kernel_initializer="random_normal")(norm)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.Activation('relu')(x)
     block_1_output = tf.keras.layers.MaxPool2D(pool_size=3, padding='same')(x)
 
-    block_2_output = ResnetBlock(64, 2, first_block=True)(block_1_output)
+    block_2_output = ResnetBlock(128, 1, first_block=True)(block_1_output)
 
-    block_3_output = ResnetBlock(256, 2)(block_2_output)
+    # block_3_output = ResnetBlock(256, 2)(block_2_output)
 
-    dense_input = layers.GlobalAveragePooling2D()(block_3_output)
+    dense_input = layers.GlobalAveragePooling2D()(block_2_output)  # block_3_output
     dense_1 = layers.Dense(256, activation="relu", kernel_initializer="random_normal")(dense_input)
     x = layers.Dropout(0.5)(dense_1)
     dense_2 = layers.Dense(DeepAI.MaxDepth + 1, kernel_initializer="random_normal")(x)
@@ -464,33 +466,33 @@ def createModel(inputSize):
 
     # reverse network
     x = layers.Dense(256, activation="relu", kernel_initializer="random_normal")(dense_2)
-    output_0 = layers.subtract([x, dense_input], name="output_0")
+    output_0 = layers.subtract([x, dense_1], name="output_0")
 
     x = layers.Dropout(0.5)(x)
-    x = layers.Dense(256, activation="relu", kernel_initializer="random_normal")(x)
+    x = layers.Dense(128, activation="relu", kernel_initializer="random_normal")(x)
     output_1 = layers.subtract([x, dense_input], name="output_1")
 
-    x = tf.keras.layers.Reshape((1, 1, 256))(x)
+    x = tf.keras.layers.Reshape((1, 1, 128))(x)
     x = tf.keras.layers.UpSampling2D((16, 5))(x)
-    x = DeResnetBlock(64, 2)(x)
-    output_2 = layers.subtract([x, block_2_output], name="output_2")
+    """x = DeResnetBlock(64, 2)(x)
+    output_2 = layers.subtract([x, block_2_output], name="output_2")"""
 
-    x = tf.keras.layers.MaxPool2D((2, 2), strides=2)(x)
-    x = DeResnetBlock(64, 2)(x)
-    output_3 = layers.subtract([x, block_1_output], name="output_3")
+    # x = tf.keras.layers.MaxPool2D((2, 2), strides=2)(x)
+    x = DeResnetBlock(128, 1)(x)
+    output_2 = layers.subtract([x, block_1_output], name="output_2")
 
     x = tf.keras.layers.UpSampling2D((3, 3))(x)
     x = tf.keras.layers.MaxPool2D(3, strides=1)(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.Conv2DTranspose(DeepAI.NbOperators + 3, kernel_size=(2, 3),
                                         kernel_initializer="random_normal")(x)
-    output_4 = layers.subtract([x, norm], name="output_4")
+    output_3 = layers.subtract([x, norm], name="output_3")
 
     """model = keras.Model(inputs, outputs, name="deepai")
     opt = keras.optimizers.Adam(learning_rate=5 * 10 ** (-5))
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])"""
 
-    trainModel = keras.Model(inputs, [main_output, output_0, output_1, output_2, output_3, output_4], name="deepai_train")
+    trainModel = keras.Model(inputs, [main_output, output_0, output_1, output_2, output_3], name="deepai_train")
     """opt = keras.optimizers.Adam(learning_rate=1 * 10 ** (-5))
     trainModel.compile(loss=['categorical_crossentropy', 'mse'], loss_weights=[10, 10], optimizer=opt,
                        metrics=['accuracy'])"""
@@ -583,6 +585,7 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
     main_output_loss = 0
     output_losses = [0 for i in range(1, len(model.outputs))]
     accuracy = 0
+    accIdx = len(model.outputs) + 1 if len(model.outputs) > 1 else 1
     for numBatch in range(len(trainBatches_x)):
         crtBatch = trainBatches_x[numBatch]
         batch = []
@@ -615,7 +618,7 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
         for k in range(len(output_losses)):
             output_losses[k] = (output_losses[k] * numBatch + history[k + 2] *
                                 (len(batch) / batch_size)) / (numBatch + 1)
-        accuracy = (accuracy * numBatch + history[7] * (len(batch) / batch_size)) / (numBatch + 1)
+        accuracy = (accuracy * numBatch + history[accIdx] * (len(batch) / batch_size)) / (numBatch + 1)
         if numBatch % 30 == 29:
             print("batch n°" + str(numBatch + 1) + "/" + str(len(trainBatches_x)))
             print("loss = " + str(loss))
@@ -631,6 +634,7 @@ def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, t
     print("validation...")
     val_loss = 0
     val_accuracy = 0
+    accIdx = len(model.outputs) + 1 if len(model.outputs) > 1 else 1
     for numBatch in range(len(testBatches_x)):
         crtBatch = testBatches_x[numBatch]
         batch = []
@@ -659,7 +663,7 @@ def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, t
         # print(history)
         # print(model.metrics_names)
         val_loss = (val_loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
-        val_accuracy = (val_accuracy * numBatch + history[7] * (len(batch) / batch_size)) / (numBatch + 1)
+        val_accuracy = (val_accuracy * numBatch + history[accIdx] * (len(batch) / batch_size)) / (numBatch + 1)
         if numBatch % 30 == 29:
             print("batch n°" + str(numBatch + 1) + "/" + str(len(testBatches_x)))
             print("val_loss = " + str(val_loss))
@@ -676,6 +680,6 @@ def createZeroTab(size):
 
 def compileModel(model, lr=0.001):
     opt = keras.optimizers.Adam(learning_rate=lr)
-    model.compile(loss=['categorical_crossentropy', 'mse', 'mse', 'mse', 'mse', 'mse'],
-                  loss_weights=[5 * 10 ** -4, 10 ** -6, 10 ** -8, 10 ** -8, 10 ** -8, 10 ** -8], optimizer=opt,
+    model.compile(loss=['categorical_crossentropy', 'mse', 'mse', 'mse', 'mse'],
+                  loss_weights=[5 * 10 ** -4, 10 ** -6, 10 ** -8, 10 ** -8, 10 ** -8], optimizer=opt,
                   metrics=['accuracy'])
