@@ -19,6 +19,7 @@ class DeepAI(AI):
     OperatorParams = NbDiffOperators + 2
     NbOperators = 30
     NbTerms = NbOperators
+    OpeStateSize = NbOperators + NbDiffOperators
     MaxDepth = 25
     MultExamples = 500
     MaxGameBefLearning = 50
@@ -50,7 +51,7 @@ class DeepAI(AI):
             self._model.save(DeepAI.ModelFile)
         self._model = extractTestModel(self._model)
         self._modelMutex = Lock()
-        self._elo = 1000  # 1418
+        self._elo = 1076  # 1418
         self._train()
 
     def getTrueState(self, threadIdx):
@@ -361,11 +362,15 @@ class DeepAI(AI):
 
 def makeOrderedOpeTab(ope):
     ret = []
-    opeId = float(ope.name())
-    ret.append(opeId)
+    opeId = int(ope.name())
+    for k in range(opeId):
+        ret.append(0.0)
+    ret.append(1.0)
+    for k in range(opeId + 1, DeepAI.NbDiffOperators):
+        ret.append(0.0)
     for parentOpe in ope.parentOperators():
         ret.append(float(parentOpe.idx() + 1))
-    for k in range(DeepAI.NbOperators - len(ret)):
+    for k in range(DeepAI.OpeStateSize - len(ret)):
         ret.append(0.0)
     return ret
 
@@ -447,7 +452,8 @@ class DeResnetBlock(tf.keras.layers.Layer):
 
 def createModel(inputSize):
     inputs = keras.Input(shape=(inputSize,
-                                DeepAI.NbOperators, DeepAI.NbOperators + 3), name="img")  # shape (H, W, C)
+                                DeepAI.NbOperators, DeepAI.OpeStateSize + 3),
+                                name="img")  # shape (H, W, C)
     norm = tf.keras.layers.LayerNormalization()(inputs)
     x = tf.keras.layers.Conv2D(128, kernel_size=3, padding='same', kernel_initializer="random_normal")(norm)
     x = tf.keras.layers.BatchNormalization()(x)
@@ -459,17 +465,17 @@ def createModel(inputSize):
     # block_3_output = ResnetBlock(256, 2)(block_2_output)
 
     dense_input = layers.GlobalAveragePooling2D()(block_2_output)  # block_3_output
-    dense_1 = layers.Dense(256, activation="relu", kernel_initializer="random_normal")(dense_input)
+    dense_1 = layers.Dense(256, activation="relu")(dense_input)
     x = layers.Dropout(0.5)(dense_1)
-    dense_2 = layers.Dense(DeepAI.MaxDepth + 1, kernel_initializer="random_normal")(x)
+    dense_2 = layers.Dense(DeepAI.MaxDepth + 1)(x)
     main_output = layers.Activation("softmax", name="main_output")(dense_2)
 
     # reverse network
-    x = layers.Dense(256, activation="relu", kernel_initializer="random_normal")(dense_2)
+    x = layers.Dense(256, activation="relu")(dense_2)
     output_0 = layers.subtract([x, dense_1], name="output_0")
 
     x = layers.Dropout(0.5)(x)
-    x = layers.Dense(128, activation="relu", kernel_initializer="random_normal")(x)
+    x = layers.Dense(128, activation="relu")(x)
     output_1 = layers.subtract([x, dense_input], name="output_1")
 
     x = tf.keras.layers.Reshape((1, 1, 128))(x)
@@ -484,7 +490,7 @@ def createModel(inputSize):
     x = tf.keras.layers.UpSampling2D((3, 3))(x)
     x = tf.keras.layers.MaxPool2D(3, strides=1)(x)
     x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Conv2DTranspose(DeepAI.NbOperators + 3, kernel_size=(2, 3),
+    x = tf.keras.layers.Conv2DTranspose(DeepAI.OpeStateSize + 3, kernel_size=(2, 3),
                                         kernel_initializer="random_normal")(x)
     output_3 = layers.subtract([x, norm], name="output_3")
 
@@ -507,6 +513,7 @@ def extractTestModel(trainModel):
     model = keras.Model(inputs, outputs, name="deepai_evaluate")
     return model
 
+
 def makeZeroTab(n):
     ret = []
     for k in range(n):
@@ -526,7 +533,7 @@ def makeTrueState(state):
     for ope in priorityOpes:
         priorityState.append(makeOrderedOpeTab(ope))
     for k in range(DeepAI.NbOperators - len(priorityState)):
-        priorityState.append(makeZeroTab(DeepAI.NbOperators))
+        priorityState.append(makeZeroTab(DeepAI.OpeStateSize))
 
     # terms
     for term in terms:
@@ -548,6 +555,7 @@ def makeTrueState(state):
     ret = []
     for priorOpe, term in zip(priorityState, termState):
         ret.append(priorOpe + term)
+
     return ret
 
 
