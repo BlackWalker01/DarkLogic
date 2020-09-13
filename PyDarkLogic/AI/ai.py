@@ -10,9 +10,8 @@ from MainDarkLogic.enumfun import EnumFun
 
 
 class AI(Player):
-    def __init__(self, type_, maxInstanceIdx, secondTimeout):
-        super().__init__("AI")
-        self._type = type_
+    def __init__(self, maxInstanceIdx, secondTimeout, name="AI"):
+        super().__init__(name)
         self._secondTimeout = secondTimeout
         self._maxInstanceIdx = maxInstanceIdx
         self._masterThread = None
@@ -22,7 +21,7 @@ class AI(Player):
         self._eventQueue = []
         self._mutex = Lock()
         self._condition_var = Condition(self._mutex)
-        self._elo = 1800
+        self._elo = 1700
 
     def play(self):
         # start chrono
@@ -70,14 +69,14 @@ class AI(Player):
 
         return Action(EnumFun.PUSH_ACTION, self._crtNode.actionId())
 
-    def pushCrtAction(self, actionId, threadIdx):
-        self._crtNode.pushCrtAction(actionId, threadIdx)
+    def pushCrtAction(self, actionIds, threadIdx=-1):
+        self._crtNode.pushCrtAction(actionIds, threadIdx)
 
     def stopFromMasterThread(self):
         self._pushEvent(Event.EventEnum.STOP)
 
-    def explore(self, actions):
-        self._crtNode.exploreStatic(actions)
+    def explore(self, dbNode, threadId):
+        self._crtNode.exploreStatic(dbNode.actions(), threadId)
 
     def mustStop(self, threadIdx):
         return self._masterThread.mustStop(threadIdx)
@@ -87,9 +86,6 @@ class AI(Player):
 
     def getMaster(self):
         return self._masterThread
-
-    def type(self):
-        return self._type
 
     def timeout(self):
         return self._secondTimeout
@@ -113,3 +109,12 @@ class AI(Player):
 
     def value(self):
         return self._crtNode.value()
+
+    def eval(self, states, threadId):
+        return 0
+
+    def valueOfActions(self, actions):
+        return self._crtNode.getValueOfActions(actions)
+
+    def realValueOfActions(self, actions):
+        return self._crtNode.getRealValueOfActions(actions)

@@ -2,6 +2,7 @@ import time
 import random as rand
 import MainDarkLogic.darklogic as DarkLogic
 from Database.state import State
+from AI.dbnode import DbNode
 
 
 class Node:
@@ -17,7 +18,7 @@ class Node:
         if "ai" in kwargs:
             Node._ai = kwargs["ai"]
             self._actionId = 0
-            self._threadId = 0
+            self._threadId = -1
             self._depth = 0
         else:
             self._actionId = kwargs["actionId"]
@@ -28,6 +29,7 @@ class Node:
         self._isEvaluated = False
         self._aiValue = None
         self._sons = {}
+        self._dbNode = DbNode()
         self._isLoss = False
 
     def actionId(self):
@@ -54,17 +56,69 @@ class Node:
     def subValue(self):
         return self._subValue
 
+    def realValue(self):
+        return self._value + self._subValue
+
     def isEvaluated(self):
         return self._isEvaluated
 
     def isAIValuated(self):
         return not (self._aiValue is None)
 
-    def pushCrtAction(self, actionId, threadIdx):
-        if actionId in self._sons and self._sons[actionId]:
-            self._sons[actionId].setThreadIdx(threadIdx)
+    def isSubValuated(self):
+        return self._subValue != Node.INIT_SUBVALUE
+
+    def pushCrtAction(self, actionIds, threadIdx):
+        actionId = actionIds[0]
+        if len(actionIds) == 1:
+            if actionId in self._sons and self._sons[actionId]:
+                self._sons[actionId].setThreadIdx(threadIdx)
+            else:
+                self._sons[actionId] = Node(actionId=actionId, threadId=threadIdx, depth=self._depth + 1)
+                # eval node
+                self._sons[actionId].eval(0)
         else:
-            self._sons[actionId] = Node(actionId=actionId, threadId=threadIdx, depth=self._depth + 1)
+            self._sons[actionId].pushCrtAction(actionIds[1:], threadIdx)
+
+    def eval(self, threadIdx):
+        # play crt move
+        DarkLogic.apply(threadIdx, self._actionId)
+
+        # check if it is a node which leads to loss
+        if DarkLogic.isAlreadyPlayed(threadIdx):
+            self._value = Node.VAL_MAX
+        elif not DarkLogic.canBeDemonstrated(threadIdx):
+            self._value = Node.VAL_MAX
+            if not DarkLogic.isEvaluated(threadIdx):
+                self._isLoss = True
+        # check if it is a node which leads to win
+        elif DarkLogic.isDemonstrated(threadIdx):
+            self._value = 0
+            # stop reflexion because AI found a demonstration
+            Node._ai.stopThread(threadIdx)
+        else:
+            self._subValue = Node._ai.eval([DarkLogic.getState(threadIdx)], threadIdx)
+        self._isEvaluated = True
+
+        # unplay crt move
+        DarkLogic.unapply(threadIdx)
+
+    def getValueOfActions(self, actions):
+        action = actions[0]
+        if len(actions) == 1:
+            return self._sons[action].value()
+        else:
+            return self._sons[action].getValueOfActions(actions[1:])
+
+    def getRealValueOfActions(self, actions):
+        action = actions[0]
+        if len(actions) == 1:
+            return self._sons[action].value() + self._sons[action].subValue()
+        else:
+            return self._sons[action].getRealValueOfActions(actions[1:])
+
+    def getSubValueFromSon(self, action):
+        return self._sons[action].subValue()
 
     def setThreadIdx(self, threadIdx):
         self._threadId = threadIdx
@@ -75,18 +129,33 @@ class Node:
     def isRoot(self):
         return self._threadId == 0
 
-    def exploreStatic(self, actions):
+    def getSubNode(self, actions):
+        if len(actions) == 1:
+            return self._sons[actions[0]]
+        else:
+            return self._sons[actions[0]].getSubNode(actions[1:])
+
+    def exploreStatic(self, actionList, threadId):
         maxDepth = self.minDepth()
-        threadId = self._sons[actions[0]].threadId()
+        # threadId = self._sons[actions[0]].threadId()
         start = time.perf_counter()
         while not Node._ai.mustStop(threadId):
-            for action in actions:
-                node = self._sons[action]
+            for actions in actionList:
+                # go to node
+                for action in actions[:-1]:
+                    DarkLogic.apply(threadId, action)
+                    DarkLogic.getActions(threadId)
+                node = self.getSubNode(actions)
                 retValue = Node.VAL_MAX
                 if node.value() < Node.VAL_MAX:
                     node.exploreDepthStatic(maxDepth)
                 if self._value > retValue + 1:
                     self._value = retValue + 1
+
+                # go back to first node
+                for k in range(len(actions) - 1):
+                    DarkLogic.unapply(threadId)
+
                 # if must stop exploration, stop it
                 if Node._ai.mustStop(threadId):
                     break
@@ -117,10 +186,7 @@ class Node:
                 # stop reflexion because AI found a demonstration
                 Node._ai.stopThread(self._threadId)
             else:
-                self._subValue = len(DarkLogic.getState(self._threadId).operators())
-                """print("theorem is "+DarkLogic.toStrTheorem(self._threadId)+", subValue = "+str(self._subValue))
-                if self._subValue == 0:
-                    exit(0)"""
+                self._subValue = self._ai.eval(DarkLogic.getState(self._threadId))
         elif not Node._ai.mustStop(self._threadId):
             # get actions
             actions = DarkLogic.getActions(self._threadId)
@@ -235,6 +301,77 @@ class Node:
 
         DarkLogic.unapply(self._threadId)
 
+    def exploreEval(self, dbNode, threadId):
+        while not Node._ai.mustStop(threadId):
+            idx, actions = dbNode.getBestAction()
+            for action in actions[:-1]:
+                DarkLogic.apply(threadId, action)
+                DarkLogic.getActions(threadId)
+
+            node = self.getSubNode(actions)
+            value = node.exploreDepthEval()
+            dbNode.updateValue(idx, value)
+
+            # go back to first node
+            for k in range(len(actions) - 1):
+                DarkLogic.unapply(threadId)
+
+            # if must stop exploration, stop it
+            if Node._ai.mustStop(threadId):
+                break
+
+    def exploreDepthEval(self):
+        # play crt move
+        DarkLogic.apply(self._threadId, self._actionId)
+        # get actions
+        actions = DarkLogic.getActions(self._threadId)
+        # no need to go deeper
+        if len(self._sons) != len(actions):
+            minSubValue = Node.INIT_SUBVALUE
+            updateValue = True
+            for action in actions:
+                # node = None
+                if action not in self._sons:
+                    node = Node(actionId=action, threadId=self._threadId, depth=self._depth + 1)
+                    self._sons[action] = node
+                    node.eval(self._threadId)
+                    if node.value() < Node.VAL_MAX:
+                        idx = self._dbNode.push(self._actionId, action)
+                        self._dbNode.updateValue(idx, node.realValue())
+                else:
+                    node = self._sons[action]
+                subValue = node.subValue()
+                if subValue < minSubValue:
+                    minSubValue = subValue
+
+                # if must stop exploration, stop it
+                if Node._ai.mustStop(self._threadId):
+                    updateValue = False
+                    break
+            if updateValue:
+                if self._dbNode.size() == 0:
+                    # all actions lead to loss
+                    self._value = Node.VAL_MAX
+                else:
+                    self._subValue = minSubValue + 1
+        else:
+            idx, actionsToNode = self._dbNode.getBestAction()
+            action = actionsToNode[1]
+            node = self._sons[action]
+            # self._dbNode.updateValue(idx, self.realValue(), True)  # delete this line
+            node.exploreDepthEval()
+            if node.value() < Node.VAL_MAX:
+                self._dbNode.updateValue(idx, self.realValue())
+                _, actionsToNode = self._dbNode.getBestAction()
+                action = actionsToNode[1]
+                node = self._sons[action]
+                self._subValue = node.subValue() + 1
+            else:
+                self._dbNode.removeIdx(idx)
+
+        DarkLogic.unapply(self._threadId)
+        return self.realValue()
+
     def computeAIValue(self):
         minValue = Node.VAL_MAX
         allNode = True
@@ -252,6 +389,30 @@ class Node:
             if minValue != self._aiValue - 1:
                 self._aiValue = minValue + 1
         return self._aiValue
+
+    def computeValue(self):
+        minValue = self._value - 1
+        for node in self._sons.values():
+            crtValue = node.computeValue()
+            if minValue > crtValue:
+                minValue = crtValue
+        if minValue + 1 != self._value:
+            self._value = minValue + 1
+        return self._value
+
+    def computeSubValue(self):
+        minValue = Node.INIT_SUBVALUE
+        allNode = True
+        for node in self._sons.values():
+            if node.isSubValuated():
+                crtValue = node.computeSubValue()
+                if minValue > crtValue:
+                    minValue = crtValue
+            else:
+                allNode = False
+        if allNode and len(self._sons) != 0:
+            self._subValue = minValue + 1
+        return self._subValue
 
     def getDeepExploreNodes(self, actions):
         minNodes = []
@@ -314,6 +475,8 @@ class Node:
         minNodes = []
         minVal = Node.VAL_MAX
         minSubVal = Node.INIT_SUBVALUE
+        self.computeValue()
+        self.computeSubValue()
         for key in self._sons.keys():
             son = self._sons[key]
             if son.value() < minVal:

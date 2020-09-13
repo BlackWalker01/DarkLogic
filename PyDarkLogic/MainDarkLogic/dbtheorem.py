@@ -36,11 +36,17 @@ class DbTheorem:
         self.addTheorem("&& Distributivity", "(a&&(b||c))<=>((a&&b)||(a&&c))", 2400)
         self.addTheorem("|| Distributivity", "(a||(b&&c))<=>((a||b)&&(a||c))", 2400)
 
-    def getRandomTheorem(self):
-        keys = []
+    def getRandomTheorem(self, elo=10 ** 6):
+        allKeys = []
+        remainKeys = []
         for key in self._db.keys():
-            keys.append(key)
-        return self._db[keys[rand.randint(0, len(keys) - 1)]]
+            allKeys.append(key)
+            if elo - 400 <= self._db[key].elo() <= elo + 400:
+                remainKeys.append(key)
+        if len(remainKeys) > 0:
+            return self._db[remainKeys[rand.randint(0, len(remainKeys) - 1)]]
+        else:
+            return self._db[allKeys[rand.randint(0, len(allKeys) - 1)]]
 
     def addTheorem(self, name, content, elo):
         thm = Theorem(name, content, elo)

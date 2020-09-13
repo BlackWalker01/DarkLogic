@@ -7,6 +7,7 @@ sys.path.append(path + "\..\..\Lib")
 from DarkLogic import DarkLogic
 from threading import Thread, Condition, Lock
 from AI.event import Event
+from AI.dbnode import DbNode
 
 
 # friend method
@@ -29,7 +30,7 @@ class AIThread(Thread):
         self._instanceId = instanceId
         self._ai = ai
         self._master = master
-        self._crtActions = []
+        self._crtActions = DbNode()
 
         # start/stop thread
         self._hasStarted = False
@@ -45,9 +46,10 @@ class AIThread(Thread):
     def hasStarted(self):
         return self._hasStarted
 
-    def pushAction(self, action):
-        self._crtActions.append(action)
-        self._ai.pushCrtAction(action, self._instanceId)
+    def pushAction(self, parent, action):
+        idx = self._crtActions.push(parent, action)
+        valSon = self._ai.realValueOfActions([parent, action])
+        self._crtActions.updateValue(idx, valSon)
 
     def mustStop(self, action=None):
         self._mutexStop.acquire()
@@ -71,7 +73,7 @@ class AIThread(Thread):
 
         # compute value of given nodes
         while not self.mustStop():
-            self._ai.explore(self._crtActions)
+            self._ai.explore(self._crtActions, self._instanceId)
 
         # inform master that this thread has finished
         self.stop_()
