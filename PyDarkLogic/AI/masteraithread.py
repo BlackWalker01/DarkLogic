@@ -73,7 +73,8 @@ class MasterAIThread(Thread):
         foundDemo = False
         actions = DarkLogic.getActions(0)
         for action in actions:
-            self._ai.pushCrtAction([action])
+            threadIdx = nbActions % len(self._slaveThreads)
+            self._ai.pushCrtAction([action], threadIdx)
             val = self._ai.valueOfActions([action])
             if val == 0:
                 foundDemo = True
@@ -81,7 +82,9 @@ class MasterAIThread(Thread):
             elif val == MasterAIThread.VAL_MAX_NODE:
                 continue
             else:
-                DarkLogic.apply(0, action)
+                self._slaveThreads[threadIdx].pushAction(action)
+                nbActions += 1
+                """DarkLogic.apply(0, action)
                 subActions = DarkLogic.getActions(0)
                 for subAction in subActions:
                     threadIdx = nbActions % len(self._slaveThreads)
@@ -98,7 +101,7 @@ class MasterAIThread(Thread):
                 DarkLogic.unapply(0)
                 DarkLogic.getActions(0)
                 if foundDemo:
-                    break
+                    break"""
 
         if not foundDemo:
             # start slave threads

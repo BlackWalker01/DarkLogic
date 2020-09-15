@@ -135,26 +135,19 @@ class Node:
         else:
             return self._sons[actions[0]].getSubNode(actions[1:])
 
-    def exploreStatic(self, actionList, threadId):
+    def exploreStatic(self, actions, threadId):
         maxDepth = self.minDepth()
         # threadId = self._sons[actions[0]].threadId()
         start = time.perf_counter()
         while not Node._ai.mustStop(threadId):
-            for actions in actionList:
+            for action in actions:
                 # go to node
-                for action in actions[:-1]:
-                    DarkLogic.apply(threadId, action)
-                    DarkLogic.getActions(threadId)
-                node = self.getSubNode(actions)
+                node = self._sons[action]
                 retValue = Node.VAL_MAX
                 if node.value() < Node.VAL_MAX:
                     node.exploreDepthStatic(maxDepth)
                 if self._value > retValue + 1:
                     self._value = retValue + 1
-
-                # go back to first node
-                for k in range(len(actions) - 1):
-                    DarkLogic.unapply(threadId)
 
                 # if must stop exploration, stop it
                 if Node._ai.mustStop(threadId):
@@ -185,8 +178,8 @@ class Node:
                 self._value = 0
                 # stop reflexion because AI found a demonstration
                 Node._ai.stopThread(self._threadId)
-            else:
-                self._subValue = self._ai.eval(DarkLogic.getState(self._threadId))
+            """else:
+                self._subValue = self._ai.eval([DarkLogic.getState(self._threadId)], self._threadId)"""
         elif not Node._ai.mustStop(self._threadId):
             # get actions
             actions = DarkLogic.getActions(self._threadId)
@@ -303,18 +296,11 @@ class Node:
 
     def exploreEval(self, dbNode, threadId):
         while not Node._ai.mustStop(threadId):
-            idx, actions = dbNode.getBestAction()
-            for action in actions[:-1]:
-                DarkLogic.apply(threadId, action)
-                DarkLogic.getActions(threadId)
+            action = dbNode.getBestAction()
 
-            node = self.getSubNode(actions)
+            node = self._sons[action]
             value = node.exploreDepthEval()
-            dbNode.updateValue(idx, value)
-
-            # go back to first node
-            for k in range(len(actions) - 1):
-                DarkLogic.unapply(threadId)
+            dbNode.updateValue(action, value)
 
             # if must stop exploration, stop it
             if Node._ai.mustStop(threadId):
@@ -336,7 +322,7 @@ class Node:
                     self._sons[action] = node
                     node.eval(self._threadId)
                     if node.value() < Node.VAL_MAX:
-                        idx = self._dbNode.push(self._actionId, action)
+                        idx = self._dbNode.push(action)
                         self._dbNode.updateValue(idx, node.realValue())
                 else:
                     node = self._sons[action]
@@ -355,19 +341,17 @@ class Node:
                 else:
                     self._subValue = minSubValue + 1
         else:
-            idx, actionsToNode = self._dbNode.getBestAction()
-            action = actionsToNode[1]
+            action = self._dbNode.getBestAction()
             node = self._sons[action]
             # self._dbNode.updateValue(idx, self.realValue(), True)  # delete this line
             node.exploreDepthEval()
             if node.value() < Node.VAL_MAX:
-                self._dbNode.updateValue(idx, self.realValue())
-                _, actionsToNode = self._dbNode.getBestAction()
-                action = actionsToNode[1]
+                self._dbNode.updateValue(action, self.realValue())
+                action = self._dbNode.getBestAction()
                 node = self._sons[action]
                 self._subValue = node.subValue() + 1
             else:
-                self._dbNode.removeIdx(idx)
+                self._dbNode.removeIdx(action)
 
         DarkLogic.unapply(self._threadId)
         return self.realValue()

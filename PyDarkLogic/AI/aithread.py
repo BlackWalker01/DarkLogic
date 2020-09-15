@@ -46,9 +46,9 @@ class AIThread(Thread):
     def hasStarted(self):
         return self._hasStarted
 
-    def pushAction(self, parent, action):
-        idx = self._crtActions.push(parent, action)
-        valSon = self._ai.realValueOfActions([parent, action])
+    def pushAction(self, action):
+        idx = self._crtActions.push(action)
+        valSon = self._ai.realValueOfActions([action])
         self._crtActions.updateValue(idx, valSon)
 
     def mustStop(self, action=None):
@@ -70,7 +70,6 @@ class AIThread(Thread):
     def start_(self):
         self._hasStarted = True
         DarkLogic.getActions(self._instanceId)
-
         # compute value of given nodes
         while not self.mustStop():
             self._ai.explore(self._crtActions, self._instanceId)

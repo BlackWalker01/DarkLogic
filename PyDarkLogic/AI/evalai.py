@@ -7,6 +7,7 @@ class EvalAI(AI):
 
     def __init__(self, maxInstanceIdx, secondTimeout):
         super().__init__(maxInstanceIdx, secondTimeout, name="EvalAI")
+        self._elo = 1780
 
     def eval(self, states, threadId):
         state = states[0]
