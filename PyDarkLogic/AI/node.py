@@ -57,7 +57,10 @@ class Node:
         return self._subValue
 
     def realValue(self):
-        return self._value + self._subValue
+        if self._value < Node.VAL_INIT:
+            return self._value
+        else:
+            return self._value + self._subValue
 
     def isEvaluated(self):
         return self._isEvaluated
@@ -113,7 +116,7 @@ class Node:
     def getRealValueOfActions(self, actions):
         action = actions[0]
         if len(actions) == 1:
-            return self._sons[action].value() + self._sons[action].subValue()
+            return self._sons[action].realValue()
         else:
             return self._sons[action].getRealValueOfActions(actions[1:])
 

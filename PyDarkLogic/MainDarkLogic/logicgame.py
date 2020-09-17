@@ -28,7 +28,7 @@ def _createEvalAI(game):
 
 
 def _createNeuralAI(game):
-    game._createDeepAI()
+    game._createNeuralAI()
 
 
 def _pushAction(game, action):
