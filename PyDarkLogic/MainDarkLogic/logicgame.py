@@ -6,23 +6,29 @@ from .enumfun import EnumFun
 import multiprocessing
 from MainDarkLogic.dbtheorem import DbTheorem
 
+
 class Mode(Enum):
     NoMode = 0
-    HumanMode = 1
-    AIMode = 2
-    DeepAIMode = 3
+    Human = 1
+    BasicAI = 2
+    EvalAI = 3
+    NeuralAI = 4
 
 
 def _createHuman(game):
     game._createHuman()
 
 
-def _createAI(game):
-    game._createAI()
+def _createBasicAI(game):
+    game._createBasicAI()
 
 
-def _createDeepAI(game):
-    game._createDeepAI()
+def _createEvalAI(game):
+    game._createEvalAI()
+
+
+def _createNeuralAI(game):
+    game._createNeuralAI()
 
 
 def _pushAction(game, action):
@@ -51,23 +57,29 @@ def _printActions(game, action):
 
 
 class LogicGame:
-    _modeHash = {"human": Mode.HumanMode,
-                 "Human": Mode.HumanMode,
-                 "HUMAN": Mode.HumanMode,
+    _modeHash = {"human": Mode.Human,
+                 "Human": Mode.Human,
+                 "HUMAN": Mode.Human,
 
-                 "ai": Mode.AIMode,
-                 "AI": Mode.AIMode,
+                 "basicai": Mode.BasicAI,
+                 "BasicAI": Mode.BasicAI,
+                 "BASICAI": Mode.BasicAI,
 
-                 "deepai": Mode.DeepAIMode,
-                 "deepAi": Mode.DeepAIMode,
-                 "deepAI": Mode.DeepAIMode,
-                 "DeepAi": Mode.DeepAIMode,
-                 "DeepAI": Mode.DeepAIMode,
-                 "DEEPAI": Mode.DeepAIMode}
+                 "evalai": Mode.EvalAI,
+                 "EvalAI": Mode.EvalAI,
+                 "EVALAI": Mode.EvalAI,
 
-    _modeSwitcher = {Mode.HumanMode: _createHuman,
-                     Mode.AIMode: _createAI,
-                     Mode.DeepAIMode: _createDeepAI
+                 "neuralai": Mode.NeuralAI,
+                 "neuralAi": Mode.NeuralAI,
+                 "neuralAI": Mode.NeuralAI,
+                 "NeuralAi": Mode.NeuralAI,
+                 "NeuralAI": Mode.NeuralAI,
+                 "NEURALAI": Mode.NeuralAI}
+
+    _modeSwitcher = {Mode.Human: _createHuman,
+                     Mode.BasicAI: _createBasicAI,
+                     Mode.EvalAI: _createEvalAI,
+                     Mode.NeuralAI: _createNeuralAI
                      }
     _actionSwitcher = {EnumFun.GET_ACTION: _printActions,
                        EnumFun.PUSH_ACTION: _pushAction,
@@ -79,7 +91,7 @@ class LogicGame:
         self._player = None
         self._isAuto = isAuto
         self._eloThm = 1500
-        self._nbGames = 0
+        self._nbGames = 100
         self._dbThm = DbTheorem()
 
     def start(self):
@@ -97,7 +109,7 @@ class LogicGame:
     def _askPlayer(self):
         ok = False
         while not ok:
-            modeStr = input("Choose the mode (Human/AI/DeepAI):\n")
+            modeStr = input("Choose the mode (Human/BasicAI/EvalAI/NeuralAI):\n")
             mode = LogicGame._modeHash.get(modeStr)
             if mode:
                 LogicGame._modeSwitcher[mode](self)
@@ -108,27 +120,36 @@ class LogicGame:
     def _createHuman(self):
         from Human.human import Human
         print("Human Mode")
-        self._mode = Mode.HumanMode
+        self._mode = Mode.Human
         DarkLogic.init(0)
         self._player = Human()
 
-    def _createAI(self):
+    def _createBasicAI(self):
         from AI.ai import AI
-        print("AI Mode")
-        self._mode = Mode.AIMode
+        print("Basic AI Mode")
+        self._mode = Mode.BasicAI
         nbInstances = multiprocessing.cpu_count()
         # nbInstances = 1
         DarkLogic.init(nbInstances)
-        self._player = AI(0, nbInstances, LogicGame._AI_TIMEOUT)
+        self._player = AI(nbInstances, LogicGame._AI_TIMEOUT)
 
-    def _createDeepAI(self):
-        from AI.deepai import DeepAI
-        print("Deep AI Mode")
-        self._mode = Mode.DeepAIMode
+    def _createEvalAI(self):
+        from AI.evalai import EvalAI
+        print("Eval AI Mode")
+        self._mode = Mode.EvalAI
+        nbInstances = multiprocessing.cpu_count()
+        # nbInstances = 1
+        DarkLogic.init(nbInstances)
+        self._player = EvalAI(nbInstances, LogicGame._AI_TIMEOUT)
+
+    def _createNeuralAI(self):
+        from AI.neuralai import NeuralAI
+        print("Neural AI Mode")
+        self._mode = Mode.NeuralAI
         # nbInstances = multiprocessing.cpu_count()
         nbInstances = 1
         DarkLogic.init(nbInstances)
-        self._player = DeepAI(0, nbInstances, LogicGame._AI_TIMEOUT)
+        self._player = NeuralAI(nbInstances, LogicGame._AI_TIMEOUT)
 
     def _createTheorem(self):
         # ask user to create theorem
@@ -147,7 +168,7 @@ class LogicGame:
                     print("Error in theorem content")
                     continue
                 ok = DarkLogic.makeTheorem(thName, thStr)
-                if ok and self._mode == Mode.HumanMode:
+                if ok and self._mode == Mode.Human:
                     print("-> getAction() : to print all possible actions")
                     print("-> pushAction(id) : to make action identified by id")
                     print("-> pushAction(ruleName, path) : to make action identified by ruleName (name of the rule to "
@@ -155,9 +176,9 @@ class LogicGame:
                           " (list of indexes [id1, id2, ..., idn]) in theorem ")
                     print("-> popAction : to cancel the latest action")
             else:
-                thm = self._dbThm.getRandomTheorem()
+                thm = self._dbThm.getRandomTheorem(self._player.elo())
                 self._eloThm = thm.elo()
-                print(thm.name()+" theorem :'"+thm.content()+"' has been chosen for this game")
+                print(thm.name() + " theorem :'" + thm.content() + "' has been chosen for this game")
                 ok = DarkLogic.makeTheorem(thm.name(), thm.content())
         self._player.setTheoremInfo()
 
@@ -191,7 +212,7 @@ class LogicGame:
         maxNbAttempts = 10
         hasWon = False
         self._nbGames += 1
-        print("Game n°"+str(self._nbGames))
+        print("Game n°" + str(self._nbGames))
         while not DarkLogic.isOver():
             print("Attempt n°" + str(nbAttempts + 1) + "/" + str(maxNbAttempts))
             action = self._player.play()
@@ -202,28 +223,25 @@ class LogicGame:
                 if nbAttempts == maxNbAttempts:
                     break
 
-        if nbAttempts == maxNbAttempts:
-            print(self._player.name() + " lost! Too much attempts!")
-            exElo = self._player.elo()
-            newElo = round(exElo - 30 / (1 + 10 ** ((self._eloThm - exElo) / 400)))
-            self._player.setElo(newElo)
-        elif DarkLogic.hasAlreadyPlayed():
+        if DarkLogic.hasAlreadyPlayed():
             if DarkLogic.isDemonstrated():
                 print(self._player.name() + " won! " + self._player.name() + " finished the demonstration!")
                 hasWon = True
             elif DarkLogic.isAlreadyPlayed():
                 print(self._player.name() + " lost! Repetition of theorem!")
             elif DarkLogic.isEvaluated():
-                print(
-                    self._player.name() + " lost! Cannot (\"back-\")demonstrate that a theorem is false with implications")
+                print(self._player.name() + "lost! Cannot (\"back-\")demonstrate that a theorem is false with "
+                                            "implications")
             elif not DarkLogic.canBeDemonstrated():
                 print(self._player.name() + " lost! This theorem cannot be demonstrated! " +
                       "It can be true or false according to the values of its variables")
+            elif nbAttempts == maxNbAttempts:
+                print(self._player.name() + " lost! Too much attempts!")
 
             # update player's elo
             W = 1 if hasWon else 0
             exElo = self._player.elo()
-            newElo = round(exElo + 30*(W - 1/(1 + 10**((self._eloThm - exElo) / 400))))
+            newElo = round(exElo + 30 * (W - 1 / (1 + 10 ** ((self._eloThm - exElo) / 400))))
             self._player.setElo(newElo)
         else:
             if DarkLogic.isDemonstrated():

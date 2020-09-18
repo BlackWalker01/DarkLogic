@@ -20,6 +20,7 @@ class MasterAIThread(Thread):
     _switcher = {Event.EventEnum.START: _start,
                  Event.EventEnum.STOP: _stop,
                  Event.EventEnum.STOP_THREAD: _stopFromThread}
+    VAL_MAX_NODE = 101
 
     def __init__(self, maxInstanceIdx, ai):
         Thread.__init__(self)
@@ -64,23 +65,56 @@ class MasterAIThread(Thread):
     def init(self):
         if len(self._slaveThreads) == 0:
             for k in range(self._maxInstanceIdx):
-                self._slaveThreads.append(AIThread(k, self._ai))
+                self._slaveThreads.append(AIThread(k, self._ai, self))
 
     def _start(self):
         # Dispatch actions between slave threads
-        actions = DarkLogic.getActions()
-        for k in range(len(actions)):
-            self._slaveThreads[k % len(self._slaveThreads)].pushAction(actions[k])
+        nbActions = 0
+        foundDemo = False
+        actions = DarkLogic.getActions(0)
+        for action in actions:
+            threadIdx = nbActions % len(self._slaveThreads)
+            self._ai.pushCrtAction([action], threadIdx)
+            val = self._ai.valueOfActions([action])
+            if val == 0:
+                foundDemo = True
+                break
+            elif val == MasterAIThread.VAL_MAX_NODE:
+                continue
+            else:
+                self._slaveThreads[threadIdx].pushAction(action)
+                nbActions += 1
+                """DarkLogic.apply(0, action)
+                subActions = DarkLogic.getActions(0)
+                for subAction in subActions:
+                    threadIdx = nbActions % len(self._slaveThreads)
+                    self._ai.pushCrtAction([action, subAction], threadIdx)
+                    subVal = self._ai.valueOfActions([action, subAction])
+                    if subVal == 0:
+                        foundDemo = True
+                        break
+                    elif subVal == MasterAIThread.VAL_MAX_NODE:
+                        continue
+                    else:
+                        self._slaveThreads[threadIdx].pushAction(action, subAction)
+                        nbActions += 1
+                DarkLogic.unapply(0)
+                DarkLogic.getActions(0)
+                if foundDemo:
+                    break"""
 
-        # start slave threads
-        if len(actions) > len(self._slaveThreads):
-            for slaveThread in self._slaveThreads:
-                slaveThread._start()
-                self._threadAlive[slaveThread.instanceId()] = slaveThread.instanceId()
+        if not foundDemo:
+            # start slave threads
+            if nbActions > len(self._slaveThreads):
+                for slaveThread in self._slaveThreads:
+                    slaveThread._start()
+                    self._threadAlive[slaveThread.instanceId()] = slaveThread.instanceId()
+            else:
+                for k in range(nbActions):
+                    self._slaveThreads[k]._start()
+                    self._threadAlive[self._slaveThreads[k].instanceId()] = self._slaveThreads[k].instanceId()
         else:
-            for k in range(len(actions)):
-                self._slaveThreads[k]._start()
-                self._threadAlive[self._slaveThreads[k].instanceId()] = self._slaveThreads[k].instanceId()
+            self._ai.stopFromMasterThread()
 
     def _stop(self):
         for threadIdx in self._threadAlive.values():

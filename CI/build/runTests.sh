@@ -1,49 +1,115 @@
 #!/bin/sh
 
 export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
+ret=0
 
 # C++ tests
 ./LogicGame checkHumanIdentity
-ret=$?
+if [ $? -eq 0 ]
+then
+  :
+else
+  ret=1
+fi
 
 ./LogicGame checkHumanDoubleNot
-ret=$? && $ret
+if [ $? -eq 0 ]
+then
+  :
+else
+  ret=1
+fi
 
 ./LogicGame checkHumanExcludedMiddle
-ret=$? && $ret
+if [ $? -eq 0 ]
+then
+  :
+else
+  ret=1
+fi
 
 ./LogicGame checkPerformanceIdentity
-ret=$? && $ret
+if [ $? -eq 0 ]
+then
+  :
+else
+  ret=1
+fi
 
 ./LogicGame checkPerformanceDoubleNot
-ret=$? && $ret
+if [ $? -eq 0 ]
+then
+  :
+else
+  ret=1
+fi
 
 ./LogicGame checkPerformanceNonContradiction
-ret=$? && $ret
+if [ $? -eq 0 ]
+then
+  :
+else
+  ret=1
+fi
 
 # Python Tests
 export PYTHONPATH=$(pwd)
 cd ../PyDarkLogic
 
 python3 main.py --type test --testName HumanIdentity
-ret=$?
+if [ $? -eq 0 ]
+then
+  :
+else
+  ret=1
+fi
 
 python3 main.py --type test --testName HumanDoubleNot
-ret=$? && $ret
+if [ $? -eq 0 ]
+then
+  :
+else
+  ret=1
+fi
 
 python3 main.py --type test --testName HumanExcludedMiddle
-ret=$? && $ret
+if [ $? -eq 0 ]
+then
+  :
+else
+  ret=1
+fi
 
 python3 main.py --type test --testName PerformanceIdentity
-ret=$? && $ret
+if [ $? -eq 0 ]
+then
+  :
+else
+  ret=1
+fi
 
 python3 main.py --type test --testName PerformanceDoubleNot
-ret=$? && $ret
+if [ $? -eq 0 ]
+then
+  :
+else
+  ret=1
+fi
 
 python3 main.py --type test --testName PerformanceNonContradiction
-ret=$? && $ret
+if [ $? -eq 0 ]
+then
+  :
+else
+  ret=1
+fi
 
 python3 main.py --type test --testName Parser
-ret=$? && $ret
+if [ $? -eq 0 ]
+then
+  :
+else
+  ret=1
+fi
 
 exit $ret

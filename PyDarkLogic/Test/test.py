@@ -202,7 +202,7 @@ class Test:
     def demonstration(self, name, content, nbThreads):
         print("Test AI on " + name + " theorem with " + str(nbThreads) + " cores")
         DarkLogic.init(nbThreads)
-        ai = AI(0, nbThreads, 60)
+        ai = AI(nbThreads, 60)
         assert DarkLogic.makeTheorem(name, content), "cannot make " + name + " theorem"
         DarkLogic.printTheorem()
         start = time.perf_counter()

@@ -13,21 +13,22 @@ from threading import Lock
 import multiprocessing
 
 
-class DeepAI(AI):
+class NeuralAI(AI):
     MaxNbNode = 100
     NbDiffOperators = 7
     OperatorParams = NbDiffOperators + 2
     NbOperators = 30
     NbTerms = NbOperators
+    OpeStateSize = NbOperators + NbDiffOperators
     MaxDepth = 25
     MultExamples = 500
     MaxGameBefLearning = 50
-    INIT_LR = 4 * 10 ** -7
+    INIT_LR = 4 * 10 ** -6
     ModelFile = "AI/deepAIModel"
     DbName = "Database/deepaiMemory.csv"
 
-    def __init__(self, type_, maxInstanceIdx, secondTimeout):
-        super().__init__(type_, maxInstanceIdx, secondTimeout)
+    def __init__(self, maxInstanceIdx, secondTimeout):
+        super().__init__(maxInstanceIdx, secondTimeout, name="NeuralAI")
         self._theoremName = ""
         self._theorem = ""
         # get Rule States
@@ -35,23 +36,23 @@ class DeepAI(AI):
         ruleStates = DarkLogic.getRuleStates()
         for ruleState in ruleStates:
             self._trueRuleStates.append(makeTrueState(ruleState))
-        self._inputSize = (len(self._trueRuleStates) + 1) * DeepAI.NbOperators * 19
+        self._inputSize = (len(self._trueRuleStates) + 1) * NeuralAI.NbOperators * 19
         self._storeNodes = []
-        self._db = Database(DeepAI.DbName)
+        self._db = Database(NeuralAI.DbName)
         self._gamesSinceLastLearning = 0
-        if file_io.file_exists(DeepAI.ModelFile):
+        if file_io.file_exists(NeuralAI.ModelFile):
             print("load DeepAI brain model")
-            self._model = keras.models.load_model(DeepAI.ModelFile)
+            self._model = keras.models.load_model(NeuralAI.ModelFile)
         else:
             # create model
             print("create new DeepAI brain model")
             self._model = createModel(len(self._trueRuleStates) + 1)
-            compileModel(self._model, DeepAI.INIT_LR)
-            self._model.save(DeepAI.ModelFile)
+            compileModel(self._model, NeuralAI.INIT_LR)
+            self._model.save(NeuralAI.ModelFile)
         self._model = extractTestModel(self._model)
         self._modelMutex = Lock()
-        self._elo = 1000  # 1418
-        self._train()
+        self._elo = 1076  # 1418
+        # self._train()
 
     def getTrueState(self, threadIdx):
         return [makeTrueState(DarkLogic.getState(threadIdx))] + self._trueRuleStates
@@ -79,8 +80,8 @@ class DeepAI(AI):
         for node, realOut in zip(nodes, realOuts):
             node.setAIValue(realOut)
 
-    def explore(self, actions):
-        self._crtNode.exploreDeep(actions)
+    def explore(self, dbNode, threadId):
+        self._crtNode.exploreDeep(dbNode.actions(), threadId)
 
     def _train(self):
         x = []
@@ -90,7 +91,7 @@ class DeepAI(AI):
         dbStates = self._db.getDatas()
         nbExcludedTh = 0
         class_nb = {}
-        for cl in range(DeepAI.MaxDepth + 1):
+        for cl in range(NeuralAI.MaxDepth + 1):
             class_nb[cl] = 0
         print("Total number of theorems in database: " + str(len(dbStates)))
         dbStateIdx = -1
@@ -121,7 +122,7 @@ class DeepAI(AI):
             DarkLogic.makeTheorem(dbState.theoremName(), dbState.theoremContent())
             state = DarkLogic.getState()
             DarkLogic.clearAll()
-            if len(state.operators()) > DeepAI.NbOperators:
+            if len(state.operators()) > NeuralAI.NbOperators:
                 if dbState.isEvaluated() and NbMaxEvaluatedThm == self._db.nbEvaluatedThm():
                     NbMaxUnevaluatedThm += 1
                     NbMaxEvaluatedThm -= 1
@@ -129,7 +130,7 @@ class DeepAI(AI):
             if dbState.isEvaluated():
                 if NbEvaluated == NbMaxEvaluatedThm:
                     continue
-                cl = dbState.value() if dbState.value() < DeepAI.MaxDepth else DeepAI.MaxDepth
+                cl = dbState.value() if dbState.value() < NeuralAI.MaxDepth else NeuralAI.MaxDepth
                 class_nb[cl] += 1
                 l = list(range(len(self._trueRuleStates)))
                 rand.shuffle(l)
@@ -233,15 +234,15 @@ class DeepAI(AI):
                 batch_y = []
 
             # fit
-            lr = DeepAI.INIT_LR
+            lr = NeuralAI.INIT_LR
             minLoss = 10 ** 100
             lastDecLoss = 0  # last epoch since loss has decreased
             # init minValLoss
             print("Validation of current model")
-            if file_io.file_exists(DeepAI.ModelFile):
+            if file_io.file_exists(NeuralAI.ModelFile):
                 # load best model
                 print("load last model")
-                self._model = keras.models.load_model(DeepAI.ModelFile)
+                self._model = keras.models.load_model(NeuralAI.ModelFile)
                 compileModel(self._model, lr)
             print("__________________________________________________________________________")
             crtMinValLoss, val_acc = validation(self._model, testBatches_x, testBatches_y,
@@ -290,18 +291,20 @@ class DeepAI(AI):
                     print("adapt learning rate: " + str(lr))
                     compileModel(self._model, lr)
                     lastDecLoss = 0
+                    minLoss = loss  # keep latest loss for minimal loss
+                    print("new current minimal loss: "+str(minLoss))
                 if lastDecValLoss == 10:
                     print("Early-stopping!")
                     break
 
                 if val_loss <= crtMinValLoss:
                     print("Save model")
-                    self._model.save(DeepAI.ModelFile)
+                    self._model.save(NeuralAI.ModelFile)
                 print("_______________________________________________________________________________________")
-            if file_io.file_exists(DeepAI.ModelFile):
+            if file_io.file_exists(NeuralAI.ModelFile):
                 # load best model
                 print("load best model")
-                self._model = keras.models.load_model(DeepAI.ModelFile)
+                self._model = keras.models.load_model(NeuralAI.ModelFile)
                 self._model = extractTestModel(self._model)
             print("_______________________________________________________________________________________")
 
@@ -314,13 +317,13 @@ class DeepAI(AI):
             DarkLogic.makeTheorem(self._theoremName, self._theorem)
             # update if deepAI found a demonstration
             revNodes = self._storeNodes[::-1]
-            if revNodes[0].value() < DeepAI.MaxDepth:
+            if revNodes[0].value() < NeuralAI.MaxDepth:
                 val = revNodes[0].value()
                 for k in range(1, len(revNodes)):
                     node = revNodes[k]
                     node.setValue(val + k)
             self._db.export(self._storeNodes[0].getDbStates())
-            if self._gamesSinceLastLearning == DeepAI.MaxGameBefLearning:
+            if self._gamesSinceLastLearning == NeuralAI.MaxGameBefLearning:
                 self._train()
                 self._gamesSinceLastLearning = 0
             self._storeNodes.clear()
@@ -330,12 +333,12 @@ class DeepAI(AI):
     def getTrainingStates(self, val, x, y):
         trueState = makeTrueState(DarkLogic.getState())
         hasToMult = True
-        if val > DeepAI.MaxDepth:
-            val = DeepAI.MaxDepth + 1
+        if val > NeuralAI.MaxDepth:
+            val = NeuralAI.MaxDepth + 1
             hasToMult = False
         trueOut = nthColounmOfIdentiy(val)
         # print("shape = "+str(np.shape(trueOut)))
-        mult = DeepAI.MultExamples if hasToMult else 1
+        mult = NeuralAI.MultExamples if hasToMult else 1
         for k in range(mult):
             crtState = [trueState]
             l = list(range(len(self._trueRuleStates)))
@@ -354,16 +357,20 @@ class DeepAI(AI):
         return self._crtNode.value()
 
     def canEvaluate(self, state):
-        return len(state.operators()) < DeepAI.NbOperators and len(state.terms()) < DeepAI.NbTerms
+        return len(state.operators()) < NeuralAI.NbOperators and len(state.terms()) < NeuralAI.NbTerms
 
 
 def makeOrderedOpeTab(ope):
     ret = []
-    opeId = float(ope.name())
-    ret.append(opeId)
+    opeId = int(ope.name())
+    for k in range(opeId):
+        ret.append(0.0)
+    ret.append(1.0)
+    for k in range(opeId + 1, NeuralAI.NbDiffOperators):
+        ret.append(0.0)
     for parentOpe in ope.parentOperators():
         ret.append(float(parentOpe.idx() + 1))
-    for k in range(DeepAI.NbOperators - len(ret)):
+    for k in range(NeuralAI.OpeStateSize - len(ret)):
         ret.append(0.0)
     return ret
 
@@ -445,52 +452,53 @@ class DeResnetBlock(tf.keras.layers.Layer):
 
 def createModel(inputSize):
     inputs = keras.Input(shape=(inputSize,
-                                DeepAI.NbOperators, DeepAI.NbOperators + 3), name="img")  # shape (H, W, C)
+                                NeuralAI.NbOperators, NeuralAI.OpeStateSize + 3),
+                         name="img")  # shape (H, W, C)
     norm = tf.keras.layers.LayerNormalization()(inputs)
-    x = tf.keras.layers.Conv2D(64, kernel_size=3, padding='same', kernel_initializer="random_normal")(norm)
+    x = tf.keras.layers.Conv2D(128, kernel_size=3, padding='same', kernel_initializer="random_normal")(norm)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.Activation('relu')(x)
     block_1_output = tf.keras.layers.MaxPool2D(pool_size=3, padding='same')(x)
 
-    block_2_output = ResnetBlock(64, 2, first_block=True)(block_1_output)
+    block_2_output = ResnetBlock(128, 1, first_block=True)(block_1_output)
 
-    block_3_output = ResnetBlock(256, 2)(block_2_output)
+    # block_3_output = ResnetBlock(256, 2)(block_2_output)
 
-    dense_input = layers.GlobalAveragePooling2D()(block_3_output)
-    dense_1 = layers.Dense(256, activation="relu", kernel_initializer="random_normal")(dense_input)
+    dense_input = layers.GlobalAveragePooling2D()(block_2_output)  # block_3_output
+    dense_1 = layers.Dense(256, activation="relu")(dense_input)
     x = layers.Dropout(0.5)(dense_1)
-    dense_2 = layers.Dense(DeepAI.MaxDepth + 1, kernel_initializer="random_normal")(x)
+    dense_2 = layers.Dense(NeuralAI.MaxDepth + 1)(x)
     main_output = layers.Activation("softmax", name="main_output")(dense_2)
 
     # reverse network
-    x = layers.Dense(256, activation="relu", kernel_initializer="random_normal")(dense_2)
-    output_0 = layers.subtract([x, dense_input], name="output_0")
+    x = layers.Dense(256, activation="relu")(dense_2)
+    output_0 = layers.subtract([x, dense_1], name="output_0")
 
     x = layers.Dropout(0.5)(x)
-    x = layers.Dense(256, activation="relu", kernel_initializer="random_normal")(x)
+    x = layers.Dense(128, activation="relu")(x)
     output_1 = layers.subtract([x, dense_input], name="output_1")
 
-    x = tf.keras.layers.Reshape((1, 1, 256))(x)
+    x = tf.keras.layers.Reshape((1, 1, 128))(x)
     x = tf.keras.layers.UpSampling2D((16, 5))(x)
-    x = DeResnetBlock(64, 2)(x)
-    output_2 = layers.subtract([x, block_2_output], name="output_2")
+    """x = DeResnetBlock(64, 2)(x)
+    output_2 = layers.subtract([x, block_2_output], name="output_2")"""
 
-    x = tf.keras.layers.MaxPool2D((2, 2), strides=2)(x)
-    x = DeResnetBlock(64, 2)(x)
-    output_3 = layers.subtract([x, block_1_output], name="output_3")
+    # x = tf.keras.layers.MaxPool2D((2, 2), strides=2)(x)
+    x = DeResnetBlock(128, 1)(x)
+    output_2 = layers.subtract([x, block_1_output], name="output_2")
 
     x = tf.keras.layers.UpSampling2D((3, 3))(x)
     x = tf.keras.layers.MaxPool2D(3, strides=1)(x)
     x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Conv2DTranspose(DeepAI.NbOperators + 3, kernel_size=(2, 3),
+    x = tf.keras.layers.Conv2DTranspose(NeuralAI.OpeStateSize + 3, kernel_size=(2, 3),
                                         kernel_initializer="random_normal")(x)
-    output_4 = layers.subtract([x, norm], name="output_4")
+    output_3 = layers.subtract([x, norm], name="output_3")
 
     """model = keras.Model(inputs, outputs, name="deepai")
     opt = keras.optimizers.Adam(learning_rate=5 * 10 ** (-5))
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])"""
 
-    trainModel = keras.Model(inputs, [main_output, output_0, output_1, output_2, output_3, output_4], name="deepai_train")
+    trainModel = keras.Model(inputs, [main_output, output_0, output_1, output_2, output_3], name="deepai_train")
     """opt = keras.optimizers.Adam(learning_rate=1 * 10 ** (-5))
     trainModel.compile(loss=['categorical_crossentropy', 'mse'], loss_weights=[10, 10], optimizer=opt,
                        metrics=['accuracy'])"""
@@ -504,6 +512,7 @@ def extractTestModel(trainModel):
     outputs = trainModel.get_layer("main_output").output
     model = keras.Model(inputs, outputs, name="deepai_evaluate")
     return model
+
 
 def makeZeroTab(n):
     ret = []
@@ -523,8 +532,8 @@ def makeTrueState(state):
     # priority operators
     for ope in priorityOpes:
         priorityState.append(makeOrderedOpeTab(ope))
-    for k in range(DeepAI.NbOperators - len(priorityState)):
-        priorityState.append(makeZeroTab(DeepAI.NbOperators))
+    for k in range(NeuralAI.NbOperators - len(priorityState)):
+        priorityState.append(makeZeroTab(NeuralAI.OpeStateSize))
 
     # terms
     for term in terms:
@@ -540,12 +549,13 @@ def makeTrueState(state):
         else:
             trueTerm.append(float(term.val()))
         termState.append(trueTerm)
-    for k in range(DeepAI.NbTerms - len(termState)):
+    for k in range(NeuralAI.NbTerms - len(termState)):
         termState.append(makeZeroTab(3))
 
     ret = []
     for priorOpe, term in zip(priorityState, termState):
         ret.append(priorOpe + term)
+
     return ret
 
 
@@ -553,12 +563,12 @@ def nthColounmOfIdentiy(pos):
     # assert(pos < DeepAI.MaxDepth +1)
     ret = []
     k = 0
-    firstPos = min(pos, DeepAI.MaxDepth)
+    firstPos = min(pos, NeuralAI.MaxDepth)
     while k < firstPos:
         ret.append(0.0)
         k += 1
     ret.append(1.0)
-    while k < DeepAI.MaxDepth:
+    while k < NeuralAI.MaxDepth:
         ret.append(0.0)
         k += 1
     return ret
@@ -583,6 +593,7 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
     main_output_loss = 0
     output_losses = [0 for i in range(1, len(model.outputs))]
     accuracy = 0
+    accIdx = len(model.outputs) + 1 if len(model.outputs) > 1 else 1
     for numBatch in range(len(trainBatches_x)):
         crtBatch = trainBatches_x[numBatch]
         batch = []
@@ -598,7 +609,7 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
             if cl >= 0:
                 out_1.append(nthColounmOfIdentiy(cl))
             else:
-                out_1.append(createZeroTab(DeepAI.MaxDepth + 1))
+                out_1.append(createZeroTab(NeuralAI.MaxDepth + 1))
         batch = np.array(batch)
         out = [np.array(out_1)]
         for k in range(1, len(model.outputs)):
@@ -615,7 +626,7 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
         for k in range(len(output_losses)):
             output_losses[k] = (output_losses[k] * numBatch + history[k + 2] *
                                 (len(batch) / batch_size)) / (numBatch + 1)
-        accuracy = (accuracy * numBatch + history[7] * (len(batch) / batch_size)) / (numBatch + 1)
+        accuracy = (accuracy * numBatch + history[accIdx] * (len(batch) / batch_size)) / (numBatch + 1)
         if numBatch % 30 == 29:
             print("batch n°" + str(numBatch + 1) + "/" + str(len(trainBatches_x)))
             print("loss = " + str(loss))
@@ -631,6 +642,7 @@ def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, t
     print("validation...")
     val_loss = 0
     val_accuracy = 0
+    accIdx = len(model.outputs) + 1 if len(model.outputs) > 1 else 1
     for numBatch in range(len(testBatches_x)):
         crtBatch = testBatches_x[numBatch]
         batch = []
@@ -646,7 +658,7 @@ def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, t
             if cl >= 0:
                 out_1.append(nthColounmOfIdentiy(cl))
             else:
-                out_1.append(createZeroTab(DeepAI.MaxDepth + 1))
+                out_1.append(createZeroTab(NeuralAI.MaxDepth + 1))
         batch = np.array(batch)
         out = [np.array(out_1)]
         for k in range(1, len(model.outputs)):
@@ -659,7 +671,7 @@ def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, t
         # print(history)
         # print(model.metrics_names)
         val_loss = (val_loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
-        val_accuracy = (val_accuracy * numBatch + history[7] * (len(batch) / batch_size)) / (numBatch + 1)
+        val_accuracy = (val_accuracy * numBatch + history[accIdx] * (len(batch) / batch_size)) / (numBatch + 1)
         if numBatch % 30 == 29:
             print("batch n°" + str(numBatch + 1) + "/" + str(len(testBatches_x)))
             print("val_loss = " + str(val_loss))
@@ -676,6 +688,6 @@ def createZeroTab(size):
 
 def compileModel(model, lr=0.001):
     opt = keras.optimizers.Adam(learning_rate=lr)
-    model.compile(loss=['categorical_crossentropy', 'mse', 'mse', 'mse', 'mse', 'mse'],
-                  loss_weights=[5 * 10 ** -4, 10 ** -6, 10 ** -8, 10 ** -8, 10 ** -8, 10 ** -8], optimizer=opt,
+    model.compile(loss=['categorical_crossentropy', 'mse', 'mse', 'mse', 'mse'],
+                  loss_weights=[5 * 10 ** -4, 10 ** -6, 10 ** -8, 10 ** -8, 10 ** -8], optimizer=opt,
                   metrics=['accuracy'])
