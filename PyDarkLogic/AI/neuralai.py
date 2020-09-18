@@ -52,7 +52,7 @@ class NeuralAI(AI):
         self._model = extractTestModel(self._model)
         self._modelMutex = Lock()
         self._elo = 1076  # 1418
-        self._train()
+        # self._train()
 
     def getTrueState(self, threadIdx):
         return [makeTrueState(DarkLogic.getState(threadIdx))] + self._trueRuleStates

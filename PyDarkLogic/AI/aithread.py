@@ -61,6 +61,7 @@ class AIThread(Thread):
         DarkLogic.getActions(self._instanceId)
 
     def updateLogic(self, actionId):
+        DarkLogic.getActions(self._instanceId)
         DarkLogic.apply(self._instanceId, actionId)
         self._crtActions.clear()
 

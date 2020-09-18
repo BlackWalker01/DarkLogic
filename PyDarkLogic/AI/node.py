@@ -226,7 +226,7 @@ class Node:
 
         return self._value
 
-    def exploreDeep(self, actions):
+    def exploreDeep(self, actions, threadId):
         actionIdx = 0
         maxDepth = 0
         while True:
@@ -270,7 +270,7 @@ class Node:
         DarkLogic.apply(self._threadId, self._actionId)
         actions = DarkLogic.getActions(self._threadId)
         for action in actions:
-            if not self._sons[action]:
+            if action not in self._sons or not self._sons[action]:
                 self._sons[action] = Node(actionId=action, threadId=self._threadId, depth=self._depth + 1)
             node = self._sons[action]
             if not node.isEvaluated():

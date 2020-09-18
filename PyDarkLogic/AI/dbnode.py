@@ -59,7 +59,7 @@ class DbNode:
         del self._idxToVal[actionIdx]
 
     def actions(self):
-        return self._idxToActions.values()
+        return list(self._idxToActions.values())
 
     def getBestAction(self):
         minVal = sorted(self._valToActions.keys())[0]
