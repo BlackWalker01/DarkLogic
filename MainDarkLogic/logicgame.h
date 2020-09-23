@@ -4,7 +4,9 @@
 #include "EnumFun.h"
 #include <memory>
 #include "player.h"
-#define AI_TIMEOUT 60 //seconds
+#include "dbtheorem.h"
+#define AI_TIMEOUT 20 //seconds
+#define MAX_NB_ATTEMPTS 10
 
 class LogicGame
 {   
@@ -15,10 +17,9 @@ class LogicGame
         AIMode
     };
 public:
-    LogicGame();
+    LogicGame(bool isAuto);
 
     void start();
-    void test();
 
     ~LogicGame() = default;
 private:
@@ -30,7 +31,6 @@ private:
     bool appliedRuleSymetric();
     bool isEvaluated();
     void game();
-    void askCall();
 
     //Methods to manipulate BlackLogic
     void createTheorem();
@@ -44,6 +44,9 @@ private:
     //Attribute
     Mode m_mode;
     std::unique_ptr<Player> m_player;
+    DbTheorem m_db;
+    bool m_isAuto;
+    unsigned int m_eloThm;
 };
 
 #endif // LOGICGAME_H

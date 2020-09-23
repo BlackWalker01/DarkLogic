@@ -4,7 +4,7 @@ export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 ret=0
 
 # C++ tests
-./LogicGame checkHumanIdentity
+./LogicGame --type test --testName checkHumanIdentity
 if [ $? -eq 0 ]
 then
   :
@@ -12,7 +12,7 @@ else
   ret=1
 fi
 
-./LogicGame checkHumanDoubleNot
+./LogicGame --type test --testName checkHumanDoubleNot
 if [ $? -eq 0 ]
 then
   :
@@ -20,7 +20,7 @@ else
   ret=1
 fi
 
-./LogicGame checkHumanExcludedMiddle
+./LogicGame --type test --testName checkHumanExcludedMiddle
 if [ $? -eq 0 ]
 then
   :
@@ -28,7 +28,7 @@ else
   ret=1
 fi
 
-./LogicGame checkPerformanceIdentity
+./LogicGame --type test --testName checkPerformanceIdentity
 if [ $? -eq 0 ]
 then
   :
@@ -36,7 +36,7 @@ else
   ret=1
 fi
 
-./LogicGame checkPerformanceDoubleNot
+./LogicGame --type test --testName checkPerformanceDoubleNot
 if [ $? -eq 0 ]
 then
   :
@@ -44,7 +44,7 @@ else
   ret=1
 fi
 
-./LogicGame checkPerformanceNonContradiction
+./LogicGame --type test --testName checkPerformanceNonContradiction
 if [ $? -eq 0 ]
 then
   :

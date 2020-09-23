@@ -7,7 +7,7 @@
 #include <condition_variable>
 #include <iostream>
 
-AI::AI(const AIMode type_,const size_t& maxInstanceIdx, const size_t& secondTimeout) : Player("AI"), m_type(type_),
+AI::AI(const AIMode type_,const size_t& maxInstanceIdx, const size_t& secondTimeout) : Player("AI", 0, 1955), m_type(type_),
 m_secondTimeout(secondTimeout), m_masterThread(std::make_shared<MasterAIThread>(maxInstanceIdx,*this)), 
 	m_crtNode(std::make_unique<Node>(*this)), m_hasEvents(false), m_lock(m_mutex)
 {
@@ -75,6 +75,11 @@ std::shared_ptr<const Action> AI::play()
 	}
 		
 	return std::make_shared<const Action>(Fun::PUSH_ACTION, m_crtNode->actionId());
+}
+
+void AI::meditate()
+{
+	m_crtNode = std::make_unique<Node>(*this);
 }
 
 void AI::pushCrtAction(const size_t& actionId, const unsigned char threadIdx) const

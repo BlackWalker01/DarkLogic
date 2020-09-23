@@ -43,6 +43,7 @@ void AIThread::computeActions()
 
 void AIThread::updateLogic(const size_t& actionId)
 {
+    N_DarkLogic::DarkLogic::getActions(m_instanceId);
     N_DarkLogic::DarkLogic::apply(m_instanceId,actionId);
     m_crtActions.clear();
 }

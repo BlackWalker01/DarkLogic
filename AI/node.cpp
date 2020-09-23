@@ -254,8 +254,8 @@ unsigned short Node::exploreDeep(const std::vector<N_DarkLogic::Action::Id>& act
 {
 	unsigned short maxDepth = minDepth();
 	unsigned char threadId = m_sons[actions[0]]->threadId();
-	std::chrono::high_resolution_clock::time_point start, end;
-	start = std::chrono::high_resolution_clock::now();
+	//std::chrono::high_resolution_clock::time_point start, end;
+	//start = std::chrono::high_resolution_clock::now();
 	while (!s_ai->mustStop(threadId))
 	{		
 		for (const auto& action : actions)
@@ -278,14 +278,14 @@ unsigned short Node::exploreDeep(const std::vector<N_DarkLogic::Action::Id>& act
 				break;
 			}
 		}
-		if (maxDepth >= 3)
+		/*if (maxDepth >= 3)
 		{
 			end = std::chrono::high_resolution_clock::now();
 			double elapsed_seconds = std::chrono::duration<double>(end - start).count();
 			std::cout << "[DEBUG] thread id: " + numberToString(static_cast<unsigned int>(threadId)) + " has finished depth '" + numberToString(maxDepth) <<
 				"' in " + numberToString(elapsed_seconds) + " seconds" << std::endl;
 			
-		}
+		}*/
 		maxDepth++;
 	}
 	return m_value;

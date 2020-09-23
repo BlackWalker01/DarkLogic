@@ -19,6 +19,7 @@ public:
 	AI(const AIMode type_, const size_t& maxInstanceIdx, const size_t& timeoutScds);
 
 	std::shared_ptr<const Action> play() override;
+	void meditate() override final;
 	AIMode type() const;
 	size_t timeout() const;
 
