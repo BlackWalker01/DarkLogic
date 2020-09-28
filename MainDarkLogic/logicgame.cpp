@@ -2,6 +2,7 @@
 #include "darklogic.h"
 #include "Human/human.h"
 #include "AI/ai.h"
+#include "AI/evalai.h"
 #include <memory>
 #include <thread>
 #include <iostream>
@@ -100,14 +101,14 @@ void LogicGame::createTheorem()
                 std::cout << "-> popAction : to cancel the latest action" << std::endl;
             }
             /*std::cout << "[DEBUG] content: " << std::endl;
-            N_DarkLogic::DarkLogic::DarkLogic::printTheorem(0);*/
+            N_DarkLogic::DarkLogic::DarkLogic::printTheorem();*/
         }
     }
     else
     {
         auto thm = m_db.getRandomTheorem(m_player->elo());
         m_eloThm = thm.elo();
-        std::cout << thm.name() + " theorem :'" + thm.content() + "' has been chosen for this game" << std::endl;
+        std::cout << thm.name() + " theorem :'" + thm.content() + "' (elo = "<<m_eloThm<<") has been chosen for this game" << std::endl;
         N_DarkLogic::DarkLogic::makeTheorem(thm.name(), thm.content());
     }
 }
@@ -179,7 +180,7 @@ void LogicGame::askPlayer()
     bool ok = false;
     while (!ok)
     {
-        std::cout << "Choose the mode (Human/AI/AIDeep)" << std::endl;
+        std::cout << "Choose the mode (Human/BasicAI/EvalAI)" << std::endl;
         std::string mode = "";
         std::getline(std::cin, mode);
         if (mode=="Human" || mode=="human"||mode=="HUMAN")
@@ -191,25 +192,26 @@ void LogicGame::askPlayer()
             m_player = std::make_unique<Human>();
             ok = true;
         }
-        else if (mode=="ai"|| mode=="AI" || mode=="Ai")
+        else if (mode == "basicai" || mode == "BASICAI" || mode == "BasicAI" || mode == "Basicai")
         {
-            std::cout << "AI Mode" << std::endl;
+            std::cout << "BasicAI Mode" << std::endl;
             m_mode = AIMode;
             //Init Logic
-            auto nbInstance = std::thread::hardware_concurrency(); //opti for the moment
-            N_DarkLogic::DarkLogic::init(nbInstance);
-            m_player = std::make_unique<AI>(AI::MCTS,nbInstance, AI_TIMEOUT);
-            ok = true;
-        }
-        else if (mode == "aideep" || mode == "AIDEEP" || mode == "AiDeep" || mode == "AIDeep")
-        {
-            std::cout << "AIDeep Mode" << std::endl;
-            m_mode = AIMode;
-            //Init Logic
-            //auto nbInstance = 1 + 1;
+            //auto nbInstance = 1;
             auto nbInstance = (std::thread::hardware_concurrency()); //opti for the moment
             N_DarkLogic::DarkLogic::init(nbInstance);
-            m_player = std::make_unique<AI>(AI::DEEP, nbInstance, AI_TIMEOUT);
+            m_player = std::make_unique<AI>(nbInstance, AI_TIMEOUT);
+            ok = true;
+        }
+        else if (mode == "evalai" || mode == "EVALAI" || mode == "EvalAI" || mode == "Evalai")
+        {
+            std::cout << "EvalAI Mode" << std::endl;
+            m_mode = AIMode;
+            //Init Logic
+            //auto nbInstance = 1;
+            auto nbInstance = (std::thread::hardware_concurrency()); //opti for the moment
+            N_DarkLogic::DarkLogic::init(nbInstance);
+            m_player = std::make_unique<EvalAI>(nbInstance, AI_TIMEOUT);
             ok = true;
         }
         else

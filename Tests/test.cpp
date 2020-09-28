@@ -181,7 +181,7 @@ void Test::checkPerformanceIdentity()
 
 void Test::checkPerformanceDoubleNot()
 {
-	checkPerformance("doubleNot", "a<=>!!a", 3.8); //normally 1.7 
+	checkPerformance("doubleNot", "a<=>!!a", 5.2); //normally 1.7 
 }
 
 void Test::checkPerformanceNonContradiction()
@@ -246,7 +246,7 @@ void Test::testDemonstration(const std::string& name, const std::string& content
 {	
 	std::cout << "Test AI on " + name + " theorem with " << nbThreads << " cores" << std::endl;
 	N_DarkLogic::DarkLogic::DarkLogic::init(nbThreads);
-	auto ai = std::make_unique<AI>(AI::DEEP, nbThreads, AI_TIMEOUT);
+	auto ai = std::make_unique<AI>(nbThreads, AI_TIMEOUT);
 	check(N_DarkLogic::DarkLogic::makeTheorem(name, content), "cannot make " + name + " theorem");
 	N_DarkLogic::DarkLogic::printTheorem();
 

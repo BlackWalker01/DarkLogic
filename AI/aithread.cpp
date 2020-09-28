@@ -5,7 +5,7 @@
 
 AIThread::AIThread(const size_t& instanceId, AI& ai) : m_instanceId(instanceId), 
 m_ai(ai), m_master(ai.getMaster()), m_hasStarted(false), m_thread(runThread,this),  
-m_rootNbSimu(0), m_hasEvents(false), m_lock(m_mutex), m_mustStop(false)
+m_hasEvents(false), m_lock(m_mutex), m_mustStop(false)
 {
 }
 
@@ -27,8 +27,9 @@ bool AIThread::hasStarted() const
 
 void AIThread::pushAction(const size_t& action)
 {
-    m_crtActions.push_back(action);
-    m_ai.pushCrtAction(action, m_instanceId);
+    auto idx = m_crtActions.push(action);
+    auto val = m_ai.getRealValueFromAction(action);
+    m_crtActions.updateValue(idx, val);
 }
 
 bool AIThread::mustStop()
@@ -53,21 +54,6 @@ unsigned char AIThread::instanceId() const
     return m_instanceId;
 }
 
-void AIThread::setRootNbSimu(const size_t& nbSimu)
-{
-    m_rootNbSimu = nbSimu;
-}
-
-size_t AIThread::getRootNbSimu() const
-{
-    return m_rootNbSimu;
-}
-
-void AIThread::incrRootNbSimu()
-{
-    m_rootNbSimu++;
-}
-
 void AIThread::_start()
 {
     //std::cout << "[DEBUG] Start thread:"<<m_instanceId << std::endl;
@@ -77,7 +63,7 @@ void AIThread::_start()
     //compute value of given nodes
     while (!mustStop())
     {
-        m_ai.explore(m_crtActions);
+        m_ai.explore(m_crtActions, m_instanceId);
     }
 
     //inform master that this thread has finished

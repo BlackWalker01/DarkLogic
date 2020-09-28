@@ -8,6 +8,7 @@
 #include <stack>
 #include <atomic>
 #include "Utils/action.h"
+#include "dbaction.h"
 
 class AI;
 
@@ -32,10 +33,6 @@ public:
 	void updateLogic(const size_t& actionId);
 	unsigned char instanceId() const;
 
-	void setRootNbSimu(const size_t& nbSimu);
-	size_t getRootNbSimu() const;
-	void incrRootNbSimu();
-
 	~AIThread() = default;
 private:
 	void _start();
@@ -48,8 +45,7 @@ private:
 	std::shared_ptr<MasterAIThread> m_master;
 	bool m_hasStarted;
 	std::thread m_thread;
-	std::vector<N_DarkLogic::Action::Id> m_crtActions;
-	size_t m_rootNbSimu;
+	DbAction m_crtActions;
 
 	//Handling events
 	bool m_hasEvents;

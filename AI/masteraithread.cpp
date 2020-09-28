@@ -64,65 +64,57 @@ void MasterAIThread::init()
     }
 }
 
-size_t MasterAIThread::getTotalRootNbSimu() const
-{
-    size_t ret = 0;
-    for (auto& slaveThread : m_slaveThreads)
-    {
-        ret += slaveThread->getRootNbSimu();
-    }
-    return ret;
-}
-
-void MasterAIThread::setRootNbSimu(const size_t& instanceIdx, const size_t& nbSimu)
-{
-    m_slaveThreads[instanceIdx]->setRootNbSimu(nbSimu);
-}
-
-size_t MasterAIThread::getRootNbSimu(const size_t& instanceIdx) const
-{
-    return m_slaveThreads[instanceIdx]->getRootNbSimu();
-}
-
-void MasterAIThread::incrRootNbSimu(const size_t& instanceIdx)
-{
-    m_slaveThreads[instanceIdx]->incrRootNbSimu();
-}
-
 void MasterAIThread::_start()
 {
     //dispatch actions between slave threads
-    auto actions = N_DarkLogic::DarkLogic::getActions();
-    for (size_t k = 0; k < actions.size(); k++)
+    size_t nbActions = 0;
+    bool foundDemo = false;
+    auto actions = N_DarkLogic::DarkLogic::getActions(0);
+    for (const auto action : actions)
     {
-        m_slaveThreads[k % m_slaveThreads.size()]->pushAction(actions[k]);
-    }
-    //init number of simuations
-    for (auto& slaveThread : m_slaveThreads)
-    {
-        //slaveThread->setRootNbSimu(m_ai.m_crtNode->nbSimu());
-        slaveThread->setRootNbSimu(0);
+        unsigned char threadIdx = nbActions % m_slaveThreads.size();
+        m_ai.pushCrtAction(action, threadIdx);
+        auto val = m_ai.getValueFromAction(action);
+        if (val == 0)
+        {
+            foundDemo = true;
+            break;
+        }
+        else if (val == VAL_MAX)
+        {
+            continue;
+        }
+        else
+        {
+            m_slaveThreads[threadIdx]->pushAction(action);
+            nbActions += 1;
+        }
     }
 
-    //start slave threads
-    if (actions.size() > m_slaveThreads.size())
+    if (!foundDemo)
     {
-        for (auto& slaveThread : m_slaveThreads)
+        //start slave threads
+        if (actions.size() > m_slaveThreads.size())
         {
-            slaveThread->setRootNbSimu(m_ai.m_crtNode->nbSimu());
-            slaveThread->start();
-            m_threadAlive[slaveThread->instanceId()] = slaveThread->instanceId();
+            for (auto& slaveThread : m_slaveThreads)
+            {
+                slaveThread->start();
+                m_threadAlive[slaveThread->instanceId()] = slaveThread->instanceId();
+            }
+        }
+        else
+        {
+            for (unsigned char k = 0; k < actions.size(); k++)
+            {
+                m_slaveThreads[k]->start();
+                m_threadAlive[m_slaveThreads[k]->instanceId()] = m_slaveThreads[k]->instanceId();
+            }
         }
     }
     else
     {
-        for (unsigned char k = 0; k < actions.size(); k++)
-        {
-            m_slaveThreads[k]->start();
-            m_threadAlive[m_slaveThreads[k]->instanceId()] = m_slaveThreads[k]->instanceId();
-        }
+        m_ai.stopFromMasterThread();
     }
-    
 }
 
 void MasterAIThread::_stop()

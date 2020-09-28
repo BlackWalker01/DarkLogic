@@ -7,9 +7,16 @@
 #include <condition_variable>
 #include <iostream>
 
-AI::AI(const AIMode type_,const size_t& maxInstanceIdx, const size_t& secondTimeout) : Player("AI", 0, 1955), m_type(type_),
+AI::AI(const size_t& maxInstanceIdx, const size_t& secondTimeout) : Player("BasicAI", 0, 1955),
 m_secondTimeout(secondTimeout), m_masterThread(std::make_shared<MasterAIThread>(maxInstanceIdx,*this)), 
 	m_crtNode(std::make_unique<Node>(*this)), m_hasEvents(false), m_lock(m_mutex)
+{
+	m_masterThread->init();
+}
+
+AI::AI(const std::string& name_, const size_t& maxInstanceIdx, const size_t timeoutScds) : Player(name_, 0, 1955),
+m_secondTimeout(timeoutScds), m_masterThread(std::make_shared<MasterAIThread>(maxInstanceIdx, *this)),
+m_crtNode(std::make_unique<Node>(*this)), m_hasEvents(false), m_lock(m_mutex)
 {
 	m_masterThread->init();
 }
@@ -50,10 +57,6 @@ std::shared_ptr<const Action> AI::play()
 
 		nbNode = std::make_unique<size_t>(m_crtNode->nbNode());
 		newNode = m_crtNode->getBestNode();
-		if (m_type == MCTS)
-		{
-			std::cout << "[DEBUG] Nb simulations " << m_masterThread->getTotalRootNbSimu() << std::endl;
-		}		
 		std::cout<< "[DEBUG] Nb explored node " << *nbNode << std::endl;
 	}
 	else
@@ -62,14 +65,14 @@ std::shared_ptr<const Action> AI::play()
 	}
 	
 	m_crtNode.reset(newNode);
-	m_crtNode->setRoot();
+	m_crtNode->decrDepth();
 	m_masterThread->updateLogic(m_crtNode->actionId());
 	end = std::chrono::high_resolution_clock::now();
 	double elapsed_seconds = std::chrono::duration<double>(end - start).count();
 	
 	if (nbNode)
 	{
-		std::cout << "[DEBUG] AI play action " << m_crtNode->actionId() << " with value " << m_crtNode->value()
+		std::cout << "[DEBUG] AI play action " << m_crtNode->actionId() << " with value " << value()
 			<< " in " << elapsed_seconds << " seconds" << std::endl;
 		std::cout << "[DEBUG] AI exploration speed: " << (*nbNode) / elapsed_seconds << " nodes/s" << std::endl;
 	}
@@ -79,6 +82,7 @@ std::shared_ptr<const Action> AI::play()
 
 void AI::meditate()
 {
+	Player::meditate();
 	m_crtNode = std::make_unique<Node>(*this);
 }
 
@@ -92,17 +96,14 @@ void AI::stopFromMasterThread()
 	_pushEvent(Event::EventEnum::STOP);
 }
 
-void AI::explore(const std::vector<N_DarkLogic::Action::Id>& actions)
+void AI::explore(DbAction& dbActions, unsigned char /*threadIdx*/)
 {
-	if (m_type == MCTS)
-	{
-		m_crtNode->explore(actions);
-	}
-	else
-	{
-		m_crtNode->exploreDeep(actions);
-	}
-	
+	m_crtNode->exploreBasic(dbActions.actions());
+}
+
+unsigned short int AI::eval(const std::vector<N_DarkLogic::State>&, const unsigned char)
+{
+	return 0;
 }
 
 bool AI::mustStop(const unsigned char threadIdx) const
@@ -120,24 +121,24 @@ std::shared_ptr<MasterAIThread> AI::getMaster() const
 	return m_masterThread;
 }
 
-AI::AIMode AI::type() const
-{
-	return m_type;
-}
-
 size_t AI::timeout() const
 {
 	return m_secondTimeout;
 }
 
-size_t AI::getRootNbSimu(const size_t& instanceIdx) const
+unsigned int AI::value() const
 {
-	return m_masterThread->getRootNbSimu(instanceIdx);
+	return m_crtNode->value();
 }
 
-void AI::incrRootNbSimu(const size_t& instanceIdx)
+unsigned short int AI::getValueFromAction(const unsigned short int action)
 {
-	m_masterThread->incrRootNbSimu(instanceIdx);
+	return m_crtNode->getValueFromAction(action);
+}
+
+unsigned short int AI::getRealValueFromAction(const unsigned short int action)
+{
+	return m_crtNode->getRealValueFromAction(action);
 }
 
 void AI::_pushEvent(Event::EventEnum type_)

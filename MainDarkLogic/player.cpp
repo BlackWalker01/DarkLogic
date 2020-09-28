@@ -39,5 +39,5 @@ void Player::setElo(unsigned short int elo_)
 
 void Player::meditate()
 {
-	
+	m_nbGames++;
 }
