@@ -21,7 +21,7 @@ Node::Node(const Id& actionId_, const unsigned char& threadId_, const unsigned s
 {
 }
 
-Node::Id Node::actionId() const
+Id Node::actionId() const
 {
 	return m_actionId;
 }
@@ -136,8 +136,8 @@ unsigned short Node::exploreBasic(const std::vector<N_DarkLogic::Action::Id>& ac
 		for (const auto& action : actions)
 		{
 			auto node = m_sons[action].get();
-			unsigned short retValue = USHRT_MAX;
-			if (node->value() < USHRT_MAX)
+			unsigned short retValue = VAL_MAX;
+			if (node->value() < VAL_MAX)
 			{
 				node->exploreBasic(maxDepth);
 			}
@@ -177,13 +177,12 @@ unsigned short Node::exploreBasic(const unsigned short maxDepth)
 		//check if it is a node which leads to loss
 		if (N_DarkLogic::DarkLogic::isAlreadyPlayed(m_threadId) || !N_DarkLogic::DarkLogic::canBeDemonstrated(m_threadId))
 		{
-			m_value = USHRT_MAX;
+			m_value = VAL_MAX;
 		}
 		//check if it is a node which leads to win
 		else if (N_DarkLogic::DarkLogic::isDemonstrated(m_threadId))
 		{
 			m_value = 0;
-			
 			//stop reflexion because AI found a demonstration
 			s_ai->stopThread(m_threadId);
 		}
@@ -208,24 +207,24 @@ unsigned short Node::exploreBasic(const unsigned short maxDepth)
 		{
 			//explore node associated with action
 			auto node = m_sons[action].get();
-			unsigned short retValue = USHRT_MAX;
-			if (node->value() < USHRT_MAX)
+			unsigned short retValue = VAL_MAX;
+			if (node->value() < VAL_MAX)
 			{
 				retValue = node->exploreBasic(maxDepth);
 			}
 
 			//update m_value
-			if (retValue == USHRT_MAX)
+			if (retValue == VAL_MAX)
 			{
 				if (hasOnlyLosses)
 				{
-					m_value = USHRT_MAX;
+					m_value = VAL_MAX;
 				}
 			}
 			else
 			{
 				hasOnlyLosses = false;
-				if (retValue==VAL_INIT && m_value == USHRT_MAX)
+				if (retValue==VAL_INIT && m_value == VAL_MAX)
 				{
 					m_value = VAL_INIT;
 				}
@@ -429,10 +428,10 @@ unsigned short Node::minDepth() const
 {
 	if (m_sons.size())
 	{
-		unsigned short ret = USHRT_MAX;
+		unsigned short ret = VAL_MAX;
 		for (auto& son : m_sons)
 		{
-			if (son.second->value() < USHRT_MAX)
+			if (son.second->value() < VAL_MAX)
 			{
 				unsigned short crtDepth = son.second->minDepth();
 				if (crtDepth + 1 < ret)

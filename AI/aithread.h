@@ -9,6 +9,7 @@
 #include <atomic>
 #include "Utils/action.h"
 #include "dbaction.h"
+#include "MainDarkLogic/utils.h"
 
 class AI;
 
@@ -24,13 +25,13 @@ public:
 	AIThread(const size_t& instanceId, AI& ai);
 
 	void start();
-	void stop();
+	void stop();	
 	bool hasStarted() const;
-	void pushAction(const size_t& action);
+	void pushAction(const Id& action);
 	bool mustStop();
 	
 	void computeActions();
-	void updateLogic(const size_t& actionId);
+	void updateLogic(const Id& actionId);
 	unsigned char instanceId() const;
 
 	~AIThread() = default;

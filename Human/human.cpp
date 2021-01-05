@@ -6,24 +6,24 @@
 #include <iostream>
 
 const std::unordered_map<std::string, Fun> Human::s_funHash =
-{ {"getaction",GET_ACTION},
- {"getAction",GET_ACTION},
- {"GetAction",GET_ACTION},
- {"GETACTION",GET_ACTION},
+{ {"getaction",Fun::GET_ACTION},
+ {"getAction",Fun::GET_ACTION},
+ {"GetAction",Fun::GET_ACTION},
+ {"GETACTION",Fun::GET_ACTION},
 
-{"pushaction",PUSH_ACTION},
- {"pushAction",PUSH_ACTION},
- {"PushAction",PUSH_ACTION},
- {"PUSHACTION",PUSH_ACTION},
+{"pushaction",Fun::PUSH_ACTION},
+ {"pushAction",Fun::PUSH_ACTION},
+ {"PushAction",Fun::PUSH_ACTION},
+ {"PUSHACTION",Fun::PUSH_ACTION},
 
-{"popaction",POP_ACTION},
- {"popAction",POP_ACTION},
- {"PopAction",POP_ACTION},
- {"POPACTION",POP_ACTION},
+{"popaction",Fun::POP_ACTION},
+ {"popAction",Fun::POP_ACTION},
+ {"PopAction",Fun::POP_ACTION},
+ {"POPACTION",Fun::POP_ACTION},
 
- {"help",HELP},
-  {"Help",HELP},
-  {"HELP",PUSH_ACTION},
+ {"help",Fun::HELP},
+  {"Help",Fun::HELP},
+  {"HELP",Fun::HELP},
 };
 
 Human::Human(): Player("you")
@@ -126,16 +126,16 @@ std::shared_ptr<const Action> Human::play()
             {
                 switch (it->second)
                 {
-                case GET_ACTION:
+                case Fun::GET_ACTION:
                 {
                     if (args.size() != 0)
                     {
                         std::cout << "Bad number of arguments for getAction. getAction takes no argument" << std::endl;
                         break;
                     }
-                    return std::make_shared<const Action>(GET_ACTION);
+                    return std::make_shared<const Action>(Fun::GET_ACTION);
                 }
-                case PUSH_ACTION:
+                case Fun::PUSH_ACTION:
                 {
                     size_t id = 0;
                     std::stringstream ss;
@@ -147,7 +147,7 @@ std::shared_ptr<const Action> Human::play()
                         {
                             if ((action.ruleName() == args[0]) && (action.path().size() ==0))
                             {
-                                return std::make_shared<const Action>(PUSH_ACTION, action.id());
+                                return std::make_shared<const Action>(Fun::PUSH_ACTION, action.id());
                             }
                         }
 
@@ -173,7 +173,7 @@ std::shared_ptr<const Action> Human::play()
                             {
                                 if (id == actionId)
                                 {
-                                    return std::make_shared<const Action>(PUSH_ACTION, id);
+                                    return std::make_shared<const Action>(Fun::PUSH_ACTION, id);
                                 }
                             }
                         }                        
@@ -236,7 +236,7 @@ std::shared_ptr<const Action> Human::play()
                         {
                             if ((ruleName == action.ruleName()) && (path == action.path()))
                             {
-                                return std::make_shared<const Action>(PUSH_ACTION, action.id());
+                                return std::make_shared<const Action>(Fun::PUSH_ACTION, action.id());
                             }
                         }
                         std::cout << "{ruleName : "<< args[0] << ", path :"<< args[1] <<"} is not a valid action" << std::endl;
@@ -248,15 +248,15 @@ std::shared_ptr<const Action> Human::play()
                     
                     break;
                 }
-                case POP_ACTION:
+                case Fun::POP_ACTION:
                 {
-                    return std::make_shared<const Action>(POP_ACTION);
+                    return std::make_shared<const Action>(Fun::POP_ACTION);
                 }
-                case HELP:
+                case Fun::HELP:
                 {
-                    return std::make_shared<const Action>(HELP);
+                    return std::make_shared<const Action>(Fun::HELP);
                 }
-                case NONE:
+                case Fun::NONE:
                 {
                     break;
                 }

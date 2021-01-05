@@ -5,19 +5,22 @@
 #include <memory>
 #include "player.h"
 #include "dbtheorem.h"
+#include "utils.h"
+
 #define AI_TIMEOUT 20 //seconds
 #define MAX_NB_ATTEMPTS 10
 
 class LogicGame
 {   
-    enum Mode
+    enum class Mode
     {
         NoMode,
         HumanMode,
         AIMode
     };
-public:
-    LogicGame(bool isAuto);
+public:    
+
+    LogicGame(const std::unordered_map<ConfigType, std::string>& config);
 
     void start();
 
@@ -39,7 +42,8 @@ private:
     bool pushAction(const std::string& action);
     bool popAction();
 
-    void askPlayer();    
+    void askPlayer(); 
+    void createPlayer(const std::string& mode);
 
     //Attribute
     Mode m_mode;

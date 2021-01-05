@@ -25,7 +25,7 @@ unsigned short int DbTheorem::Theorem::elo() const
 
 DbTheorem::DbTheorem()
 {
-	std::srand(std::time(nullptr));
+	std::srand(static_cast<unsigned int>(std::time(nullptr)));
 	add("Non-contradiction", "!(a&&!a)", 500);
 	add("Semi-Identity", "a=>a", 700);
 	add("Semi-DoubleNot", "a=>!!a", 750);

@@ -32,7 +32,7 @@ protected:
 	virtual void explore(DbAction& actions, unsigned char threadIdx);
 	virtual unsigned short int eval(const std::vector<N_DarkLogic::State>& states, const unsigned char threadIdx);
 
-	void pushCrtAction(const size_t& actionId, const unsigned char threadIdx) const;
+	void pushCrtAction(const Id& actionId, const unsigned char threadIdx) const;
 	void stopFromMasterThread();
 	
 	bool mustStop(const unsigned char threadIdx) const;

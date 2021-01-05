@@ -20,7 +20,7 @@ void MasterAIThread::computeActions()
     }
 }
 
-void MasterAIThread::updateLogic(const size_t& actionid)
+void MasterAIThread::updateLogic(const Id& actionid)
 {
     for (auto& slave : m_slaveThreads)
     {
@@ -35,17 +35,17 @@ bool MasterAIThread::mustStop(const unsigned char threadIdx) const
 
 void MasterAIThread::start()
 {
-    _pushEvent(0, Event::START);
+    _pushEvent(0, Event::EventEnum::START);
 }
 
 void MasterAIThread::stop()
 {
-    _pushEvent(0, Event::STOP);
+    _pushEvent(0, Event::EventEnum::STOP);
 }
 
 void MasterAIThread::stopFromThread(const unsigned char threadIdx)
 {
-    _pushEvent(threadIdx, Event::STOP_THREAD);
+    _pushEvent(threadIdx, Event::EventEnum::STOP_THREAD);
 }
 
 void MasterAIThread::stopThread(const unsigned char threadIdx)
@@ -72,7 +72,7 @@ void MasterAIThread::_start()
     auto actions = N_DarkLogic::DarkLogic::getActions(0);
     for (const auto action : actions)
     {
-        unsigned char threadIdx = nbActions % m_slaveThreads.size();
+        unsigned char threadIdx = static_cast<unsigned char>(nbActions % m_slaveThreads.size());
         m_ai.pushCrtAction(action, threadIdx);
         auto val = m_ai.getValueFromAction(action);
         if (val == 0)
@@ -161,17 +161,17 @@ void MasterAIThread::_stopFromThread(const unsigned char threadIdx)
             //Consuming event
             switch (m_eventQueue.front().type())
             {
-            case Event::START:
+            case Event::EventEnum::START:
             {
                 _start();
                 break;
             }
-            case Event::STOP:
+            case Event::EventEnum::STOP:
             {
                 _stop();
                 break;
             }
-            case Event::STOP_THREAD:
+            case Event::EventEnum::STOP_THREAD:
             {
                 _stopFromThread(m_eventQueue.front().threadIdx());
                 break;

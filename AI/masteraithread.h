@@ -19,7 +19,7 @@ public:
 	MasterAIThread(const size_t& maxInstanceIdx_, AI& ai_);
 
 	void computeActions();
-	void updateLogic(const size_t& actionid);
+	void updateLogic(const Id& actionid);
 
 	bool mustStop(const unsigned char threadIdx) const;
 	void start();

@@ -3,7 +3,7 @@
 EvalAI::EvalAI(const size_t& maxInstanceIdx, const size_t timeoutScds):
 	AI("EvalAI", maxInstanceIdx, timeoutScds)
 {
-    m_elo = 2500;
+    m_elo = 2550;
 }
 
 void EvalAI::explore(DbAction& actions, unsigned char threadIdx)
@@ -16,7 +16,7 @@ unsigned short int EvalAI::eval(const std::vector<N_DarkLogic::State>& states, c
     const N_DarkLogic::State& state = states[0];
     const auto& opeList = state.priorityOpe();
     // first: opeSize
-    unsigned short int opeSize = opeList.size();
+    unsigned short int opeSize = static_cast<unsigned short int>(opeList.size());
     // second : nb of double not
     unsigned short int nbDoubleNots = 0;
     for (const auto& ope : opeList)

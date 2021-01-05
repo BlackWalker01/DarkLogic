@@ -8,6 +8,7 @@
 #include <climits>
 #include "Utils/action.h"
 #include "dbaction.h"
+#include "MainDarkLogic/utils.h"
 
 #define MAX_DEPTH 50
 #define VAL_INIT 100
@@ -21,7 +22,6 @@ class Node
 {
 public:
 	using DbNode = std::unordered_map<size_t, std::unique_ptr<Node>>;
-	using Id = N_DarkLogic::Action::Id;
 
 	Node(AI& ai); //First Root node
 	Node(const Id& actionId_, const unsigned char& threadId_, const unsigned short& depth_);

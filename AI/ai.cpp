@@ -86,7 +86,7 @@ void AI::meditate()
 	m_crtNode = std::make_unique<Node>(*this);
 }
 
-void AI::pushCrtAction(const size_t& actionId, const unsigned char threadIdx) const
+void AI::pushCrtAction(const Id& actionId, const unsigned char threadIdx) const
 {
 	m_crtNode->pushCrtAction(actionId, threadIdx);
 }

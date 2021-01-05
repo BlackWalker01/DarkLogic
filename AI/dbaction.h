@@ -1,12 +1,11 @@
 #pragma once
 #include <unordered_map>
 #include <map>
-#include "Utils/action.h"
+#include "MainDarkLogic/utils.h"
 
 class DbAction
 {
 public:
-	using Id = N_DarkLogic::Action::Id;
 	using Val = unsigned short int;
 	DbAction() = default;
 

@@ -34,7 +34,7 @@ add_executable(LogicGame
   AI/event.h
   AI/node.hpp
   Tests/test.h
-  MainDarkLogic/dbtheorem.h "AI/evalai.h" "AI/evalai.cpp" "AI/dbaction.h" "AI/dbaction.cpp")
+  MainDarkLogic/dbtheorem.h "AI/evalai.h" "AI/evalai.cpp" "AI/dbaction.h" "AI/dbaction.cpp" "MainDarkLogic/utils.h" "Tests/testthread.h" "Tests/testthread.cpp")
 
 target_link_directories(LogicGame PUBLIC ${LIB_DIR})
 

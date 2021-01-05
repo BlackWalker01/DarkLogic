@@ -12,7 +12,7 @@ m_hasEvents(false), m_lock(m_mutex), m_mustStop(false)
 void AIThread::start()
 {
     m_mustStop = false;
-    _pushEvent(0, Event::START);
+    _pushEvent(0, Event::EventEnum::START);
 }
 
 void AIThread::stop()
@@ -25,7 +25,7 @@ bool AIThread::hasStarted() const
     return m_hasStarted;
 }
 
-void AIThread::pushAction(const size_t& action)
+void AIThread::pushAction(const Id& action)
 {
     auto idx = m_crtActions.push(action);
     auto val = m_ai.getRealValueFromAction(action);
@@ -42,7 +42,7 @@ void AIThread::computeActions()
     N_DarkLogic::DarkLogic::getActions(m_instanceId);
 }
 
-void AIThread::updateLogic(const size_t& actionId)
+void AIThread::updateLogic(const Id& actionId)
 {
     N_DarkLogic::DarkLogic::getActions(m_instanceId);
     N_DarkLogic::DarkLogic::apply(m_instanceId,actionId);
@@ -51,7 +51,7 @@ void AIThread::updateLogic(const size_t& actionId)
 
 unsigned char AIThread::instanceId() const
 {
-    return m_instanceId;
+    return static_cast<unsigned char>(m_instanceId);
 }
 
 void AIThread::_start()
@@ -63,7 +63,7 @@ void AIThread::_start()
     //compute value of given nodes
     while (!mustStop())
     {
-        m_ai.explore(m_crtActions, m_instanceId);
+        m_ai.explore(m_crtActions, instanceId());
     }
 
     //inform master that this thread has finished
@@ -74,7 +74,7 @@ void AIThread::_stop()
 {
     m_hasStarted = false;
     //std::cout << "[DEBUG] Stop thread:" << m_instanceId << std::endl;
-    m_master->stopFromThread(m_instanceId);
+    m_master->stopFromThread(instanceId());
 }
 
 [[noreturn]] void AIThread::_run()
@@ -90,17 +90,17 @@ void AIThread::_stop()
             //Consuming event
             switch (m_eventQueue.front().type())
             {
-            case Event::START:
+            case Event::EventEnum::START:
             {
                 _start();
                 break;
             }
-            case Event::STOP:
+            case Event::EventEnum::STOP:
             {
                 _stop();
                 break;
             }
-            case Event::STOP_THREAD:
+            case Event::EventEnum::STOP_THREAD:
             {
                 break;
             }

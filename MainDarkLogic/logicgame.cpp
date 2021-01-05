@@ -8,10 +8,31 @@
 #include <iostream>
 #include "MainDarkLogic/action.h"
 
-LogicGame::LogicGame(bool isAuto):
-    m_mode(NoMode), m_player(nullptr), m_isAuto(isAuto), m_eloThm(1500)
-{
 
+LogicGame::LogicGame(const std::unordered_map<ConfigType, std::string>& config):
+    m_mode(Mode::NoMode), m_player(nullptr), m_isAuto(false), m_eloThm(1500)
+{
+    if(config.contains(ConfigType::AUTO))
+    { 
+        std::unordered_map<std::string, bool> strToBool = { {"false", false}, {"False", false}, {"FALSE", false},
+                                                        {"true", true}, {"True", true}, {"TRUE", true} };
+        auto it = strToBool.find(config.at(ConfigType::AUTO));
+        if (it != strToBool.end())
+        {
+            m_isAuto = it->second;
+        }
+        else
+        {
+            std::cout << "\"auto\" argument is boolean type but got : " << config.at(ConfigType::AUTO) << std::endl;
+            exit(1);
+        }
+
+        auto it2 = config.find(ConfigType::PLAYER);
+        if (it2 != config.end())
+        {
+            createPlayer(it2->second);
+        }
+    }
 }
 
 void LogicGame::start()
@@ -130,7 +151,7 @@ void LogicGame::printActions()
 
 bool LogicGame::pushAction(const std::string &action)
 {
-    size_t id=0;
+    Id id=0;
     std::stringstream ss;
     ss<<action;
     ss>>id;
@@ -177,47 +198,48 @@ bool LogicGame::popAction()
 
 void LogicGame::askPlayer()
 {
-    bool ok = false;
-    while (!ok)
+    while (!m_player)
     {
         std::cout << "Choose the mode (Human/BasicAI/EvalAI)" << std::endl;
         std::string mode = "";
         std::getline(std::cin, mode);
-        if (mode=="Human" || mode=="human"||mode=="HUMAN")
-        {
-            std::cout << "Human Mode" << std::endl;
-            m_mode = HumanMode;
-            //Init Logic
-            N_DarkLogic::DarkLogic::init(0);
-            m_player = std::make_unique<Human>();
-            ok = true;
-        }
-        else if (mode == "basicai" || mode == "BASICAI" || mode == "BasicAI" || mode == "Basicai")
-        {
-            std::cout << "BasicAI Mode" << std::endl;
-            m_mode = AIMode;
-            //Init Logic
-            //auto nbInstance = 1;
-            auto nbInstance = (std::thread::hardware_concurrency()); //opti for the moment
-            N_DarkLogic::DarkLogic::init(nbInstance);
-            m_player = std::make_unique<AI>(nbInstance, AI_TIMEOUT);
-            ok = true;
-        }
-        else if (mode == "evalai" || mode == "EVALAI" || mode == "EvalAI" || mode == "Evalai")
-        {
-            std::cout << "EvalAI Mode" << std::endl;
-            m_mode = AIMode;
-            //Init Logic
-            //auto nbInstance = 1;
-            auto nbInstance = (std::thread::hardware_concurrency()); //opti for the moment
-            N_DarkLogic::DarkLogic::init(nbInstance);
-            m_player = std::make_unique<EvalAI>(nbInstance, AI_TIMEOUT);
-            ok = true;
-        }
-        else
-        {
-            std::cout << "mode '" << mode << "' unknwon" << std::endl;
-        }
+        createPlayer(mode);
+    }
+}
+
+void LogicGame::createPlayer(const std::string& mode)
+{
+    if (mode == "Human" || mode == "human" || mode == "HUMAN")
+    {
+        std::cout << "Human Mode" << std::endl;
+        m_mode = Mode::HumanMode;
+        //Init Logic
+        N_DarkLogic::DarkLogic::init(0);
+        m_player = std::make_unique<Human>();
+    }
+    else if (mode == "basicai" || mode == "BASICAI" || mode == "BasicAI" || mode == "Basicai")
+    {
+        std::cout << "BasicAI Mode" << std::endl;
+        m_mode = Mode::AIMode;
+        //Init Logic
+        //auto nbInstance = 1;
+        auto nbInstance = (std::thread::hardware_concurrency()); //opti for the moment
+        N_DarkLogic::DarkLogic::init(nbInstance);
+        m_player = std::make_unique<AI>(nbInstance, AI_TIMEOUT);
+    }
+    else if (mode == "evalai" || mode == "EVALAI" || mode == "EvalAI" || mode == "Evalai")
+    {
+        std::cout << "EvalAI Mode" << std::endl;
+        m_mode = Mode::AIMode;
+        //Init Logic
+        //auto nbInstance = 1;
+        auto nbInstance = (std::thread::hardware_concurrency()); //opti for the moment
+        N_DarkLogic::DarkLogic::init(nbInstance);
+        m_player = std::make_unique<EvalAI>(nbInstance, AI_TIMEOUT);
+    }
+    else
+    {
+        std::cout << "mode '" << mode << "' unknwon" << std::endl;
     }
 }
 
@@ -267,12 +289,12 @@ void LogicGame::game()
         auto action = m_player->play();
         switch (action->fun())
         {
-            case GET_ACTION:
+            case Fun::GET_ACTION:
             {
                 printActions();
                 break;
             }
-            case PUSH_ACTION:
+            case Fun::PUSH_ACTION:
             {
                 N_DarkLogic::DarkLogic::getActions();
                 std::cout << m_player->name() << " plays action with id " << action->id() << std::endl;
@@ -281,7 +303,7 @@ void LogicGame::game()
                 nbAttempts++;
                 break;
             }
-            case POP_ACTION:
+            case Fun::POP_ACTION:
             {
                 if (!popAction())
                 {
@@ -289,11 +311,11 @@ void LogicGame::game()
                 }
                 break;
             }
-            case HELP:
+            case Fun::HELP:
             {                
                 break;
             }
-            case NONE:
+            case Fun::NONE:
             {
                 break;
             }
@@ -335,7 +357,7 @@ void LogicGame::game()
             unsigned short int W = hasWon ? 1 : 0;
             double exElo = m_player->elo();
             double newElo = round(exElo + 30 * (W - 1 / (1 + pow(10,((m_eloThm - exElo) / 400)))));
-            m_player->setElo(newElo);
+            m_player->setElo(static_cast<unsigned int>(newElo));
         }
     }
     else

@@ -2,7 +2,7 @@
 #include <random>
 #include <ctime>
 
-DbAction::Id DbAction::push(Id action)
+Id DbAction::push(Id action)
 {
 	m_idxToActions[action] = action;
 	return action;
@@ -82,7 +82,7 @@ void DbAction::removeIdx(Id actionIdx)
     m_idxToVal.erase(actionIdx);
 }
 
-std::vector<DbAction::Id> DbAction::actions() const
+std::vector<Id> DbAction::actions() const
 {
 	std::vector<Id> ret;
 	for (auto it : m_idxToActions)
@@ -92,7 +92,7 @@ std::vector<DbAction::Id> DbAction::actions() const
 	return ret;
 }
 
-DbAction::Id DbAction::getBestAction() const
+Id DbAction::getBestAction() const
 {    
     const auto& begIt = m_valToActions.begin();
     Val minVal = begIt->first;
