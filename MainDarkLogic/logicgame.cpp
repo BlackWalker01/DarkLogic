@@ -2,15 +2,37 @@
 #include "darklogic.h"
 #include "Human/human.h"
 #include "AI/ai.h"
+#include "AI/evalai.h"
 #include <memory>
 #include <thread>
 #include <iostream>
 #include "MainDarkLogic/action.h"
 
-LogicGame::LogicGame():
-    m_mode(NoMode), m_player(nullptr)
-{
 
+LogicGame::LogicGame(const std::unordered_map<ConfigType, std::string>& config):
+    m_mode(Mode::NoMode), m_player(nullptr), m_isAuto(false), m_eloThm(1500)
+{
+    if(config.contains(ConfigType::AUTO))
+    { 
+        std::unordered_map<std::string, bool> strToBool = { {"false", false}, {"False", false}, {"FALSE", false},
+                                                        {"true", true}, {"True", true}, {"TRUE", true} };
+        auto it = strToBool.find(config.at(ConfigType::AUTO));
+        if (it != strToBool.end())
+        {
+            m_isAuto = it->second;
+        }
+        else
+        {
+            std::cout << "\"auto\" argument is boolean type but got : " << config.at(ConfigType::AUTO) << std::endl;
+            exit(1);
+        }
+
+        auto it2 = config.find(ConfigType::PLAYER);
+        if (it2 != config.end())
+        {
+            createPlayer(it2->second);
+        }
+    }
 }
 
 void LogicGame::start()
@@ -29,169 +51,86 @@ void LogicGame::start()
     }    
 }
 
-void LogicGame::test()
-{
-    //Init AI
-    askPlayer();
-    /*std::cout << "Test AIDeep Mode" << std::endl;
-    m_mode = AIMode;
-    auto nbInstance = (std::thread::hardware_concurrency()) + 1; //opti for th moment
-    N_DarkLogic::DarkLogic::DarkLogic::init(nbInstance);
-    m_player = std::make_unique<AI>(AI::DEEP, nbInstance);*/
-
-    //Start tests
-    makeTheorem("identity", "a<=>a");
-    game();
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    
-    makeTheorem("double-!", "a<=>!!a");
-    game();
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    
-    makeTheorem("pierce law", "((a=>b)=>a)=>a");
-    game();
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    
-    makeTheorem("3rd party exclusion", "p||!p");
-    game();
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    
-    makeTheorem("non-contradiction", "!(a&&!a)");
-    game();
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-   
-    makeTheorem("De Morgan ||", "(!(a||b))<=>(!a&&!b)");
-    game();
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    
-    makeTheorem("De Morgan &&", "(!(a&&b))<=>(!a||!b)");
-    game();
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    
-    makeTheorem("contraposition", "(a=>b)=>(!b=>!a)");
-    game();
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    
-    makeTheorem("modus ponens", "((a=>b)&&a)=>b");
-    game();
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-   
-    makeTheorem("modus tollens", "((a=>b)&&!b)=>!a");
-    game();
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-
-    makeTheorem("modus barbara propositional", "((a=>b)&&(b=>c))=>(a=>c)");
-    game();
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-
-    makeTheorem("modus barbara impl", "(a=>b)=>((b=>c)=>(a=>c))");
-    game();
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-
-    makeTheorem("Distributivity &&", "(a&&(b||c))<=>((a&&b)||(a&&c))");
-    game();
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-    std::cout << "____________________________________________________________________________" << std::endl;
-
-    makeTheorem("Distributivity ||", "(a||(b&&c))<=>((a||b)&&(a||c))");
-    game();
-}
-
 void LogicGame::createTheorem()
 {
-    //ask user to create theorem
-    std::string thName="";
-    std::string thStr="";
-    bool ok=false;
-    while(!ok)
+    if (!m_isAuto)
     {
-        std::cout<<"Create a new theorem to start a session"<<std::endl;
-        std::cout<<"Theorem name:"<<std::endl;
-        if(!std::getline(std::cin,thName))
+        //ask user to create theorem
+        std::string thName = "";
+        std::string thStr = "";
+        bool ok = false;
+        while (!ok)
         {
-            std::cout<<"Error in theorem name"<<std::endl;
-            continue;
-        }
-        std::cout<<"Theorem content:"<<std::endl;
-        if(!std::getline(std::cin,thStr))
-        {
-            std::cout<<"Error in theorem content"<<std::endl;
-            continue;
-        }        
-        //change '?' characters to '€' after let operators
-        std::string let="let";
-        std::string in="in";
-        std::string thStr2="";
-        bool hasLet=false;
-        for(size_t k=0;k<thStr.size();k++)
-        {
-            char c=thStr[k];
-            if(k<thStr.size()-4 && thStr.substr(k,k+3)==let)
+            std::cout << "Create a new theorem to start a session" << std::endl;
+            std::cout << "Theorem name:" << std::endl;
+            if (!std::getline(std::cin, thName))
             {
-                hasLet=true;
-                thStr2+=c;
+                std::cout << "Error in theorem name" << std::endl;
                 continue;
             }
-            if(hasLet)
+            std::cout << "Theorem content:" << std::endl;
+            if (!std::getline(std::cin, thStr))
             {
-                if(k<thStr.size()-3 && thStr.substr(k,k+2)==in)
+                std::cout << "Error in theorem content" << std::endl;
+                continue;
+            }
+            //change '?' characters to '€' after let operators
+            std::string let = "let";
+            std::string in = "in";
+            std::string thStr2 = "";
+            bool hasLet = false;
+            for (size_t k = 0; k < thStr.size(); k++)
+            {
+                char c = thStr[k];
+                if (k < thStr.size() - 4 && thStr.substr(k, k + 3) == let)
                 {
-                    hasLet=false;
-                    thStr2+=c;
+                    hasLet = true;
+                    thStr2 += c;
                     continue;
                 }
-                if(thStr[k]=='?')
+                if (hasLet)
                 {
-                    thStr2+="€";
+                    if (k < thStr.size() - 3 && thStr.substr(k, k + 2) == in)
+                    {
+                        hasLet = false;
+                        thStr2 += c;
+                        continue;
+                    }
+                    if (thStr[k] == '?')
+                    {
+                        thStr2 += "€";
+                    }
+                    else
+                    {
+                        thStr2 += c;
+                    }
                 }
                 else
                 {
-                    thStr2+=c;
+                    thStr2 += c;
                 }
             }
-            else
+            thStr = thStr2;
+            ok = N_DarkLogic::DarkLogic::makeTheorem(thName, thStr);
+            if (ok && m_mode == Mode::HumanMode)
             {
-                thStr2+=c;
+                std::cout << "Choose between :" << std::endl;
+                std::cout << "-> getAction() : to print all possible actions" << std::endl;
+                std::cout << "-> pushAction(id) : to make action identified by id" << std::endl;
+                std::cout << "-> pushAction(ruleName, path) : to make action identified by ruleName (name of the rule to apply) and path"
+                    " (list of indexes [id1, id2, ..., idn]) in theorem " << std::endl;
+                std::cout << "-> popAction : to cancel the latest action" << std::endl;
             }
+            /*std::cout << "[DEBUG] content: " << std::endl;
+            N_DarkLogic::DarkLogic::DarkLogic::printTheorem();*/
         }
-        thStr=thStr2;
-        ok=N_DarkLogic::DarkLogic::makeTheorem(thName,thStr);
-        if (ok && m_mode == Mode::HumanMode)
-        {            
-            std::cout << "Choose between :" << std::endl;
-            std::cout << "-> getAction() : to print all possible actions" << std::endl;
-            std::cout << "-> pushAction(id) : to make action identified by id" << std::endl;
-            std::cout << "-> pushAction(ruleName, path) : to make action identified by ruleName (name of the rule to apply) and path" 
-                " (list of indexes [id1, id2, ..., idn]) in theorem " << std::endl;
-            std::cout << "-> popAction : to cancel the latest action" << std::endl;
-        }        
-        /*std::cout << "[DEBUG] content: " << std::endl;
-        N_DarkLogic::DarkLogic::DarkLogic::printTheorem(0);*/
+    }
+    else
+    {
+        auto thm = m_db.getRandomTheorem(m_player->elo());
+        m_eloThm = thm.elo();
+        std::cout << thm.name() + " theorem :'" + thm.content() + "' (elo = "<<m_eloThm<<") has been chosen for this game" << std::endl;
+        N_DarkLogic::DarkLogic::makeTheorem(thm.name(), thm.content());
     }
 }
 
@@ -212,7 +151,7 @@ void LogicGame::printActions()
 
 bool LogicGame::pushAction(const std::string &action)
 {
-    size_t id=0;
+    Id id=0;
     std::stringstream ss;
     ss<<action;
     ss>>id;
@@ -259,46 +198,48 @@ bool LogicGame::popAction()
 
 void LogicGame::askPlayer()
 {
-    bool ok = false;
-    while (!ok)
+    while (!m_player)
     {
-        std::cout << "Choose the mode (Human/AI/AIDeep)" << std::endl;
+        std::cout << "Choose the mode (Human/BasicAI/EvalAI)" << std::endl;
         std::string mode = "";
         std::getline(std::cin, mode);
-        if (mode=="Human" || mode=="human"||mode=="HUMAN")
-        {
-            std::cout << "Human Mode" << std::endl;
-            m_mode = HumanMode;
-            //Init Logic
-            N_DarkLogic::DarkLogic::init(0);
-            m_player = std::make_unique<Human>();
-            ok = true;
-        }
-        else if (mode=="ai"|| mode=="AI" || mode=="Ai")
-        {
-            std::cout << "AI Mode" << std::endl;
-            m_mode = AIMode;
-            //Init Logic
-            auto nbInstance = std::thread::hardware_concurrency(); //opti for the moment
-            N_DarkLogic::DarkLogic::init(nbInstance);
-            m_player = std::make_unique<AI>(AI::MCTS,nbInstance, AI_TIMEOUT);
-            ok = true;
-        }
-        else if (mode == "aideep" || mode == "AIDEEP" || mode == "AiDeep" || mode == "AIDeep")
-        {
-            std::cout << "AIDeep Mode" << std::endl;
-            m_mode = AIMode;
-            //Init Logic
-            //auto nbInstance = 1 + 1;
-            auto nbInstance = (std::thread::hardware_concurrency()); //opti for the moment
-            N_DarkLogic::DarkLogic::init(nbInstance);
-            m_player = std::make_unique<AI>(AI::DEEP, nbInstance, AI_TIMEOUT);
-            ok = true;
-        }
-        else
-        {
-            std::cout << "mode '" << mode << "' unknwon" << std::endl;
-        }
+        createPlayer(mode);
+    }
+}
+
+void LogicGame::createPlayer(const std::string& mode)
+{
+    if (mode == "Human" || mode == "human" || mode == "HUMAN")
+    {
+        std::cout << "Human Mode" << std::endl;
+        m_mode = Mode::HumanMode;
+        //Init Logic
+        N_DarkLogic::DarkLogic::init(0);
+        m_player = std::make_unique<Human>();
+    }
+    else if (mode == "basicai" || mode == "BASICAI" || mode == "BasicAI" || mode == "Basicai")
+    {
+        std::cout << "BasicAI Mode" << std::endl;
+        m_mode = Mode::AIMode;
+        //Init Logic
+        //auto nbInstance = 1;
+        auto nbInstance = (std::thread::hardware_concurrency()); //opti for the moment
+        N_DarkLogic::DarkLogic::init(nbInstance);
+        m_player = std::make_unique<AI>(nbInstance, AI_TIMEOUT);
+    }
+    else if (mode == "evalai" || mode == "EVALAI" || mode == "EvalAI" || mode == "Evalai")
+    {
+        std::cout << "EvalAI Mode" << std::endl;
+        m_mode = Mode::AIMode;
+        //Init Logic
+        //auto nbInstance = 1;
+        auto nbInstance = (std::thread::hardware_concurrency()); //opti for the moment
+        N_DarkLogic::DarkLogic::init(nbInstance);
+        m_player = std::make_unique<EvalAI>(nbInstance, AI_TIMEOUT);
+    }
+    else
+    {
+        std::cout << "mode '" << mode << "' unknwon" << std::endl;
     }
 }
 
@@ -339,25 +280,30 @@ bool LogicGame::isEvaluated()
 
 void LogicGame::game()
 {
+    size_t nbAttempts = 0;
+    bool hasWon = false;
+    std::cout << "Game numero " << m_player->nbGames() << std::endl;
     while(!isOver())
     {
+        std::cout << "Attempt numero " << nbAttempts + 1 << "/" << MAX_NB_ATTEMPTS << std::endl;
         auto action = m_player->play();
         switch (action->fun())
         {
-            case GET_ACTION:
+            case Fun::GET_ACTION:
             {
                 printActions();
                 break;
             }
-            case PUSH_ACTION:
+            case Fun::PUSH_ACTION:
             {
                 N_DarkLogic::DarkLogic::getActions();
                 std::cout << m_player->name() << " plays action with id " << action->id() << std::endl;
                 N_DarkLogic::DarkLogic::apply(action->id());
                 N_DarkLogic::DarkLogic::printTheorem();
+                nbAttempts++;
                 break;
             }
-            case POP_ACTION:
+            case Fun::POP_ACTION:
             {
                 if (!popAction())
                 {
@@ -365,16 +311,20 @@ void LogicGame::game()
                 }
                 break;
             }
-            case HELP:
+            case Fun::HELP:
             {                
                 break;
             }
-            case NONE:
+            case Fun::NONE:
             {
                 break;
             }
         }
         std::cout << "____________________________________________________________________________" << std::endl;
+        if (nbAttempts == MAX_NB_ATTEMPTS)
+        {
+            break;
+        }
     }
     
     if (hasAlreadyPlayed())
@@ -382,6 +332,7 @@ void LogicGame::game()
         if (isDemonstrated())
         {
             std::cout << m_player->name() << " won! " << m_player->name() << " finished the demonstration!" << std::endl;
+            hasWon = true;
         }
         else if (isAlreadyPlayed())
         {
@@ -391,10 +342,22 @@ void LogicGame::game()
         {
             std::cout << m_player->name() << " lost! Cannot (\"back-\")demonstrate that a theorem is false with implications!" << std::endl;
         }
-        else /*if (!canBeDemonstrated())*/
+        else if (!canBeDemonstrated())
         {
             std::cout << m_player->name() << " lost! This theorem cannot be demonstrated! " 
                 "It can be true or false according to the values of its variables" << std::endl;
+        }
+        else /*if (nbAttempts == MAX_NB_ATTEMPTS)*/
+        {
+            std::cout << m_player->name() << " lost! Too much attempts!" << std::endl;
+        }
+
+        if (m_isAuto)
+        {
+            unsigned short int W = hasWon ? 1 : 0;
+            double exElo = m_player->elo();
+            double newElo = round(exElo + 30 * (W - 1 / (1 + pow(10,((m_eloThm - exElo) / 400)))));
+            m_player->setElo(static_cast<unsigned int>(newElo));
         }
     }
     else
@@ -410,6 +373,9 @@ void LogicGame::game()
         }
     }
     
-    //clear Logic state
+    // clear Logic state
     N_DarkLogic::DarkLogic::clearAll();
+
+    // let player meditates the last game
+    m_player->meditate();
 }

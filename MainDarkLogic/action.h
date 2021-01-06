@@ -2,20 +2,21 @@
 #define ACTION_H
 #include "EnumFun.h"
 #include <memory>
+#include "utils.h"
 
 class Action
 {
 public:
 	Action(const Fun fun_);
-	Action(const Fun fun_, const size_t& id_);
+	Action(const Fun fun_, const Id& id_);
 
 	Fun fun() const;
-	size_t id() const;
+	Id id() const;
 
 	~Action() = default;
 private:
 	const Fun m_fun;
-	const std::unique_ptr<size_t> m_id;
+	const std::unique_ptr<Id> m_id;
 };
 
 #endif 

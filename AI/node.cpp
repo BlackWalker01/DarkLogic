@@ -10,20 +10,18 @@ AI* Node::s_ai = nullptr;
 double Node::s_cste = sqrt(2);
 
 Node::Node(AI& ai):
-	m_actionId(0), m_threadId(0), m_depth(0), m_value(VAL_INIT), 
-	m_nbSimu(0)
+	m_actionId(0), m_threadId(std::numeric_limits<unsigned char>::max()), m_depth(0), m_value(VAL_INIT), m_subValue(SUBVAL_INIT), m_isLoss(false)
 {
 	s_ai = &ai;
 	std::srand(std::time(nullptr));
 }
 
-Node::Node(const size_t& actionId_, const unsigned char& threadId_, const unsigned short& depth_):
-	m_actionId(actionId_), m_threadId(threadId_), m_depth(depth_), m_value(VAL_INIT),
-	m_nbSimu(0)
+Node::Node(const Id& actionId_, const unsigned char& threadId_, const unsigned short& depth_):
+	m_actionId(actionId_), m_threadId(threadId_), m_depth(depth_), m_value(VAL_INIT), m_subValue(SUBVAL_INIT), m_isLoss(false)
 {
 }
 
-size_t Node::actionId() const
+Id Node::actionId() const
 {
 	return m_actionId;
 }
@@ -43,18 +41,32 @@ unsigned short Node::value() const
 	return m_value;
 }
 
-unsigned int Node::nbSimu() const
+unsigned short int Node::subValue() const
 {
-	return m_nbSimu;	
+	return m_subValue;
 }
 
-double Node::getMCTSValue(const unsigned int parentNbSimu) const
+unsigned short int Node::realValue() const
 {
-	return (1000*static_cast<double>(USHRT_MAX-m_value))/USHRT_MAX + s_cste * sqrt(log(parentNbSimu+1)/(m_nbSimu + 1));
+	return (m_value < VAL_INIT)? m_value : (m_value + m_subValue);
 }
 
+bool Node::isLoss() const
+{
+	return m_isLoss;
+}
 
-void Node::pushCrtAction(const size_t& actionId, const unsigned char threadIdx)
+unsigned short int Node::getValueFromAction(const unsigned short int action) const
+{
+	return m_sons.at(action)->value();
+}
+
+unsigned short int Node::getRealValueFromAction(const unsigned short int action) const
+{
+	return m_sons.at(action)->realValue();
+}
+
+void Node::pushCrtAction(const Id& actionId, const unsigned char threadIdx)
 {
 	auto it = m_sons.find(actionId);
 	if (it != m_sons.end())
@@ -66,6 +78,7 @@ void Node::pushCrtAction(const size_t& actionId, const unsigned char threadIdx)
 	{
 		//std::cout << "[DEBUG] new action " << actionId << " will be handled by thread " << static_cast<unsigned int>(threadIdx) << std::endl;
 		m_sons[actionId] = std::make_unique<Node>(actionId, threadIdx, m_depth + 1);
+		m_sons[actionId]->eval(0);
 	}
 }
 
@@ -78,193 +91,55 @@ void Node::setThreadIdx(const unsigned char threadIdx)
 	}
 }
 
-bool Node::isRoot() const
+void Node::eval(const unsigned char threadIdx)
 {
-	return m_threadId==0;
-}
+	// play crt move
+	N_DarkLogic::DarkLogic::apply(threadIdx, m_actionId);
 
-unsigned short Node::makeSimu()
-{
-	//play move
-	N_DarkLogic::DarkLogic::apply(m_threadId, m_actionId);
-
-	//check if node is terminal
-	if (N_DarkLogic::DarkLogic::isAlreadyPlayed(m_threadId) || !N_DarkLogic::DarkLogic::canBeDemonstrated(m_threadId))
+	// check if it is a node which leads to loss
+	if (N_DarkLogic::DarkLogic::isAlreadyPlayed(threadIdx))
 	{
-		m_value = USHRT_MAX;
+		m_value = VAL_MAX;
 	}
-	else if (N_DarkLogic::DarkLogic::isDemonstrated(m_threadId))
+	else if (!N_DarkLogic::DarkLogic::canBeDemonstrated(threadIdx))
 	{
-		//std::cout << "[DEBUG] found demonstration!" << std::endl;
+		m_value = VAL_MAX;
+		if (!N_DarkLogic::DarkLogic::isEvaluated(threadIdx))
+		{
+			m_isLoss = true;
+		}
+	}
+	// check if it is a node which leads to win
+	else if (N_DarkLogic::DarkLogic::isDemonstrated(threadIdx))
+	{
 		m_value = 0;
-	}
-	else if (m_depth >= MAX_DEPTH)
-	{
-		m_value = VAL_INIT;
-		//std::cout << "[DEBUG ]Reach limit" << std::endl;
+		// stop reflexion because AI found a demonstration
+		s_ai->stopThread(threadIdx);
 	}
 	else
 	{
-		if (!s_ai->mustStop(m_threadId))
-		{
-			//get actions
-			auto actions = N_DarkLogic::DarkLogic::getActions(m_threadId);
-
-			//play random action
-			auto newAction = actions[rand() % actions.size()];
-			m_sons[newAction] = std::make_unique<Node>(newAction, m_threadId, m_depth + 1);
-			m_value = m_sons[newAction]->makeSimu();
-			if (m_value < VAL_INIT)
-			{
-				m_value++;
-			}
-		}
+		m_subValue = s_ai->eval({ N_DarkLogic::DarkLogic::getState(threadIdx) }, threadIdx);
 	}
 
-	//unplay crt move
-	N_DarkLogic::DarkLogic::unapply(m_threadId);
-
-	//increment nb simulation
-	m_nbSimu++;
-
-	return m_value;
+	// unplay crt move
+	N_DarkLogic::DarkLogic::unapply(threadIdx);
 }
 
-
-unsigned short Node::explore(const std::vector<N_DarkLogic::Action::Id>& actions)
-{	
-	unsigned int retValue = 0;
-	double maxValue = 0;
-	std::vector<Node*> maxNodes;
-	for (size_t k=0;k<actions.size();k++)
-	{
-		auto action = actions[k];
-		auto it = m_sons.find(action);
-		//if the node has not been created yet, create it!
-		if (it == m_sons.end())
-		{
-			m_sons[action] = std::make_unique<Node>(action, m_threadId, m_depth + 1);
-			it = m_sons.find(action);
-		}
-		auto subNode = it->second.get();
-		double mctValue = isRoot()? subNode->getMCTSValue(s_ai->getRootNbSimu(subNode->threadId())) : subNode->getMCTSValue(m_nbSimu);
-		if (mctValue > maxValue)
-		{
-			maxNodes.clear();
-			maxNodes.push_back(subNode);
-			maxValue = mctValue;
-		}
-		else if (mctValue == maxValue)
-		{
-			maxNodes.push_back(subNode);
-		}
-	}
-
-	if (isRoot())
-	{
-		//Choose among maxNodes which one to explore
-		auto nbNodes = maxNodes.size();
-		auto node = maxNodes[rand() % nbNodes];
-		if (node->nbSimu())
-		{
-			node->explore();
-		}
-		else
-		{
-			node->makeSimu();
-		}
-		s_ai->incrRootNbSimu(node->threadId());
-	}
-	else if (!s_ai->mustStop(m_threadId))
-	{
-		//Choose among maxNodes which one to explore
-		auto nbNodes = maxNodes.size();
-		auto node = maxNodes[rand() % nbNodes];
-		if (node->nbSimu())
-		{
-			retValue = node->explore();
-			if ((m_value > retValue + 1))
-			{
-				m_value = retValue + 1;
-			}
-		}
-		else
-		{
-			retValue = node->makeSimu();
-			if ((m_value > retValue + 1))
-			{
-				m_value = retValue + 1;
-			}
-			else
-			{
-				m_value = retValue;
-			}
-		}
-
-
-		if (m_value < MAX_DEPTH)
-		{
-			s_ai->stopThread(m_threadId);
-		}
-			
-		m_nbSimu++;
-	}		
-
-	return m_value;
-}
-
-/**
-* if explore method is called, subNodes have already been created
-* return value of selected subNode
-*/
-unsigned short Node::explore()
-{
-	//play crt move
-	N_DarkLogic::DarkLogic::apply(m_threadId, m_actionId);
-
-	//check if node is terminal
-	if (N_DarkLogic::DarkLogic::isAlreadyPlayed(m_threadId) || !N_DarkLogic::DarkLogic::canBeDemonstrated(m_threadId))
-	{
-		m_value = USHRT_MAX;
-		//increment nb simulations
-		m_nbSimu++;
-	}
-	else if(N_DarkLogic::DarkLogic::isDemonstrated(m_threadId))
-	{
-		m_value = 0;
-		//increment nb simulations
-		m_nbSimu++;
-	}
-	else
-	{
-		//get actions
-		auto actions = N_DarkLogic::DarkLogic::getActions(m_threadId);
-		
-		//explore one subNode among actions
-		explore(actions);		
-	}
-
-	//unplay crt move
-	N_DarkLogic::DarkLogic::unapply(m_threadId);	
-
-	return m_value;
-}
-
-unsigned short Node::exploreDeep(const std::vector<N_DarkLogic::Action::Id>& actions)
+unsigned short Node::exploreBasic(const std::vector<N_DarkLogic::Action::Id>& actions)
 {
 	unsigned short maxDepth = minDepth();
 	unsigned char threadId = m_sons[actions[0]]->threadId();
-	std::chrono::high_resolution_clock::time_point start, end;
-	start = std::chrono::high_resolution_clock::now();
+	//std::chrono::high_resolution_clock::time_point start, end;
+	//start = std::chrono::high_resolution_clock::now();
 	while (!s_ai->mustStop(threadId))
-	{		
+	{
 		for (const auto& action : actions)
 		{
 			auto node = m_sons[action].get();
-			unsigned short retValue = USHRT_MAX;
-			if (node->value() < USHRT_MAX)
+			unsigned short retValue = VAL_MAX;
+			if (node->value() < VAL_MAX)
 			{
-				node->exploreDeep(maxDepth);
+				node->exploreBasic(maxDepth);
 			}
 
 			if ((m_value > retValue + 1))
@@ -278,20 +153,20 @@ unsigned short Node::exploreDeep(const std::vector<N_DarkLogic::Action::Id>& act
 				break;
 			}
 		}
-		if (maxDepth >= 3)
+		/*if (maxDepth >= 3)
 		{
 			end = std::chrono::high_resolution_clock::now();
 			double elapsed_seconds = std::chrono::duration<double>(end - start).count();
 			std::cout << "[DEBUG] thread id: " + numberToString(static_cast<unsigned int>(threadId)) + " has finished depth '" + numberToString(maxDepth) <<
 				"' in " + numberToString(elapsed_seconds) + " seconds" << std::endl;
-			
-		}
+
+		}*/
 		maxDepth++;
 	}
 	return m_value;
 }
 
-unsigned short Node::exploreDeep(const unsigned short maxDepth)
+unsigned short Node::exploreBasic(const unsigned short maxDepth)
 {
 	//play crt move
 	N_DarkLogic::DarkLogic::apply(m_threadId, m_actionId);
@@ -302,13 +177,12 @@ unsigned short Node::exploreDeep(const unsigned short maxDepth)
 		//check if it is a node which leads to loss
 		if (N_DarkLogic::DarkLogic::isAlreadyPlayed(m_threadId) || !N_DarkLogic::DarkLogic::canBeDemonstrated(m_threadId))
 		{
-			m_value = USHRT_MAX;
+			m_value = VAL_MAX;
 		}
 		//check if it is a node which leads to win
 		else if (N_DarkLogic::DarkLogic::isDemonstrated(m_threadId))
 		{
 			m_value = 0;
-			
 			//stop reflexion because AI found a demonstration
 			s_ai->stopThread(m_threadId);
 		}
@@ -333,24 +207,24 @@ unsigned short Node::exploreDeep(const unsigned short maxDepth)
 		{
 			//explore node associated with action
 			auto node = m_sons[action].get();
-			unsigned short retValue = USHRT_MAX;
-			if (node->value() < USHRT_MAX)
+			unsigned short retValue = VAL_MAX;
+			if (node->value() < VAL_MAX)
 			{
-				retValue = node->exploreDeep(maxDepth);
+				retValue = node->exploreBasic(maxDepth);
 			}
 
 			//update m_value
-			if (retValue == USHRT_MAX)
+			if (retValue == VAL_MAX)
 			{
 				if (hasOnlyLosses)
 				{
-					m_value = USHRT_MAX;
+					m_value = VAL_MAX;
 				}
 			}
 			else
 			{
 				hasOnlyLosses = false;
-				if (retValue==VAL_INIT && m_value == USHRT_MAX)
+				if (retValue==VAL_INIT && m_value == VAL_MAX)
 				{
 					m_value = VAL_INIT;
 				}
@@ -374,19 +248,123 @@ unsigned short Node::exploreDeep(const unsigned short maxDepth)
 	return m_value;
 }
 
+void Node::exploreEval(DbAction& dbAction, unsigned char threadIdx)
+{
+	while (!s_ai->mustStop(threadIdx))
+	{
+		const auto& action = dbAction.getBestAction();
+		auto node = m_sons[action].get();
+		unsigned short int value = node->exploreEval();
+		dbAction.updateValue(action, value);
+
+		// if must stop exploration, stop it
+		if (s_ai->mustStop(threadIdx))
+		{
+			break;
+		}
+	}
+}
+
+unsigned short Node::exploreEval()
+{
+	// play crt move
+	N_DarkLogic::DarkLogic::apply(m_threadId, m_actionId);
+	// get actions
+	auto actions = N_DarkLogic::DarkLogic::getActions(m_threadId);
+	//no need to go deeper
+	if (m_sons.size() != actions.size())
+	{
+		unsigned short minSubValue = SUBVAL_INIT;
+		bool updateValue = true;
+		for (const auto action : actions)
+		{
+			Node* node = nullptr;
+			if (!m_sons.contains(action))
+			{
+				m_sons[action] = std::make_unique<Node>(action, m_threadId, m_depth + 1);
+				node = m_sons[action].get();
+				node->eval(m_threadId);
+				if (node->value() < VAL_MAX)
+				{
+					auto idx = m_dbActions.push(action);
+					m_dbActions.updateValue(idx, node->realValue());
+				}
+			}
+			else
+			{
+				node = m_sons[action].get();
+			}
+			unsigned short subValue = node->subValue();
+			if (subValue < minSubValue)
+			{
+				minSubValue = subValue;
+			}
+
+			// if must stop exploration, stop it
+			if (s_ai->mustStop(m_threadId))
+			{
+				if (node->value() < VAL_INIT)
+				{
+					m_value = node->value() + 1;
+				}
+				updateValue = false;
+				break;
+			}
+		}
+		if (updateValue)
+		{
+			if (m_dbActions.size() == 0)
+			{
+				//all actions lead to loss
+				m_value = VAL_MAX;
+			}
+			else
+			{
+				m_subValue = minSubValue + 1;
+			}
+		}
+	}
+	else
+	{
+		auto action = m_dbActions.getBestAction();
+		Node* node = m_sons[action].get();
+		unsigned short value = node->exploreEval();
+		if (node->value() < VAL_MAX)
+		{
+			m_dbActions.updateValue(action, value);
+			action = m_dbActions.getBestAction();
+			node = m_sons[action].get();
+			m_subValue = node->subValue() + 1;
+			if (node->value() < VAL_INIT)
+			{
+				m_value = node->value() + 1;
+			}
+		}
+		else
+		{
+			m_dbActions.removeIdx(action);
+		}
+	}
+
+	// unplay crt action
+	N_DarkLogic::DarkLogic::unapply(m_threadId);
+
+	return realValue();
+}
+
 Node* Node::getBestNode()
 {
 	std::vector<size_t> minNodes;
 	unsigned short minVal = USHRT_MAX;
 	for (auto& son : m_sons)
 	{
-		if (son.second->value() < minVal)
+		if (son.second->realValue() < minVal)
 		{
-			minVal = son.second->value();
+			minVal = son.second->realValue();
 			minNodes.clear();
 			minNodes.push_back(son.first);
 		}
-		else if (son.second->value() == minVal)
+		else if (son.second->realValue() == minVal)
 		{
 			minNodes.push_back(son.first);
 		}
@@ -424,22 +402,6 @@ Node* Node::getDemoMode()
 	return winner;
 }
 
-void Node::setRoot()
-{
-	m_threadId = 0;
-	_decrDepth();
-}
-
-unsigned int Node::getRootNbSimu() const
-{
-	return m_nbSimu;
-}
-
-void Node::incrRootNbSimu()
-{
-	m_nbSimu++;
-}
-
 size_t Node::nbNode() const
 {
 	size_t ret = 1;
@@ -450,13 +412,15 @@ size_t Node::nbNode() const
 	return ret;
 }
 
-void Node::_decrDepth()
+void Node::decrDepth()
 {
-
 	m_depth--;
 	for (auto& son : m_sons)
 	{
-		son.second->_decrDepth();
+		if (son.second)
+		{
+			son.second->decrDepth();
+		}
 	}
 }
 
@@ -464,10 +428,10 @@ unsigned short Node::minDepth() const
 {
 	if (m_sons.size())
 	{
-		unsigned short ret = USHRT_MAX;
+		unsigned short ret = VAL_MAX;
 		for (auto& son : m_sons)
 		{
-			if (son.second->value() < USHRT_MAX)
+			if (son.second->value() < VAL_MAX)
 			{
 				unsigned short crtDepth = son.second->minDepth();
 				if (crtDepth + 1 < ret)

@@ -19,7 +19,7 @@ public:
 	MasterAIThread(const size_t& maxInstanceIdx_, AI& ai_);
 
 	void computeActions();
-	void updateLogic(const size_t& actionid);
+	void updateLogic(const Id& actionid);
 
 	bool mustStop(const unsigned char threadIdx) const;
 	void start();
@@ -30,10 +30,6 @@ public:
 
 	void init();
 
-	size_t getTotalRootNbSimu() const;
-	void setRootNbSimu(const size_t& instanceIdx, const size_t& nbSimu);
-	size_t getRootNbSimu(const size_t& instanceIdx) const;
-	void incrRootNbSimu(const size_t& instanceIdx);
 private:
 	void _start();
 	void _stop();

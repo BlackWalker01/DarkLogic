@@ -347,9 +347,9 @@ class Node:
             action = self._dbNode.getBestAction()
             node = self._sons[action]
             # self._dbNode.updateValue(idx, self.realValue(), True)  # delete this line
-            node.exploreDepthEval()
+            value = node.exploreDepthEval()
             if node.value() < Node.VAL_MAX:
-                self._dbNode.updateValue(action, self.realValue())
+                self._dbNode.updateValue(action, value)
                 action = self._dbNode.getBestAction()
                 node = self._sons[action]
                 self._subValue = node.subValue() + 1

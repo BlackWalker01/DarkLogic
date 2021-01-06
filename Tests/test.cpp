@@ -1,7 +1,9 @@
 #include "test.h"
 #include <iostream>
+#include <sstream>
 #include "darklogic.h"
 #include "AI/ai.h"
+#include "AI/evalai.h"
 #include "MainDarkLogic/action.h"
 #include "MainDarkLogic/logicgame.h"
 
@@ -12,7 +14,10 @@ std::unordered_map<std::string, Test::Fun> Test::s_stringToTest =
 	{"checkHumanExcludedMiddle" , Test::Fun::CheckHumanExcludedMiddle},
 	{"checkPerformanceIdentity" , Test::Fun::CheckPerformanceIdentity},
 	{"checkPerformanceDoubleNot" , Test::Fun::CheckPerformanceDoubleNot},
-	{"checkPerformanceNonContradiction" , Test::Fun::CheckPerformanceNonContradiction}
+	{"checkPerformanceNonContradiction" , Test::Fun::CheckPerformanceNonContradiction},
+	{"checkEvalPerformanceIdentity" , Test::Fun::CheckEvalPerformanceIdentity},
+	{"checkEvalPerformanceDoubleNot" , Test::Fun::CheckEvalPerformanceDoubleNot},
+	{"checkEvalPerformanceNonContradiction" , Test::Fun::CheckEvalPerformanceNonContradiction}
 };
 std::unordered_map<Test::Fun, std::string> Test::s_testToString = 
 {
@@ -21,19 +26,41 @@ std::unordered_map<Test::Fun, std::string> Test::s_testToString =
 	{Test::Fun::CheckHumanExcludedMiddle, "checkHumanExcludedMiddle" },
 	{Test::Fun::CheckPerformanceIdentity, "checkPerformanceIdentity"},
 	{Test::Fun::CheckPerformanceDoubleNot, "checkPerformanceDoubleNot"},
-	{Test::Fun::CheckPerformanceNonContradiction, "checkPerformanceNonContradiction"}
+	{Test::Fun::CheckPerformanceNonContradiction, "checkPerformanceNonContradiction"},
+	{Test::Fun::CheckEvalPerformanceIdentity, "checkEvalPerformanceIdentity"},
+	{Test::Fun::CheckEvalPerformanceDoubleNot, "checkEvalPerformanceDoubleNot"},
+	{Test::Fun::CheckEvalPerformanceNonContradiction, "checkEvalPerformanceNonContradiction"}
 };
 
 std::unique_ptr<Test> Test::s_instance = nullptr;
 
 
-Test::Test(const Fun fun) : m_fun(fun), m_elapsed_seconds(0), m_hasEvents(false), m_lock(m_mutex)
+Test::Test(const Fun fun) : m_fun(fun), m_name(""), m_content(""), m_playerType(PlayerType::None), m_timeout(0.0),
+m_elapsed_seconds(0), m_hasEvents(false), m_lock(m_mutex), m_thread(nullptr)
 {
 
 }
 
-bool Test::init(const std::string& testName)
+Test::Test(const std::string& name_, const std::string& content_, PlayerType playerType_, const double& timeout_) : 
+	m_fun(Fun::None), m_name(name_), m_content(content_), m_playerType(playerType_), m_timeout(timeout_),
+m_elapsed_seconds(0), m_hasEvents(false), m_lock(m_mutex), m_thread(new TestThread(*this))
 {
+
+}
+
+bool Test::init(const std::unordered_map<ConfigType, std::string>& config)
+{
+	std::string testName = "";
+	auto itName = config.find(ConfigType::TESTNAME);
+	if (itName != config.end())
+	{
+		testName = itName->second;
+	}
+	else
+	{
+		std::cout << "[ERROR] test mode needs testName argument! Exit..." << std::endl;
+		return false;
+	}
 	auto it = s_stringToTest.find(testName);
 	if (it != s_stringToTest.end())
 	{
@@ -42,7 +69,57 @@ bool Test::init(const std::string& testName)
 	}
 	else
 	{
-		return false;
+		std::string content = "";
+		auto itContent = config.find(ConfigType::CONTENT);
+		if (itContent != config.end())
+		{
+			content = itContent->second;
+		}
+		else
+		{
+			std::cout << "[ERROR] test mode needs 'content' argument when testName is not registered! Exit..." << std::endl;
+			return false;
+		}
+
+		PlayerType playerType = PlayerType::None;
+		auto itPlayer = config.find(ConfigType::PLAYER);
+		if (itPlayer != config.end())
+		{
+			std::string playerStr = itPlayer->second;
+			if (playerStr == "ai" || playerStr == "Ai" || playerStr == "AI")
+			{
+				playerType = PlayerType::AI;
+			}
+			else if (playerStr == "evalai" || playerStr == "evalAi" || playerStr == "EvalAi" || playerStr == "EvalAI" || playerStr == "EVALAI")
+			{
+				playerType = PlayerType::EvalAI;
+			}
+			else
+			{
+				std::cout << "[ERROR] player argument should be 'AI' or 'EvalAI'! Exit..." << std::endl;
+				return false;
+			}
+		}
+		else
+		{
+			std::cout << "[ERROR] test mode needs 'player' argument when testName is not registered! Exit..." << std::endl;
+		}
+
+		double timeout = 0.0;
+		auto itTimeout = config.find(ConfigType::TIMEOUT);
+		if (itTimeout != config.end())
+		{
+			std::stringstream ss;
+			ss << itTimeout->second;
+			ss >> timeout;
+		}
+		else
+		{
+			std::cout << "[ERROR] test mode needs 'timeout' argument when testName is not registered! Exit..." << std::endl;
+			return false;
+		}
+		s_instance = std::unique_ptr<Test>(new Test(testName, content, playerType, timeout));
+		return true;
 	}	
 }
 
@@ -52,34 +129,54 @@ int Test::run()
 	{
 		switch (s_instance->fun())
 		{
-		case CheckHumanIdentity:
+		case Fun::None:
+		{
+			s_instance->_run();
+			break;
+		}
+		case Fun::CheckHumanIdentity:
 		{
 			s_instance->checkHumanIdentity();
 			break;
 		}
-		case CheckHumanDoubleNot:
+		case Fun::CheckHumanDoubleNot:
 		{
 			s_instance->checkHumanDoubleNot();
 			break;
 		}
-		case CheckHumanExcludedMiddle:
+		case Fun::CheckHumanExcludedMiddle:
 		{
 			s_instance->checkHumanExcludedMiddle();
 			break;
 		}
-		case CheckPerformanceIdentity:
+		case Fun::CheckPerformanceIdentity:
 		{
-			s_instance->checkPerformanceIdentity();
+			//s_instance->checkPerformanceIdentity();
 			break;
 		}
-		case CheckPerformanceDoubleNot:
+		case Fun::CheckPerformanceDoubleNot:
 		{
-			s_instance->checkPerformanceDoubleNot();
+			//s_instance->checkPerformanceDoubleNot();
 			break;
 		}
-		case CheckPerformanceNonContradiction:
+		case Fun::CheckPerformanceNonContradiction:
 		{
-			s_instance->checkPerformanceNonContradiction();
+			//s_instance->checkPerformanceNonContradiction();
+			break;
+		}
+		case Fun::CheckEvalPerformanceIdentity:
+		{
+			//s_instance->checkEvalPerformanceIdentity();
+			break;
+		}
+		case Fun::CheckEvalPerformanceDoubleNot:
+		{
+			//s_instance->checkEvalPerformanceDoubleNot();
+			break;
+		}
+		case Fun::CheckEvalPerformanceNonContradiction:
+		{
+			//s_instance->checkEvalPerformanceNonContradiction();
 			break;
 		}
 		}
@@ -87,28 +184,74 @@ int Test::run()
 	catch (std::runtime_error& e)
 	{
 		std::cerr << "[ERROR] " << e.what() << std::endl;
-		std::cout << "Test: " + s_testToString[s_instance->fun()] + " [FAIL]" << std::endl;
+		if (s_instance->fun() == Fun::None)
+		{
+			std::cout << "Test: " + s_instance->name() + " [FAIL]" << std::endl;
+		}
+		else
+		{
+			std::cout << "Test: " + s_testToString[s_instance->fun()] + " [FAIL]" << std::endl;
+		}
 		std::cout << "****************************************************************************" << std::endl;
 		std::cout << "----------------------------------------------------------------------------" << std::endl;
 		std::cout << "****************************************************************************" << std::endl;
 		return -1;
 	}
 
-	std::cout << "Test: " + s_testToString[s_instance->fun()] + " [SUCCESS]" << std::endl;
+	if (s_instance->fun() == Fun::None)
+	{
+		std::cout << "Test: " + s_instance->name() + " [SUCCESS]" << std::endl;
+	}
+	else
+	{
+		std::cout << "Test: " + s_testToString[s_instance->fun()] + " [SUCCESS]" << std::endl;
+	}
 	std::cout << "****************************************************************************" << std::endl;
 	std::cout << "----------------------------------------------------------------------------" << std::endl;
 	std::cout << "****************************************************************************" << std::endl;
 	return 0;
 }
 
+void Test::_run()
+{
+	checkPerformance();
+}
+
 Test::~Test()
 {
-	waitForThreadToEnd();
+	if (m_thread)
+	{
+		if (m_thread->hasStarted())
+		{
+			m_thread->stop();
+		}
+		waitForThreadToEnd();
+	}	
 }
 
 Test::Fun Test::fun() const
 {
 	return m_fun;
+}
+
+Test::PlayerType Test::playerType() const
+{
+	return m_playerType;
+}
+
+std::string Test::name() const
+{
+	return m_name;
+}
+
+std::string Test::content() const
+{
+	return m_content;
+}
+
+double Test::timeout() const
+{
+	return m_timeout;
 }
 
 void Test::checkHumanIdentity()
@@ -174,52 +317,139 @@ void Test::checkHumanExcludedMiddle()
 	check(N_DarkLogic::DarkLogic::isDemonstrated(), "ExcludedMiddle theorem was not demonstrated");
 }
 
-void Test::checkPerformanceIdentity()
+/*void Test::checkPerformanceIdentity()
 {
-	checkPerformance("identity", "a<=>a", 1.5);
+	checkPerformance<AI>("identity", "a<=>a", 1.5);
 }
 
 void Test::checkPerformanceDoubleNot()
 {
-	checkPerformance("doubleNot", "a<=>!!a", 3.8); //normally 1.7 
+	checkPerformance<AI>("doubleNot", "a<=>!!a", 5.2); //normally 1.7 
 }
 
 void Test::checkPerformanceNonContradiction()
 {
-	checkPerformance("non-contradiction", "!(a&&!a)", 0.016);
+	checkPerformance<AI>("non-contradiction", "!(a&&!a)", 0.016);
 }
 
-void Test::checkPerformance(const std::string& thName, const std::string& thContent, double maxTime)
+void Test::checkEvalPerformanceIdentity()
+{
+	checkPerformance<EvalAI>("identity", "a<=>a", 0.2);
+}
+
+void Test::checkEvalPerformanceDoubleNot()
+{
+	checkPerformance<EvalAI>("doubleNot", "a<=>!!a", 2.0); //normally 1.7 
+}
+
+void Test::checkEvalPerformanceNonContradiction()
+{
+	checkPerformance<EvalAI>("non-contradiction", "!(a&&!a)", 0.016);
+}*/
+
+void Test::checkPerformance()
 {	
-	std::cout << "CheckPerformance Test on " + thName + " theorem : " << thContent << std::endl;
+	std::cout << "Check performance on " + m_name + " theorem : " << m_content << std::endl;
 		
 	auto nbThreads = std::thread::hardware_concurrency();
-	double realMaxTime = (maxTime * 1.15) * (4.0 / nbThreads);
+	double maxTime = (m_timeout) * (4.0 / nbThreads);
+	double realMaxTime = (maxTime > TIMEOUT_MIN)? maxTime : TIMEOUT_MIN;
+	
+	//Initialize AI environment
+	std::string aiName = "";
+	switch (m_playerType)
+	{
+	case PlayerType::None:
+	{
+		break;
+	}
+	case PlayerType::AI:
+	{
+		aiName = "BasicAI";
+		break;
+	}
+	case PlayerType::EvalAI:
+	{
+		aiName = "EvalAI";
+		break;
+	}
+	}
+	std::cout << "Test "+aiName+" on " + m_name + " theorem ("<<m_content<<") with " << nbThreads << " cores" << std::endl;
+	N_DarkLogic::DarkLogic::DarkLogic::init(nbThreads);
+	Test::check(N_DarkLogic::DarkLogic::makeTheorem(m_name, m_content), "cannot make " + m_name + " theorem");
 	
 	//start AI
-	m_thread = std::thread(Test::testDemonstration, thName, thContent, nbThreads);
-	std::chrono::high_resolution_clock::time_point start;
-	start = std::chrono::high_resolution_clock::now();	
+	std::chrono::high_resolution_clock::time_point start, end;
+	start = std::chrono::high_resolution_clock::now();
+	m_thread->start();
+		
 	std::cv_status status = std::cv_status::no_timeout;
 	while (!m_hasEvents && (status != std::cv_status::timeout))
 	{
-		status = m_condition_var.wait_until(m_lock, start + std::chrono::seconds(20));			
+		status = m_condition_var.wait_until(m_lock, start + std::chrono::seconds(static_cast<size_t>(realMaxTime)));			
+	}
+	if (status == std::cv_status::timeout)
+	{
+		m_thread->stop();
+	}
+
+	//waiting for thread to stop
+	while (!m_hasEvents)
+	{
+		m_condition_var.wait(m_lock);
 	}
 	if (m_eventQueue.size())
 	{
 		//Consuming event
 		m_eventQueue.pop();
 	}
-	m_hasEvents = false;	
+	m_hasEvents = false;
 
-	check(N_DarkLogic::DarkLogic::isDemonstrated(), thName + " cannot be demonstrated");
-	std::cout << "Demonstration duration: " << m_elapsed_seconds << std::endl;
-	std::stringstream ss;
-	ss << realMaxTime;
-	std::string maxTimeStr;
-	ss >> maxTimeStr;
-	check(m_elapsed_seconds < realMaxTime, "Demonstration of "+ thName +" theorem must be done in less than "
-		+maxTimeStr+" seconds");
+	end = std::chrono::high_resolution_clock::now();
+	double elapsed_seconds = std::chrono::duration<double>(end - start).count();
+
+	std::cout << "Timeout is " << maxTime << std::endl;
+	std::cout << "Attempt duration is " << elapsed_seconds << " seconds" << std::endl;
+	check(N_DarkLogic::DarkLogic::isDemonstrated(), m_name + " cannot be demonstrated");
+	check(elapsed_seconds < maxTime, "Timeout!!");
+
+	if (N_DarkLogic::DarkLogic::hasAlreadyPlayed())
+	{
+		if (N_DarkLogic::DarkLogic::isDemonstrated())
+		{
+			std::cout << aiName+" won! "+aiName+" finished the demonstration!" << std::endl;
+		}
+		else if (N_DarkLogic::DarkLogic::isAlreadyPlayed())
+		{
+			std::cout << aiName + " lost! Repetition of theorem!" << std::endl;
+		}
+		else if (N_DarkLogic::DarkLogic::isEvaluated())
+		{
+			std::cout << aiName + " lost! Cannot (\"back-\")demonstrate that a theorem is false with implications!" << std::endl;
+		}
+		else if (!N_DarkLogic::DarkLogic::canBeDemonstrated())
+		{
+			std::cout << aiName + " lost! This theorem cannot be demonstrated! "
+				"It can be true or false according to the values of its variables" << std::endl;
+		}
+		else
+		{
+			std::cout << aiName + " lost! "
+				"It could not find demonstration before timeout :/" << std::endl;
+		}
+	}
+	else
+	{
+		if (N_DarkLogic::DarkLogic::isDemonstrated())
+		{
+			std::cout << "Game Over! the demonstration is already finished!" << std::endl;
+		}
+		else
+		{
+			std::cout << "Game Over! This theorem cannot be demonstrated! "
+				"It can be true or false according to the values of its variables" << std::endl;
+		}
+	}
 
 	//clear Logic state
 	N_DarkLogic::DarkLogic::clearAll();
@@ -242,61 +472,13 @@ void Test::testApply(const std::string& actionStr)
 	std::cout << "__________________________________________________" << std::endl;
 }
 
-void Test::testDemonstration(const std::string& name, const std::string& content, unsigned int nbThreads)
-{	
-	std::cout << "Test AI on " + name + " theorem with " << nbThreads << " cores" << std::endl;
-	N_DarkLogic::DarkLogic::DarkLogic::init(nbThreads);
-	auto ai = std::make_unique<AI>(AI::DEEP, nbThreads, AI_TIMEOUT);
-	check(N_DarkLogic::DarkLogic::makeTheorem(name, content), "cannot make " + name + " theorem");
-	N_DarkLogic::DarkLogic::printTheorem();
-
-	std::chrono::high_resolution_clock::time_point start, end;
-	start = std::chrono::high_resolution_clock::now();
-	while (!N_DarkLogic::DarkLogic::isOver())
-	{
-		auto action = ai->play();
-		N_DarkLogic::DarkLogic::getActions();
-		std::cout << ai->name() << " plays action with id " << action->id() << std::endl;
-		N_DarkLogic::DarkLogic::apply(action->id());
-		N_DarkLogic::DarkLogic::printTheorem();
-		std::cout << "____________________________________________________________________________" << std::endl;
-	}
-	end = std::chrono::high_resolution_clock::now();
-
-	if (N_DarkLogic::DarkLogic::hasAlreadyPlayed())
-	{
-		if (N_DarkLogic::DarkLogic::isDemonstrated())
-		{
-			std::cout << ai->name() << " won! " << ai->name() << " finished the demonstration!" << std::endl;
-			s_instance->m_elapsed_seconds = std::chrono::duration<double>(end - start).count();
-		}
-		else if (N_DarkLogic::DarkLogic::isAlreadyPlayed())
-		{
-			std::cout << ai->name() << " lost! Repetition of theorem!" << std::endl;
-		}
-		else if (N_DarkLogic::DarkLogic::isEvaluated())
-		{
-			std::cout << ai->name() << " lost! Cannot (\"back-\")demonstrate that a theorem is false with implications!" << std::endl;
-		}
-		else /*if (!canBeDemonstrated())*/
-		{
-			std::cout << ai->name() << " lost! This theorem cannot be demonstrated! "
-				"It can be true or false according to the values of its variables" << std::endl;
-		}
-	}
-	else
-	{
-		if (N_DarkLogic::DarkLogic::isDemonstrated())
-		{
-			std::cout << "Game Over! the demonstration is already finished!" << std::endl;
-		}
-		else /*if (!canBeDemonstrated())*/
-		{
-			std::cout << "Game Over! This theorem cannot be demonstrated! "
-				"It can be true or false according to the values of its variables" << std::endl;
-		}
-	}
-	s_instance->pushEvent(Event::STOP);
+bool Test::hasEvents()
+{
+	bool ret = false;
+	m_mutex.lock();
+	ret = m_hasEvents;
+	m_mutex.unlock();
+	return ret;
 }
 
 void Test::pushEvent(Event::EventEnum type_)
@@ -308,10 +490,17 @@ void Test::pushEvent(Event::EventEnum type_)
 	m_condition_var.notify_all();
 }
 
+void Test::popEvent()
+{
+	m_mutex.lock();
+	m_eventQueue.pop();
+	m_mutex.unlock();
+}
+
 void Test::waitForThreadToEnd()
 {
-	if (m_thread.joinable())
+	if (m_thread->joinable())
 	{
-		m_thread.join();
+		m_thread->join();
 	}
 }

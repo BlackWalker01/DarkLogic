@@ -1,6 +1,6 @@
 #ifndef ENUMFUN_H
 #define ENUMFUN_H
-enum Fun
+enum class Fun
 {
     NONE,
     GET_ACTION,

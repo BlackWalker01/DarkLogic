@@ -717,7 +717,7 @@ void SubTheorem<Hyp<ASubTheorem>>::initEval()
                         return;
                     }
                 }
-                //general case (it is no use to do anything if subProp is true
+                //general case (it is no use to do anything if subProp is true)
                 else
                 {
                     hiddenValue = nullptr;
@@ -881,6 +881,13 @@ void SubTheorem<Hyp<ASubTheorem>>::initEval()
                             bool var = !configsDoneHash[config.first] || subProp->testEvaluate(compatibleConfig);
                             m_eval->pushEvalConfig(newConfig, var);
                         }
+                    }
+                }
+                else if (configsDone.size() == 0)
+                {
+                    for (const auto& config : configToDo)
+                    {
+                        m_eval->pushEvalConfig(config.first, config.second);
                     }
                 }
                 else

@@ -3,7 +3,7 @@
 class Event
 {
 public:
-	enum EventEnum
+	enum class EventEnum
 	{
 		START,
 		STOP,
