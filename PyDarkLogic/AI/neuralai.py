@@ -6,7 +6,8 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.python.lib.io import file_io
-from sklearn.utils import class_weight
+from keras import backend as K
+# from sklearn.utils import class_weight
 
 import random as rand
 from threading import Lock
@@ -22,8 +23,10 @@ class NeuralAI(AI):
     OpeStateSize = NbOperators + NbDiffOperators
     MaxDepth = 25
     MultExamples = 500
-    MaxGameBefLearning = 50
-    INIT_LR = 4 * 10 ** -6
+    MaxGameBefLearning = 100
+    # INIT_LR = 1 * 10 ** -3 """To optimize val_loss"""
+    INIT_LR = 1 * 10 ** -3
+    EARLY_STOPPING = 30
     ModelFile = "AI/deepAIModel"
     DbName = "Database/deepaiMemory.csv"
 
@@ -40,22 +43,32 @@ class NeuralAI(AI):
         self._storeNodes = []
         self._db = Database(NeuralAI.DbName)
         self._gamesSinceLastLearning = 0
-        if file_io.file_exists(NeuralAI.ModelFile):
+        self._lr = NeuralAI.INIT_LR
+        if modelExist():
             print("load DeepAI brain model")
             self._model = keras.models.load_model(NeuralAI.ModelFile)
+            self._lr = K.eval(self._model.optimizer.lr)
+            print(f"Found learning rate = {self._lr}")
+            # self._lr = self._lr * 5
+            # compileModel(self._model, self._lr)
+            self._train()
         else:
             # create model
             print("create new DeepAI brain model")
-            self._model = createModel(len(self._trueRuleStates) + 1)
-            compileModel(self._model, NeuralAI.INIT_LR)
+            # self._model = createModel(len(self._trueRuleStates) + 1)
+            self._model = createModel(1)
+            compileModel(self._model, self._lr)
             self._model.save(NeuralAI.ModelFile)
+            self._train()
         self._model = extractTestModel(self._model)
         self._modelMutex = Lock()
-        self._elo = 1076  # 1418
+        self._elo = 2187  # 1418
+        rand.seed()
         # self._train()
 
     def getTrueState(self, threadIdx):
-        return [makeTrueState(DarkLogic.getState(threadIdx))] + self._trueRuleStates
+        # return [makeTrueState(DarkLogic.getState(threadIdx))] + self._trueRuleStates
+        return [makeTrueState(DarkLogic.getState(threadIdx))]
 
     """def getTrueState(self):
         return [makeTrueState(DarkLogic.getState())] + self._trueRuleStates"""
@@ -74,7 +87,7 @@ class NeuralAI(AI):
         trueStates = np.array(trueStates)
         self._modelMutex.acquire()
         out = self._model.predict(trueStates, batch_size=len(trueStates), workers=multiprocessing.cpu_count(),
-                                  use_multiprocessing=True)
+                                  use_multiprocessing=True, verbose = 0)
         self._modelMutex.release()
         realOuts = eval(out)
         for node, realOut in zip(nodes, realOuts):
@@ -84,10 +97,13 @@ class NeuralAI(AI):
         self._crtNode.exploreDeep(dbNode.actions(), threadId)
 
     def _train(self):
-        x = []
-        y = []
+        x_train = []
+        x_test = []
+        y_train = []
+        y_test = []
         print("DeepAI is preparing for training...")
         # node.getTrainNodes(x, y)
+        self._db = Database(NeuralAI.DbName)
         dbStates = self._db.getDatas()
         nbExcludedTh = 0
         class_nb = {}
@@ -98,10 +114,10 @@ class NeuralAI(AI):
         remDbStates = list(dbStates.values())
         rand.shuffle(remDbStates)
         # NbMax = 200000
-        NbMax = 200000
+        NbMax = 0
         if NbMax < len(dbStates):
             NbMaxUnevaluatedThm = NbMax - self._db.nbEvaluatedThm() if NbMax > self._db.nbEvaluatedThm() else 0
-            NbMaxEvaluatedThm = NbMax - NbMaxUnevaluatedThm
+            NbMaxEvaluatedThm = self._db.nbEvaluatedThm()
         else:
             NbMaxUnevaluatedThm = len(dbStates) - self._db.nbEvaluatedThm()
             NbMaxEvaluatedThm = self._db.nbEvaluatedThm()
@@ -133,10 +149,17 @@ class NeuralAI(AI):
                 cl = dbState.value() if dbState.value() < NeuralAI.MaxDepth else NeuralAI.MaxDepth
                 class_nb[cl] += 1
                 l = list(range(len(self._trueRuleStates)))
-                rand.shuffle(l)
-                x.append([makeTrueState(state), l])
-                # y.append(nthColounmOfIdentiy(cl))
-                y.append(cl)
+                # rand.shuffle(l)
+                if dbState.isForTraining():
+                    # x_train.append([makeTrueState(state), l])
+                    x_train.append([makeTrueState(state)])
+                    # y_train.append(nthColounmOfIdentiy(cl))
+                    y_train.append(cl)
+                else:
+                    # x_test.append([makeTrueState(state), l])
+                    x_test.append([makeTrueState(state)])
+                    # y_test.append(nthColounmOfIdentiy(cl))
+                    y_test.append(cl)
                 NbEvaluated += 1
                 if NbUnevaluated == NbMaxUnevaluatedThm and NbEvaluated == NbMaxEvaluatedThm:
                     break
@@ -144,10 +167,17 @@ class NeuralAI(AI):
                 if NbUnevaluated == NbMaxUnevaluatedThm:
                     continue
                 l = list(range(len(self._trueRuleStates)))
-                rand.shuffle(l)
-                x.append([makeTrueState(state), l])
-                # y.append(createZeroTab(DeepAI.MaxDepth + 1))
-                y.append(-1)
+                # rand.shuffle(l)
+                if dbState.isForTraining():
+                    # x_train.append([makeTrueState(state), l])
+                    x_train.append([makeTrueState(state)])
+                    # y_train.append(createZeroTab(DeepAI.MaxDepth + 1))
+                    y_train.append(-1)
+                else:
+                    # x_test.append([makeTrueState(state), l])
+                    x_test.append([makeTrueState(state)])
+                    # y_test.append(createZeroTab(DeepAI.MaxDepth + 1))
+                    y_test.append(-1)
                 NbUnevaluated += 1
                 if NbUnevaluated == NbMaxUnevaluatedThm and NbEvaluated == NbMaxEvaluatedThm:
                     break
@@ -156,14 +186,17 @@ class NeuralAI(AI):
         print("Selected " + str(NbEvaluated) + " evaluated theorems")
 
         # if we keep some examples
-        if len(x):
+        if len(x_train):
             # check class_weight
-            class_nb[-1] = 1 / NbUnevaluated
-            print("Keep " + str(len(x)) + " examples")
+            if NbUnevaluated != 0:
+                class_nb[-1] = 1 / NbUnevaluated
+            NbExamples = len(x_train) + len(x_test)
+            print("Keep " + str(NbExamples) + " examples")
             class_weights = {}
             for val in class_nb:
                 nb_cl = class_nb[val]
-                if nb_cl >= len(x) - 1:
+                print(f"-> There is {nb_cl} elmts of class {val}")
+                if nb_cl >= NbExamples - 1:
                     print("[WARNING] Useless to train if almost all examples are from one class! Exit")
                     return
                 if nb_cl != 0:
@@ -171,30 +204,21 @@ class NeuralAI(AI):
                 else:
                     class_weights[val] = 0
 
-            # shuffle examples
-            print("shuffle " + str(len(x)) + " examples ...")
-            randList = list(range(len(x)))
+            """# shuffle examples
+            print("shuffle " + str(len(x_train)) + " examples ...")
+            randList = list(range(len(x_train)))
+            rand.shuffle(randList)
             newX = []
             newY = []
-            newValues = []
-            for pos in range(len(x)):
-                newX.append(x[pos])
-                newY.append(y[pos])
-            x = newX
-            y = newY
-            values = newValues
+            for pos in randList:
+                newX.append(x_train[pos])
+                newY.append(y_train[pos])
+            x_train = newX
+            y_train = newY"""
 
             # prepare for training
             batch_size = 100
-            nb_epochs = 1000
-            pos = int(0.9 * len(x))
-            # x = np.array(x)
-            # y = np.array(y)
-            values = np.array(values)
-            x_train = x[:pos]
-            x_test = x[pos:]
-            y_train = y[:pos]
-            y_test = y[pos:]
+            nb_epochs = 10000
             print("training on " + str(len(x_train)) + " examples")
             # earlyStop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=20, verbose=1)
             trainBatches_x = []
@@ -219,6 +243,9 @@ class NeuralAI(AI):
                 batch_y = []
 
             # prepare test batches
+            if len(x_test) == 0:
+                print("[ERROR] Database should contain validation examples, but there is only training examples! Leave training...")
+                return
             for k in range(len(x_test)):
                 batch_x.append(x_test[k])
                 batch_y.append(y_test[k])
@@ -234,27 +261,33 @@ class NeuralAI(AI):
                 batch_y = []
 
             # fit
-            lr = NeuralAI.INIT_LR
             minLoss = 10 ** 100
             lastDecLoss = 0  # last epoch since loss has decreased
             # init minValLoss
             print("Validation of current model")
-            if file_io.file_exists(NeuralAI.ModelFile):
+            if modelExist():
                 # load best model
                 print("load last model")
                 self._model = keras.models.load_model(NeuralAI.ModelFile)
-                compileModel(self._model, lr)
+                # compileModel(self._model, self._lr)
+                bestModel = self._model
+            else:
+                compileModel(self._model, self._lr)
+                bestModel = self._model
             print("__________________________________________________________________________")
-            crtMinValLoss, val_acc = validation(self._model, testBatches_x, testBatches_y,
+            crtMinValLoss, crtMaxValAcc = validation(self._model, testBatches_x, testBatches_y,
                                                 batch_size, class_weights, self._trueRuleStates, self._inputSize)
             print("VAL_LOSS = " + str(crtMinValLoss))
-            print("VAL_ACCURACY = " + str(val_acc))
+            print("VAL_ACCURACY = " + str(crtMaxValAcc))
             minValLoss = 10 ** 100
-            lastDecValLoss = 0  # last epoch since loss has decreased
+            maxValAcc = 0
+            lastValAcc = 0
+            lastDecValLoss = 0  # nb epochs since validation loss has decreased
+            lastIncValAcc = 0 # nb epochs since validation accuracy has increased
 
-            print("create new model")
+            """"print("create new model")
             self._model = createModel(len(self._trueRuleStates) + 1)
-            compileModel(self._model, lr)
+            compileModel(self._model, lr)"""
             for epoch in range(nb_epochs):
                 print("epoch n°" + str(epoch + 1) + "/" + str(nb_epochs))
                 # training...
@@ -275,7 +308,31 @@ class NeuralAI(AI):
                                                     batch_size, class_weights, self._trueRuleStates, self._inputSize)
                 print("VAL_LOSS = " + str(val_loss))
                 print("VAL_ACCURACY = " + str(val_accuracy))
-                if val_loss < minValLoss:
+                if val_accuracy > lastValAcc:
+                    print("VAL_ACC is increasing! :)")
+                    # maxValAcc = val_accuracy
+                    lastIncValAcc = 0
+                    """print("Save temporary model...")
+                    self._model.save("AI/tmpModel")"""
+                    if val_accuracy > crtMaxValAcc:
+                        print("Improvement compared to old model!!!")
+                        maxValAcc = val_accuracy
+                        crtMaxValAcc = maxValAcc
+                elif val_accuracy == lastValAcc:
+                    """print("Save temporary model...")
+                    self._model.save("AI/tmpModel")"""
+                    if lastIncValAcc > 0:
+                        lastIncValAcc += 1
+                        print(f"VAL_ACC is stable but has been decreasing for {lastIncValAcc} epochs! :/")
+                    else:
+                        lastIncValAcc = 0
+                        print(f"VAL_ACC is stable! :|")
+                else:
+                    lastIncValAcc += 1
+                    print(f"VAL_ACC has been decreasing for {lastIncValAcc} epochs! :(")
+                lastValAcc = val_accuracy
+
+                """if val_loss < minValLoss:
                     print("VAL_LOSS decreasing")
                     minValLoss = val_loss
                     lastDecValLoss = 0
@@ -284,27 +341,38 @@ class NeuralAI(AI):
                         crtMinValLoss = minValLoss
                 else:
                     print("VAL_LOSS increasing")
-                    lastDecValLoss += 1
+                    lastDecValLoss += 1"""
 
                 if lastDecLoss == 3:
-                    lr = lr / 10
-                    print("adapt learning rate: " + str(lr))
-                    compileModel(self._model, lr)
+                    self._lr = self._lr / 5
+                    print("adapt learning rate: " + str(self._lr))
+                    compileModel(self._model, self._lr)
                     lastDecLoss = 0
                     minLoss = loss  # keep latest loss for minimal loss
                     print("new current minimal loss: "+str(minLoss))
-                if lastDecValLoss == 10:
+                """if lastDecValLoss == NeuralAI.EARLY_STOPPING:
+                    print("Early-stopping!")
+                    break"""
+                if lastIncValAcc == NeuralAI.EARLY_STOPPING:
                     print("Early-stopping!")
                     break
 
-                if val_loss <= crtMinValLoss:
+                """if val_loss <= crtMinValLoss:
                     print("Save model")
                     self._model.save(NeuralAI.ModelFile)
+                    bestModel = self._model"""
+                if val_accuracy >= crtMaxValAcc:
+                    print("Save model")
+                    self._model.save(NeuralAI.ModelFile)
+                    bestModel = self._model
                 print("_______________________________________________________________________________________")
-            if file_io.file_exists(NeuralAI.ModelFile):
+            if modelExist():
                 # load best model
                 print("load best model")
                 self._model = keras.models.load_model(NeuralAI.ModelFile)
+                self._model = extractTestModel(self._model)
+            else:
+                self._model = bestModel
                 self._model = extractTestModel(self._model)
             print("_______________________________________________________________________________________")
 
@@ -324,6 +392,12 @@ class NeuralAI(AI):
                     node.setValue(val + k)
             self._db.export(self._storeNodes[0].getDbStates())
             if self._gamesSinceLastLearning == NeuralAI.MaxGameBefLearning:
+                if self._model.optimizer:
+                    self._lr = K.eval(self._model.optimizer.lr) * 5
+                    compileModel(self._model, self._lr)
+                else:
+                    self._lr = self._lr * 5
+                    print(f"[WARNING] Failed to get learning rate from model! Take learning rate = {self._lr}")
                 self._train()
                 self._gamesSinceLastLearning = 0
             self._storeNodes.clear()
@@ -342,7 +416,7 @@ class NeuralAI(AI):
         for k in range(mult):
             crtState = [trueState]
             l = list(range(len(self._trueRuleStates)))
-            rand.shuffle(l)
+            # rand.shuffle(l)
             for pos in l:
                 crtState.append(self._trueRuleStates[pos])
             x.append(crtState)
@@ -462,15 +536,16 @@ def createModel(inputSize):
 
     block_2_output = ResnetBlock(128, 1, first_block=True)(block_1_output)
 
-    # block_3_output = ResnetBlock(256, 2)(block_2_output)
+    block_3_output = ResnetBlock(256, 2)(block_2_output)
 
-    dense_input = layers.GlobalAveragePooling2D()(block_2_output)  # block_3_output
+    dense_input = layers.GlobalAveragePooling2D()(block_3_output)  # block_3_output
     dense_1 = layers.Dense(256, activation="relu")(dense_input)
     x = layers.Dropout(0.5)(dense_1)
+    x = dense_input
     dense_2 = layers.Dense(NeuralAI.MaxDepth + 1)(x)
     main_output = layers.Activation("softmax", name="main_output")(dense_2)
 
-    # reverse network
+    """# reverse network
     x = layers.Dense(256, activation="relu")(dense_2)
     output_0 = layers.subtract([x, dense_1], name="output_0")
 
@@ -479,11 +554,11 @@ def createModel(inputSize):
     output_1 = layers.subtract([x, dense_input], name="output_1")
 
     x = tf.keras.layers.Reshape((1, 1, 128))(x)
-    x = tf.keras.layers.UpSampling2D((16, 5))(x)
+    x = tf.keras.layers.UpSampling2D((16, 5))(x)"""
     """x = DeResnetBlock(64, 2)(x)
     output_2 = layers.subtract([x, block_2_output], name="output_2")"""
 
-    # x = tf.keras.layers.MaxPool2D((2, 2), strides=2)(x)
+    """"# x = tf.keras.layers.MaxPool2D((2, 2), strides=2)(x)
     x = DeResnetBlock(128, 1)(x)
     output_2 = layers.subtract([x, block_1_output], name="output_2")
 
@@ -492,13 +567,13 @@ def createModel(inputSize):
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.Conv2DTranspose(NeuralAI.OpeStateSize + 3, kernel_size=(2, 3),
                                         kernel_initializer="random_normal")(x)
-    output_3 = layers.subtract([x, norm], name="output_3")
+    output_3 = layers.subtract([x, norm], name="output_3")"""
 
     """model = keras.Model(inputs, outputs, name="deepai")
     opt = keras.optimizers.Adam(learning_rate=5 * 10 ** (-5))
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])"""
 
-    trainModel = keras.Model(inputs, [main_output, output_0, output_1, output_2, output_3], name="deepai_train")
+    trainModel = keras.Model(inputs, [main_output], name="deepai_train")
     """opt = keras.optimizers.Adam(learning_rate=1 * 10 ** (-5))
     trainModel.compile(loss=['categorical_crossentropy', 'mse'], loss_weights=[10, 10], optimizer=opt,
                        metrics=['accuracy'])"""
@@ -577,11 +652,19 @@ def nthColounmOfIdentiy(pos):
 def eval(outputs):
     ret = []
     for output in outputs:
+        # stocchastic mode
+        indices = []
+        idx = 0
+        for pred in output[:-1]:
+            idx += round(pred * 1000)
+            indices.append(idx)
+        indices.append(1000)
+        rndNb = rand.randrange(0, 1000)
         crtVal = 0
-        k = 0
-        for pred in output:
-            crtVal += pred * k
-            k += 1
+        for id in indices:
+            if rndNb < id:
+                break
+            crtVal += 1
         ret.append(round(crtVal))
     return ret
 
@@ -601,15 +684,16 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
         sample_weight = []
         for ex, cl in zip(crtBatch, trainBatches_y[numBatch]):
             state = [ex[0]]
-            l = ex[1]
+            """l = ex[1]
             for pos in l:
-                state.append(trueRuleStates[pos])
+                state.append(trueRuleStates[pos])"""
             batch.append(state)
             sample_weight.append(class_weights[cl])
             if cl >= 0:
                 out_1.append(nthColounmOfIdentiy(cl))
             else:
                 out_1.append(createZeroTab(NeuralAI.MaxDepth + 1))
+        sample_weight = np.array(sample_weight)
         batch = np.array(batch)
         out = [np.array(out_1)]
         for k in range(1, len(model.outputs)):
@@ -618,6 +702,8 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
             for i in range(1, len(output.shape)):
                 shape.append(output.shape[i])
             out.append(np.zeros(shape))
+        if len(out) == 1:
+            out = out[0]
         history = model.train_on_batch(batch, out, sample_weight=sample_weight)
         # print(history)
         # print(model.metrics_names)
@@ -627,7 +713,7 @@ def training(model, trainBatches_x, trainBatches_y, batch_size, class_weights, t
             output_losses[k] = (output_losses[k] * numBatch + history[k + 2] *
                                 (len(batch) / batch_size)) / (numBatch + 1)
         accuracy = (accuracy * numBatch + history[accIdx] * (len(batch) / batch_size)) / (numBatch + 1)
-        if numBatch % 30 == 29:
+        if numBatch % 200 == 199:
             print("batch n°" + str(numBatch + 1) + "/" + str(len(trainBatches_x)))
             print("loss = " + str(loss))
             print("main_output loss "+str(main_output_loss))
@@ -650,15 +736,16 @@ def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, t
         sample_weight = []
         for ex, cl in zip(crtBatch, testBatches_y[numBatch]):
             state = [ex[0]]
-            l = ex[1]
+            """l = ex[1]
             for pos in l:
-                state.append(trueRuleStates[pos])
+                state.append(trueRuleStates[pos])"""
             batch.append(state)
             sample_weight.append(class_weights[cl])
             if cl >= 0:
                 out_1.append(nthColounmOfIdentiy(cl))
             else:
                 out_1.append(createZeroTab(NeuralAI.MaxDepth + 1))
+        sample_weight = np.array(sample_weight)
         batch = np.array(batch)
         out = [np.array(out_1)]
         for k in range(1, len(model.outputs)):
@@ -667,12 +754,21 @@ def validation(model, testBatches_x, testBatches_y, batch_size, class_weights, t
             for i in range(1, len(output.shape)):
                 shape.append(output.shape[i])
             out.append(np.zeros(shape))
+        if len(out) == 1:
+            out = out[0]
+
+        """print("batch.shape = "+str(batch.shape))
+        for idx, o in enumerate(out):
+            print(f"out_{idx} has shape "+str(out[idx].shape))
+            print(out[idx])
+        print("sample_weight.shape = "+str(sample_weight.shape))
+        model.summary()"""
         history = model.test_on_batch(batch, out, sample_weight=sample_weight)
         # print(history)
         # print(model.metrics_names)
         val_loss = (val_loss * numBatch + history[0] * (len(batch) / batch_size)) / (numBatch + 1)
         val_accuracy = (val_accuracy * numBatch + history[accIdx] * (len(batch) / batch_size)) / (numBatch + 1)
-        if numBatch % 30 == 29:
+        if numBatch % 200 == 199:
             print("batch n°" + str(numBatch + 1) + "/" + str(len(testBatches_x)))
             print("val_loss = " + str(val_loss))
             print("val_accuracy = " + str(val_accuracy))
@@ -688,6 +784,11 @@ def createZeroTab(size):
 
 def compileModel(model, lr=0.001):
     opt = keras.optimizers.Adam(learning_rate=lr)
-    model.compile(loss=['categorical_crossentropy', 'mse', 'mse', 'mse', 'mse'],
-                  loss_weights=[5 * 10 ** -4, 10 ** -6, 10 ** -8, 10 ** -8, 10 ** -8], optimizer=opt,
+    # opt = keras.optimizers.SGD(learning_rate=lr)
+    print(f"Compile Model with learning rate = {lr}")
+    model.compile(loss=['categorical_crossentropy'],
+                  loss_weights=[5 * 10 ** -4], optimizer=opt,
                   metrics=['accuracy'])
+
+def modelExist():
+    return file_io.file_exists(NeuralAI.ModelFile)

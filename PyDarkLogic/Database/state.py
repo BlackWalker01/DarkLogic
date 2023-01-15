@@ -5,6 +5,7 @@ class State:
         self._value = None
         if "value" in kwargs:
             self._value = int(kwargs["value"])
+        self._isForTraining = None
 
     def theoremName(self):
         return self._theoremName
@@ -18,8 +19,13 @@ class State:
     def value(self):
         return self._value
 
+    def isForTraining(self):
+        return self._isForTraining
+
+    def setIsForTraining(self, isForTraining):
+        self._isForTraining = isForTraining
     def __str__(self):
-        return self._theoremContent + "," + self._theoremName + "," + (str(self._value) if self._value else "_")
+        return self._theoremContent + "," + self._theoremName + "," + (str(self._value) if self._value else "_")+","+self._isForTraining
 
 
 """

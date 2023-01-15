@@ -264,7 +264,8 @@ class Node:
                         break
 
             # evaluate nodes
-            Node._ai.evaluate(nodeList, states)
+            if len(states) != 0:
+                Node._ai.evaluate(nodeList, states)
 
     def exploreDepthDeep(self, nodeList, states):
         DarkLogic.apply(self._threadId, self._actionId)
