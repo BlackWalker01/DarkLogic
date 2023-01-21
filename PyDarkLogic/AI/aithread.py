@@ -37,7 +37,7 @@ class AIThread(Thread):
         self._mustStop = False
         self._mutexStop = Lock()
 
-        # handling eventss
+        # handling events
         self._hasEvents = False
         self._mutex = Lock()
         self._condition_var = Condition(self._mutex)
@@ -115,3 +115,6 @@ class AIThread(Thread):
         if not self.is_alive():
             self.start()
         self._pushEvent(0, Event.EventEnum.START)
+
+    def actions(self):
+        return self._crtActions.actions()

@@ -10,8 +10,8 @@ from MainDarkLogic.enumfun import EnumFun
 
 
 class AI(Player):
-    def __init__(self, maxInstanceIdx, secondTimeout, name="AI"):
-        super().__init__(name)
+    def __init__(self, logicGame, maxInstanceIdx, secondTimeout, name="AI"):
+        super().__init__(logicGame, name)
         self._secondTimeout = secondTimeout
         self._maxInstanceIdx = maxInstanceIdx
         self._masterThread = None
@@ -74,6 +74,9 @@ class AI(Player):
 
     def stopFromMasterThread(self):
         self._pushEvent(Event.EventEnum.STOP)
+
+    def setSecondTimeout(self, secondTimeout):
+        self._secondTimeout = secondTimeout
 
     def explore(self, dbNode, threadId):
         self._crtNode.exploreStatic(dbNode.actions(), threadId)

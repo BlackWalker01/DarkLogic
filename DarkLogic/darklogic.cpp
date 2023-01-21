@@ -50,6 +50,7 @@ PYBIND11_MODULE(DarkLogic, m)
 		.def("toStrTheorem", py::overload_cast<>(&DarkLogic::toStrTheorem))
 		.def("toStrTheorem", py::overload_cast<const size_t&>(&DarkLogic::toStrTheorem))
 		.def("toNormStrTheorem", py::overload_cast<>(&DarkLogic::toNormStrTheorem))
+		.def("nbTheorems", py::overload_cast<const size_t&>(&DarkLogic::nbTheorems))
 
 		.def("clearAll", &DarkLogic::clearAll)
 		.def("clear", py::overload_cast<>(&DarkLogic::clear))
@@ -308,4 +309,9 @@ bool N_DarkLogic::DarkLogic::hasAlreadyPlayed(const size_t& instanceIdx)
 bool N_DarkLogic::DarkLogic::canBeDemonstrated()
 {
 	return Logic::canBeDemonstrated();
+}
+
+size_t N_DarkLogic::DarkLogic::nbTheorems(const size_t& instanceIdx)
+{
+	return Logic::nbTheorems(instanceIdx);
 }

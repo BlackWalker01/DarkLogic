@@ -23,15 +23,15 @@ class NeuralAI(AI):
     OpeStateSize = NbOperators + NbDiffOperators
     MaxDepth = 25
     MultExamples = 500
-    MaxGameBefLearning = 100
+    MaxGameBefLearning = 300
     # INIT_LR = 1 * 10 ** -3 """To optimize val_loss"""
     INIT_LR = 1 * 10 ** -3
     EARLY_STOPPING = 30
     ModelFile = "AI/deepAIModel"
     DbName = "Database/deepaiMemory.csv"
 
-    def __init__(self, maxInstanceIdx, secondTimeout):
-        super().__init__(maxInstanceIdx, secondTimeout, name="NeuralAI")
+    def __init__(self, logicGame, maxInstanceIdx, secondTimeout):
+        super().__init__(logicGame, maxInstanceIdx, secondTimeout, name="NeuralAI")
         self._theoremName = ""
         self._theorem = ""
         # get Rule States

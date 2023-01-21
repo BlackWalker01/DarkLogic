@@ -12,6 +12,8 @@ class Node:
     VAL_MAX = 101
     VAL_INIT = VAL_MAX - 1
     INIT_SUBVALUE = 10 ** 6
+    NbNodesByThreads = {}
+    MAX_NODES = 0
 
     def __init__(self, **kwargs):
         # First Root node
@@ -24,6 +26,8 @@ class Node:
             self._actionId = kwargs["actionId"]
             self._threadId = kwargs["threadId"]
             self._depth = kwargs["depth"]
+            # add 1 node for the thread which created it
+            Node.NbNodesByThreads[self._threadId] += 1
         self._value = Node.VAL_INIT
         self._subValue = Node.INIT_SUBVALUE
         self._isEvaluated = False
@@ -102,6 +106,10 @@ class Node:
         else:
             self._subValue = Node._ai.eval([DarkLogic.getState(threadIdx)], threadIdx)
         self._isEvaluated = True
+
+        if Node.NbNodesByThreads[threadIdx] >= Node.MAX_NODES:
+            # stop reflexion because this thread is at its max capacity
+            Node._ai.stopThread(threadIdx)
 
         # unplay crt move
         DarkLogic.unapply(threadIdx)
@@ -217,6 +225,10 @@ class Node:
                     if self._subValue > node.subValue():
                         self._subValue = node.subValue()
 
+                if Node.NbNodesByThreads[self._threadId] >= Node.MAX_NODES:
+                    # stop reflexion because this thread is at its max capacity
+                    Node._ai.stopThread(self._threadId)
+
                 # if must stop exploration, stop it
                 if Node._ai.mustStop(self._threadId):
                     break
@@ -299,6 +311,12 @@ class Node:
         DarkLogic.unapply(self._threadId)
 
     def exploreEval(self, dbNode, threadId):
+        # initialize nbNodes for this thread
+        nbNodes = 0
+        for action in dbNode.actions():
+            nbNodes += self._sons[action].nbNode()
+        Node.NbNodesByThreads[threadId] = nbNodes
+
         while not Node._ai.mustStop(threadId):
             action = dbNode.getBestAction()
 
@@ -338,6 +356,7 @@ class Node:
                 if Node._ai.mustStop(self._threadId):
                     updateValue = False
                     break
+                # print(f"{Node.NbNodesByThreads[self._threadId]} nodes already for thread n°{self._threadId}")
             if updateValue:
                 if self._dbNode.size() == 0:
                     # all actions lead to loss
@@ -454,6 +473,11 @@ class Node:
                 states.append(Node._ai.getTrueState(self._threadId))
             else:
                 self._aiValue = Node.VAL_INIT
+
+        if Node.NbNodesByThreads[self._threadId] >= Node.MAX_NODES:
+            # stop reflexion because this thread is at its max capacity
+            Node._ai.stopThread(self._threadId)
+
         self._isEvaluated = True
 
         # unplay crt move

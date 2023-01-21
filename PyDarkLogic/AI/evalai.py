@@ -5,9 +5,9 @@ from MainDarkLogic.darklogic import DarkLogic
 class EvalAI(AI):
     NotOpe = 4
 
-    def __init__(self, maxInstanceIdx, secondTimeout):
-        super().__init__(maxInstanceIdx, secondTimeout, name="EvalAI")
-        self._elo = 2150
+    def __init__(self, logicGame, maxInstanceIdx, secondTimeout):
+        super().__init__(logicGame, maxInstanceIdx, secondTimeout, name="EvalAI")
+        self._elo = 2544
 
     def eval(self, states, threadId):
         state = states[0]

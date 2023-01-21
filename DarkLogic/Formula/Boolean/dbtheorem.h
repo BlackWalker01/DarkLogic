@@ -40,6 +40,7 @@ public:
 	ptr<Type> make_theorem_formula(LeftArg&& leftArg, RightArg&& rightArg);	
 
 	void clear();
+	size_t size() const;
 
 	~DbTheorem() = default;
 private:

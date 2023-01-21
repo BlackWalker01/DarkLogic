@@ -305,6 +305,11 @@ std::string N_DarkLogic::Logic::theoremName()
     return s_masterInstance->m_theoremName;
 }
 
+size_t N_DarkLogic::Logic::nbTheorems(const size_t& instanceIdx)
+{
+    return s_instances[instanceIdx]->m_theoremDb.size();
+}
+
 const std::vector<Action::Id>& N_DarkLogic::Logic::getActions()
 {
     return s_masterInstance->_getActions();

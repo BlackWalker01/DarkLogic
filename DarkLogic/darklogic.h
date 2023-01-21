@@ -71,6 +71,8 @@ namespace N_DarkLogic
 		static std::string toStrTheorem();
 		static std::string toNormStrTheorem();
 		static std::string toStrTheorem(const size_t& instanceIdx);
+		static size_t nbTheorems(const size_t& instanceIdx);
+
 
 		//clear methods when the demonstration is over
 		static void clearAll();
