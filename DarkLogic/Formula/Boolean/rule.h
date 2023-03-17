@@ -55,7 +55,7 @@ public:
 
     //reciprocity methods
     bool isSymetric() const override;
-    ptr<Rule> getTrueEquivalent() const;
+    ptr<Rule<Equivalent<ASubRule>>> getTrueEquivalent() const;
     std::vector<ptr<ASubRule>> getEquivalentRules() const override;
 
     //handle storage of actions
@@ -321,9 +321,9 @@ inline bool Rule<SubPropertyType>::isSymetric() const
 }
 
 template<SubRuleProperty SubPropertyType>
-inline ptr<Rule<SubPropertyType>> Rule<SubPropertyType>::getTrueEquivalent() const
+inline ptr<Rule<Equivalent<ASubRule>>> Rule<SubPropertyType>::getTrueEquivalent() const
 {
-    return std::make_shared<const Rule<SubPropertyType>>(name() + "_True",
+    return std::make_shared<const Rule<Equivalent<ASubRule>>>(name() + "_True",
         std::make_shared<const SubRule<ConstBoolean>>(true),
         std::make_shared<const SubRule<SubPropertyType>>((*this)[0],(*this)[1]) 
         );

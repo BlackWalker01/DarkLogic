@@ -67,9 +67,14 @@ void DbVarProp::insertHypAssoc(const IDVar& idHypVar, const ptr<ASubTheorem>& pr
     m_hypAssoc[idHypVar].push_back(prop);    
 }
 
-std::vector<ptr<ASubTheorem>> DbVarProp::getHypAssoc(const IDVar& idHypVar)
+const std::vector<ptr<ASubTheorem>>& DbVarProp::getHypAssoc(const IDVar& idHypVar) const
 {
-    return m_hypAssoc[idHypVar];
+    return m_hypAssoc.at(idHypVar);
+}
+
+bool DbVarProp::isHypAssocEmpty(const IDVar& idHypVar) const
+{
+    return m_hypAssoc.at(idHypVar).size() == 0;
 }
 
 bool DbVarProp::isTotallyIdentified() const

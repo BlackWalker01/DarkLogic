@@ -424,7 +424,11 @@ bool SubRule<Hyp<ASubRule>>::identifyPriv(const ptr<ASubTheorem>& prop, DbVarPro
         IDVar idHypVar=(*m_son)[0]->variableId();
         if (dbVarProp.containsHyp(idHypVar))
         {
-            return false;
+            if (!dbVarProp.isHypAssocEmpty(idHypVar))
+            {
+                return false;
+            }
+            return (*m_son)[1]->identifyPriv(prop, dbVarProp);
         }
         else
         {
@@ -498,7 +502,7 @@ ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyPriv(DbVarProp& dbVarProp) const
         if((*m_son)[k]->isHypProp())
         {
             IDVar idHypVar=(*m_son)[k]->variableId();
-            std::vector<ptr<ASubTheorem>> hypAssoc=dbVarProp.getHypAssoc(idHypVar);
+            const std::vector<ptr<ASubTheorem>>& hypAssoc=dbVarProp.getHypAssoc(idHypVar);
             for(size_t k=0;k<hypAssoc.size();k++)
             {
                 ret.push_back(hypAssoc[k]);
@@ -530,7 +534,7 @@ ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyPriv(DbVarProp& dbVarProp, const s
         if ((*m_son)[k]->isHypProp())
         {
             IDVar idHypVar = (*m_son)[k]->variableId();
-            std::vector<ptr<ASubTheorem>> hypAssoc = dbVarProp.getHypAssoc(idHypVar);
+            const std::vector<ptr<ASubTheorem>>& hypAssoc = dbVarProp.getHypAssoc(idHypVar);
             for (size_t k = 0; k < hypAssoc.size(); k++)
             {
                 ret.push_back(hypAssoc[k]);
@@ -599,7 +603,7 @@ ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp) co
         if((*m_son)[k]->isHypProp())
         {
             IDVar idHypVar=(*m_son)[k]->variableId();
-            std::vector<ptr<ASubTheorem>> hypAssoc=dbVarProp.getHypAssoc(idHypVar);
+            const std::vector<ptr<ASubTheorem>>& hypAssoc=dbVarProp.getHypAssoc(idHypVar);
             for(size_t k=0;k<hypAssoc.size();k++)
             {
                 ret.push_back(hypAssoc[k]);
@@ -631,7 +635,7 @@ ptr<ASubTheorem> SubRule<Hyp<ASubRule>>::applyFirstPriv(DbVarProp& dbVarProp, co
         if ((*m_son)[k]->isHypProp())
         {
             IDVar idHypVar = (*m_son)[k]->variableId();
-            std::vector<ptr<ASubTheorem>> hypAssoc = dbVarProp.getHypAssoc(idHypVar);
+            const std::vector<ptr<ASubTheorem>>& hypAssoc = dbVarProp.getHypAssoc(idHypVar);
             for (size_t k = 0; k < hypAssoc.size(); k++)
             {
                 ret.push_back(hypAssoc[k]);

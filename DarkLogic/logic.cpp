@@ -71,8 +71,7 @@ Logic::Logic(): m_theorem(nullptr), m_isLastRuleSymetric(true)
     insert(andEr);
     auto andCom = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("&&Com", "({HYP}p&&q)<=>({HYP}q&&p)"));
     insert(andCom);
-    /*auto doubleAnd = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("2&&", "({HYP}p)<=>({HYP}p&&p)"));
-    insert(doubleAnd);*/
+
 
     //OR Rules
     auto orI = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("||I", "(({HYP}p)||({HYP}q))<=>({HYP}p||q)"));
@@ -86,21 +85,20 @@ Logic::Logic(): m_theorem(nullptr), m_isLastRuleSymetric(true)
     insert(orE);
     auto orCom = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("||Com", "({HYP}p||q)<=>({HYP}q||p)"));
     insert(orCom);
-    /*auto doubleOr = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(createRule("2||", "({HYP}p)<=>({HYP}p||p)"));
-    insert(doubleOr);*/
+
 
     //IMPLICATION Rules
     auto implI = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("=>I", "({p,HYP}q)<=>({HYP}p=>q)"));
     insert(implI);
     auto implE = std::static_pointer_cast<const Rule<Implication<ASubRule>>>(Parser::createFormula<ASubRule>("=>E",
-        "(({HYP}p)&&({HYP}p=>q))=>({HYP}q)")); //complicated to use!
-    insert(implE);    
+        "(({HYP}p)&&({HYP}p=>q))=>({HYP}q)"));
+    insert(implE);
 
     //EQUIVALENT Rules
     auto eqI = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("<=>I",
         "({HYP}p=>q) && ({HYP}q=>p) <=>({HYP}p<=>q)"));
     insert(eqI);
-    auto eqCom = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("&&Com", "({HYP}p&&q)<=>({HYP}q&&p)"));
+    auto eqCom = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("<=>Com", "({HYP}p <=> {HYP}q)<=>({HYP}q <=> {HYP}p)"));
     insert(eqCom);
 
 

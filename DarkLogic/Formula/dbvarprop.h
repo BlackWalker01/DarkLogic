@@ -34,7 +34,8 @@ public:
     bool containsHyp(const IDVar& idHyp) const;
     const ptr<IISubTheoremFormula>& operator[](const IDVar& idVar) const;
     ptr<IISubTheoremFormula>& operator[](const IDVar& idVar);
-    std::vector<ptr<ASubTheorem> > getHypAssoc(const IDVar& idHypVar);
+    const std::vector<ptr<ASubTheorem> >& getHypAssoc(const IDVar& idHypVar) const;
+    bool isHypAssocEmpty(const IDVar& idHypVar) const;
 
     void insertHypEmpty(const IDVar& idHypVar);
     void insertHypAssoc(const IDVar& idHypVar, const ptr<ASubTheorem>& prop);
