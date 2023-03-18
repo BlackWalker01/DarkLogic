@@ -37,7 +37,7 @@ LogicGame::LogicGame(const std::unordered_map<ConfigType, std::string>& config):
 
 void LogicGame::start()
 {
-    std::cout << "Welcome in LogicGame (v1.3.0)!" << std::endl;
+    std::cout << "Welcome in LogicGame "<<N_DarkLogic::DarkLogic::version()<<"!" << std::endl;
     
     //create player and init logic
     askPlayer();

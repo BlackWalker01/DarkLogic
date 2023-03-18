@@ -100,7 +100,7 @@ class LogicGame:
         self._condition_var = Condition(self._mutex)
 
     def start(self):
-        print("Welcome in LogicGame (v1.3.0)!")
+        print("Welcome in LogicGame "+DarkLogic.version()+"!")
 
         # create player and init Logic
         self._askPlayer()

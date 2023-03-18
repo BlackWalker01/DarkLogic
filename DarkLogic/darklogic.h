@@ -78,6 +78,14 @@ namespace N_DarkLogic
 		static void clearAll();
 		static void clear();
 		static void clear(const size_t& instanceIdx);
+
+		//version
+		static std::string version();
+
+	private:
+		static const unsigned int s_maj;
+		static const unsigned int s_mid;
+		static const unsigned int s_min;
 	};
 }
 

@@ -239,3 +239,6 @@ def clear(*args, **kwargs):
     2. clear(self: int) -> None
     """
     return DarkLogic.clear(*args, **kwargs)
+
+def version():
+    return DarkLogic.version()
