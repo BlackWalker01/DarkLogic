@@ -30,7 +30,7 @@ class NeuralAI(AI):
     ModelFile = "AI/deepAIModel"
     DbName = "Database/deepaiMemory.csv"
 
-    def __init__(self, logicGame, maxInstanceIdx, secondTimeout):
+    def __init__(self, logicGame, maxInstanceIdx, secondTimeout, isDeterminist=True):
         super().__init__(logicGame, maxInstanceIdx, secondTimeout, name="NeuralAI")
         self._theoremName = ""
         self._theorem = ""
@@ -44,6 +44,7 @@ class NeuralAI(AI):
         self._db = Database(NeuralAI.DbName)
         self._gamesSinceLastLearning = 0
         self._lr = NeuralAI.INIT_LR
+        self._isDeterminist = isDeterminist
         if modelExist():
             print("load DeepAI brain model")
             self._model = keras.models.load_model(NeuralAI.ModelFile)
@@ -61,6 +62,9 @@ class NeuralAI(AI):
             self._model.save(NeuralAI.ModelFile)
             self._train()
         self._model = extractTestModel(self._model)
+        """self._models = []
+        for k in range(maxInstanceIdx):
+            self._models.append(keras.models.load_model(NeuralAI.ModelFile))"""
         self._modelMutex = Lock()
         self._elo = 2187  # 1418
         rand.seed()
@@ -85,11 +89,12 @@ class NeuralAI(AI):
     def evaluate(self, nodes, trueStates):
         # evaluate states
         trueStates = np.array(trueStates)
+        # instanceIdx = nodes[0].threadId()
         self._modelMutex.acquire()
         out = self._model.predict(trueStates, batch_size=len(trueStates), workers=multiprocessing.cpu_count(),
                                   use_multiprocessing=True, verbose = 0)
         self._modelMutex.release()
-        realOuts = eval(out)
+        realOuts = eval(out, self._isDeterminist)
         for node, realOut in zip(nodes, realOuts):
             node.setAIValue(realOut)
 
@@ -649,23 +654,33 @@ def nthColounmOfIdentiy(pos):
     return ret
 
 
-def eval(outputs):
+def eval(outputs, isDeterminist):
     ret = []
-    for output in outputs:
+    if isDeterminist:
+        for output in outputs:
+            maxVal = 0
+            maxIdx =0
+            for idx, out in enumerate(output):
+                if out > maxVal:
+                    maxVal = out
+                    maxIdx = idx
+            ret.append(maxIdx)
+    else:
         # stocchastic mode
-        indices = []
-        idx = 0
-        for pred in output[:-1]:
-            idx += round(pred * 1000)
-            indices.append(idx)
-        indices.append(1000)
-        rndNb = rand.randrange(0, 1000)
-        crtVal = 0
-        for id in indices:
-            if rndNb < id:
-                break
-            crtVal += 1
-        ret.append(round(crtVal))
+        for output in outputs:
+            indices = []
+            idx = 0
+            for pred in output[:-1]:
+                idx += round(pred * 1000)
+                indices.append(idx)
+            indices.append(1000)
+            rndNb = rand.randrange(0, 1000)
+            crtVal = 0
+            for id in indices:
+                if rndNb < id:
+                    break
+                crtVal += 1
+            ret.append(round(crtVal))
     return ret
 
 

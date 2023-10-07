@@ -154,7 +154,7 @@ class LogicGame:
         # nbInstances = multiprocessing.cpu_count()
         nbInstances = 1
         DarkLogic.init(nbInstances)
-        self._player = NeuralAI(self, nbInstances, LogicGame._AI_TIMEOUT)
+        self._player = NeuralAI(self, nbInstances, LogicGame._AI_TIMEOUT, isDeterminist = True)
 
     def _createTheorem(self):
         # ask user to create theorem
@@ -275,17 +275,20 @@ class LogicGame:
             elif hasTimedout:
                 print(self._player.name() + " lost! Time out!")
 
-            # update player's elo
-            W = 1 if hasWon else 0
-            exElo = self._player.elo()
-            newElo = round(exElo + 30 * (W - 1 / (1 + 10 ** ((self._eloThm - exElo) / 400))))
-            self._player.setElo(newElo)
         else:
             if DarkLogic.isDemonstrated():
                 print("The demonstration is already finished!")
             elif not DarkLogic.canBeDemonstrated():
                 print("This theorem cannot be demonstrated! " +
                       "It can be true or false according to the values of its variables")
+            elif hasTimedout:
+                print(self._player.name() + " lost! Time out!")
+
+        # update player's elo
+        W = 1 if hasWon else 0
+        exElo = self._player.elo()
+        newElo = round(exElo + 30 * (W - 1 / (1 + 10 ** ((self._eloThm - exElo) / 400))))
+        self._player.setElo(newElo)
 
         # clear Logic State
         DarkLogic.clearAll()
