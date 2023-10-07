@@ -41,6 +41,9 @@ public:
     void insertHypAssoc(const IDVar& idHypVar, const ptr<ASubTheorem>& prop);
 
     bool isTotallyIdentified() const;
+    bool applyDefaultPolicy();
+    bool applyTruePolicy();
+    bool applyTruePolicy(const size_t& logicIdx);
     static bool isHypVariable(const ptr<AVariable>& var);
 
     void clear();

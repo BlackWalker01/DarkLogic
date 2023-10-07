@@ -43,6 +43,12 @@ public:
         CONST_PROP
     };
 
+    enum Policy
+    {
+        DEFAULT,
+        TRUE
+    };
+
     IProposition() = default;
 
     virtual constexpr PropType type() const=0;

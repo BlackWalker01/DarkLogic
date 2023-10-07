@@ -114,9 +114,32 @@ std::vector<Action::Id> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem>
             auto crtPath = path;
             if (identify(prop, path, dbVarProp))
             {
-                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                ret.push_back(lastActionIndex);
-                lastActionIndex++;
+                if (dbVarProp.isTotallyIdentified())
+                {
+                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                    ret.push_back(lastActionIndex);
+                    lastActionIndex++;
+                }
+                else
+                {
+                    auto firstIdent = dbVarProp;
+
+                    //check default policy
+                    if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
+                    {
+                        (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                        ret.push_back(lastActionIndex);
+                        lastActionIndex++;
+                    }
+                    dbVarProp = firstIdent;
+
+                    //add true policy
+                    dbVarProp.applyTruePolicy();
+                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                    ret.push_back(lastActionIndex);
+                    lastActionIndex++;
+                    dbVarProp = firstIdent;
+                }
             }
         }
     }
@@ -128,9 +151,32 @@ std::vector<Action::Id> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem>
             auto crtPath = path;
             if (identify(prop, path, dbVarProp))
             {
-                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                ret.push_back(lastActionIndex);
-                lastActionIndex++;
+                if (dbVarProp.isTotallyIdentified())
+                {
+                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                    ret.push_back(lastActionIndex);
+                    lastActionIndex++;
+                }
+                else
+                {
+                    auto firstIdent = dbVarProp;
+
+                    //check default policy
+                    if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
+                    {
+                        (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                        ret.push_back(lastActionIndex);
+                        lastActionIndex++;
+                    }
+                    dbVarProp = firstIdent;
+
+                    //add true policy
+                    dbVarProp.applyTruePolicy();
+                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                    ret.push_back(lastActionIndex);
+                    lastActionIndex++;
+                    dbVarProp = firstIdent;
+                }
             }
         }
     }
@@ -155,9 +201,32 @@ inline std::vector<Action::Id> Rule<SubPropertyType>::getActions(const ptr<ASubT
             auto crtPath = path;
             if (identify(prop, path, dbVarProp))
             {
-                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
-                ret.push_back(lastActionIndex);
-                lastActionIndex++;
+                if (dbVarProp.isTotallyIdentified())
+                {
+                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
+                    ret.push_back(lastActionIndex);
+                    lastActionIndex++;
+                }
+                else
+                {
+                    auto firstIdent = dbVarProp;
+
+                    //check default policy
+                    if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
+                    {
+                        (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
+                        ret.push_back(lastActionIndex);
+                        lastActionIndex++;
+                    }
+                    dbVarProp = firstIdent;
+
+                    //add true policy
+                    dbVarProp.applyTruePolicy(logicIdx);
+                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
+                    ret.push_back(lastActionIndex);
+                    lastActionIndex++;
+                    dbVarProp = firstIdent;
+                }
             }
         }
     }
@@ -169,9 +238,32 @@ inline std::vector<Action::Id> Rule<SubPropertyType>::getActions(const ptr<ASubT
             auto crtPath = path;
             if (identify(prop, path, dbVarProp))
             {
-                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
-                ret.push_back(lastActionIndex);
-                lastActionIndex++;
+                if (dbVarProp.isTotallyIdentified())
+                {
+                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
+                    ret.push_back(lastActionIndex);
+                    lastActionIndex++;
+                }
+                else
+                {
+                    auto firstIdent = dbVarProp;
+
+                    //check default policy
+                    if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
+                    {
+                        (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
+                        ret.push_back(lastActionIndex);
+                        lastActionIndex++;
+                    }
+                    dbVarProp = firstIdent;
+
+                    //add true policy
+                    dbVarProp.applyTruePolicy(logicIdx);
+                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
+                    ret.push_back(lastActionIndex);
+                    lastActionIndex++;
+                    dbVarProp = firstIdent;
+                }
             }
         }
     }
@@ -196,9 +288,32 @@ std::vector<Action> Rule<SubPropertyType>::getHumanActions(const ptr<ASubTheorem
             auto crtPath = path;
             if (identify(prop, path, dbVarProp))
             {
-                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
-                lastActionIndex++;
+                if (dbVarProp.isTotallyIdentified())
+                {
+                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                    ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
+                    lastActionIndex++;
+                }
+                else
+                {
+                    auto firstIdent = dbVarProp;
+
+                    //check default policy
+                    if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
+                    {
+                        (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                        ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
+                        lastActionIndex++;
+                    }
+                    dbVarProp = firstIdent;
+
+                    //add true policy
+                    dbVarProp.applyTruePolicy();
+                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                    ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
+                    lastActionIndex++;
+                    dbVarProp = firstIdent;
+                }
             }
         }
     }
@@ -210,9 +325,32 @@ std::vector<Action> Rule<SubPropertyType>::getHumanActions(const ptr<ASubTheorem
             auto crtPath = path;
             if (identify(prop, path, dbVarProp))
             {
-                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
-                lastActionIndex++;
+                if (dbVarProp.isTotallyIdentified())
+                {
+                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                    ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
+                    lastActionIndex++;
+                }
+                else
+                {
+                    auto firstIdent = dbVarProp;
+
+                    //check default policy
+                    if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
+                    {
+                        (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                        ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
+                        lastActionIndex++;
+                    }
+                    dbVarProp = firstIdent;
+
+                    //add true policy
+                    dbVarProp.applyTruePolicy();
+                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                    ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
+                    lastActionIndex++;
+                    dbVarProp = firstIdent;
+                }
             }
         }
     }
@@ -388,14 +526,8 @@ bool Rule<SubPropertyType>::identify(const ptr<ASubTheorem> &prop, const std::ve
             }
         }
     }
-    if(impl->identifyPriv(std::static_pointer_cast<const ASubTheorem>(propToIdentify),dbVarProp))
-    {
-        return dbVarProp.isTotallyIdentified();
-    }
-    else
-    {
-        return false;
-    }
+
+    return (impl->identifyPriv(std::static_pointer_cast<const ASubTheorem>(propToIdentify), dbVarProp));
 }
 
 template<SubRuleProperty SubPropertyType>
