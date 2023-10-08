@@ -6,7 +6,6 @@ int main(int argc, char** argv)
 {
     //parse arguments
     std::string type = "game";
-    bool isAuto = false;
     std::string argName = "";
     bool isArgName = false;
     std::unordered_map<std::string, bool> strToBool = { {"false", false}, {"False", false}, {"FALSE", false}, 

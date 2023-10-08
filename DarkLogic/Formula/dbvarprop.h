@@ -44,6 +44,10 @@ public:
     bool applyDefaultPolicy();
     bool applyTruePolicy();
     bool applyTruePolicy(const size_t& logicIdx);
+    bool applyFalsePolicy();
+    bool applyFalsePolicy(const size_t& logicIdx);
+    bool applyVarPolicy(const ptr<Boolean>& varBool);
+    bool applyVarPolicy(const ptr<Boolean>& varBool, const size_t& logicIdx);
     static bool isHypVariable(const ptr<AVariable>& var);
 
     void clear();

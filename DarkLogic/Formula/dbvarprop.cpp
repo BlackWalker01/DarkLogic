@@ -16,6 +16,7 @@
 #include "Variable/avariable.h"
 #include "Variable/Boolean/constboolean.h"
 #include "Boolean/ConstBoolean/theoremconstboolean.h"
+#include "Boolean/Boolean/theoremboolean.h"
 #include "logic.h"
 
 using namespace N_DarkLogic;
@@ -170,6 +171,66 @@ bool N_DarkLogic::DbVarProp::applyTruePolicy(const size_t& logicIdx)
         if (!(it->second))
         {
             m_db[it->first] = Logic::make_theorem_formula<Theorem<ConstBoolean>>(logicIdx, true);
+        }
+    }
+    return true;
+}
+
+bool N_DarkLogic::DbVarProp::applyFalsePolicy()
+{
+    /*
+    * Add a policy to associate an unidentified variable to false subtheorem
+    */
+    for (auto it = m_db.begin(); it != m_db.end(); it++)
+    {
+        if (!(it->second))
+        {
+            m_db[it->first] = Logic::make_theorem_formula<SubTheorem<ConstBoolean>>(false);
+        }
+    }
+    return true;
+}
+
+bool N_DarkLogic::DbVarProp::applyFalsePolicy(const size_t& logicIdx)
+{
+    /*
+    * Add a policy to associate an unidentified variable to false subtheorem
+    */
+    for (auto it = m_db.begin(); it != m_db.end(); it++)
+    {
+        if (!(it->second))
+        {
+            m_db[it->first] = Logic::make_theorem_formula<SubTheorem<ConstBoolean>>(logicIdx, false);
+        }
+    }
+    return true;
+}
+
+bool N_DarkLogic::DbVarProp::applyVarPolicy(const ptr<Boolean>& varBool)
+{
+    /*
+    * Add a policy to associate an unidentified variable to varBool subtheorem
+    */
+    for (auto it = m_db.begin(); it != m_db.end(); it++)
+    {
+        if (!(it->second))
+        {
+            m_db[it->first] = Logic::make_theorem_formula<SubTheorem<Boolean>>(std::make_shared<Boolean>(varBool->toString()));
+        }
+    }
+    return true;
+}
+
+bool N_DarkLogic::DbVarProp::applyVarPolicy(const ptr<Boolean>& varBool, const size_t& logicIdx)
+{
+    /*
+    * Add a policy to associate an unidentified variable to varBool subtheorem
+    */
+    for (auto it = m_db.begin(); it != m_db.end(); it++)
+    {
+        if (!(it->second))
+        {
+            m_db[it->first] = Logic::make_theorem_formula<SubTheorem<Boolean>>(logicIdx, std::make_shared<Boolean>(varBool->toString()));
         }
     }
     return true;

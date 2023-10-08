@@ -71,6 +71,10 @@ Logic::Logic(): m_theorem(nullptr), m_isLastRuleSymetric(true)
     insert(andEr);
     auto andCom = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("&&Com", "({HYP}p&&q)<=>({HYP}q&&p)"));
     insert(andCom);
+    auto andTrue = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("&&True", "({HYP}p&&True)<=>({HYP}p)"));
+    insert(andTrue);
+    auto andFalse = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("&&False", "({HYP}p&&False)<=>False"));
+    insert(andFalse);
 
 
     //OR Rules
@@ -85,6 +89,10 @@ Logic::Logic(): m_theorem(nullptr), m_isLastRuleSymetric(true)
     insert(orE);
     auto orCom = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("||Com", "({HYP}p||q)<=>({HYP}q||p)"));
     insert(orCom);
+    auto orFalse = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("||False", "({HYP}p||False)<=>({HYP}p)"));
+    insert(orFalse);
+    auto orTrue = std::static_pointer_cast<const Rule<Equivalent<ASubRule>>>(Parser::createFormula<ASubRule>("||True", "({HYP}p||True)<=>True"));
+    insert(orTrue);
 
 
     //IMPLICATION Rules

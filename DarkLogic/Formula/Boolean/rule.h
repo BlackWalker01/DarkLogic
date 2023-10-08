@@ -106,78 +106,54 @@ std::vector<Action::Id> Rule<SubPropertyType>::getActions(const ptr<ASubTheorem>
     clearIdentifications();
 
     //get all possible paths from prop
-    if constexpr (std::is_same_v<SubPropertyType, Equivalent<ASubRule>>)
+    const auto& paths = std::is_same_v<SubPropertyType, Equivalent<ASubRule>> ? prop->getAllPaths() : prop->getImplPaths();
+    for (const auto& path : paths)
     {
-        for (const auto& path : prop->getAllPaths())
+        auto dbVarProp = m_basicIdentifications;
+        auto crtPath = path;
+        if (identify(prop, path, dbVarProp))
         {
-            auto dbVarProp = m_basicIdentifications;
-            auto crtPath = path;
-            if (identify(prop, path, dbVarProp))
+            if (dbVarProp.isTotallyIdentified())
             {
-                if (dbVarProp.isTotallyIdentified())
-                {
-                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                    ret.push_back(lastActionIndex);
-                    lastActionIndex++;
-                }
-                else
-                {
-                    auto firstIdent = dbVarProp;
-
-                    //check default policy
-                    if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
-                    {
-                        (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                        ret.push_back(lastActionIndex);
-                        lastActionIndex++;
-                    }
-                    dbVarProp = firstIdent;
-
-                    //add true policy
-                    dbVarProp.applyTruePolicy();
-                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                    ret.push_back(lastActionIndex);
-                    lastActionIndex++;
-                    dbVarProp = firstIdent;
-                }
+                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                ret.push_back(lastActionIndex);
+                lastActionIndex++;
             }
-        }
-    }
-    else
-    {
-        for (const auto& path : prop->getImplPaths())
-        {
-            auto dbVarProp = m_basicIdentifications;
-            auto crtPath = path;
-            if (identify(prop, path, dbVarProp))
+            /*else
             {
-                if (dbVarProp.isTotallyIdentified())
+                auto firstIdent = dbVarProp;
+
+                //check default policy
+                if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
                 {
                     (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
                     ret.push_back(lastActionIndex);
                     lastActionIndex++;
                 }
-                else
+                dbVarProp = firstIdent;
+
+                //add true policy
+                dbVarProp.applyTruePolicy();
+                auto newThm = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                if (!newThm->isEvaluated())
                 {
-                    auto firstIdent = dbVarProp;
-
-                    //check default policy
-                    if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
-                    {
-                        (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                        ret.push_back(lastActionIndex);
-                        lastActionIndex++;
-                    }
-                    dbVarProp = firstIdent;
-
-                    //add true policy
-                    dbVarProp.applyTruePolicy();
-                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                    (**m_crtActions)[lastActionIndex] = newThm;
                     ret.push_back(lastActionIndex);
                     lastActionIndex++;
-                    dbVarProp = firstIdent;
                 }
-            }
+                dbVarProp = firstIdent;
+
+                //add false policy
+                dbVarProp.applyFalsePolicy();
+                newThm = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                if (!newThm->isEvaluated())
+                {
+                    (**m_crtActions)[lastActionIndex] = newThm;
+                    ret.push_back(lastActionIndex);
+                    lastActionIndex++;
+                }
+                dbVarProp = firstIdent;
+            }*/
         }
     }
 
@@ -193,78 +169,54 @@ inline std::vector<Action::Id> Rule<SubPropertyType>::getActions(const ptr<ASubT
     clearIdentifications();
 
     //get all possible paths from prop
-    if constexpr (std::is_same_v<SubPropertyType, Equivalent<ASubRule>>)
+    const auto& paths = std::is_same_v<SubPropertyType, Equivalent<ASubRule>> ? prop->getAllPaths() : prop->getImplPaths();
+    for (const auto& path : paths)
     {
-        for (const auto& path : prop->getAllPaths())
+        auto dbVarProp = m_basicIdentifications;
+        auto crtPath = path;
+        if (identify(prop, path, dbVarProp))
         {
-            auto dbVarProp = m_basicIdentifications;
-            auto crtPath = path;
-            if (identify(prop, path, dbVarProp))
+            if (dbVarProp.isTotallyIdentified())
             {
-                if (dbVarProp.isTotallyIdentified())
-                {
-                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
-                    ret.push_back(lastActionIndex);
-                    lastActionIndex++;
-                }
-                else
-                {
-                    auto firstIdent = dbVarProp;
-
-                    //check default policy
-                    if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
-                    {
-                        (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
-                        ret.push_back(lastActionIndex);
-                        lastActionIndex++;
-                    }
-                    dbVarProp = firstIdent;
-
-                    //add true policy
-                    dbVarProp.applyTruePolicy(logicIdx);
-                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
-                    ret.push_back(lastActionIndex);
-                    lastActionIndex++;
-                    dbVarProp = firstIdent;
-                }
+                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
+                ret.push_back(lastActionIndex);
+                lastActionIndex++;
             }
-        }
-    }
-    else
-    {
-        for (const auto& path : prop->getImplPaths())
-        {
-            auto dbVarProp = m_basicIdentifications;
-            auto crtPath = path;
-            if (identify(prop, path, dbVarProp))
+            /*else
             {
-                if (dbVarProp.isTotallyIdentified())
+                auto firstIdent = dbVarProp;
+
+                //check default policy
+                if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
                 {
                     (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
                     ret.push_back(lastActionIndex);
                     lastActionIndex++;
                 }
-                else
+                dbVarProp = firstIdent;
+
+                //add true policy
+                dbVarProp.applyTruePolicy(logicIdx);
+                auto newThm = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
+                if (!newThm->isEvaluated())
                 {
-                    auto firstIdent = dbVarProp;
-
-                    //check default policy
-                    if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
-                    {
-                        (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
-                        ret.push_back(lastActionIndex);
-                        lastActionIndex++;
-                    }
-                    dbVarProp = firstIdent;
-
-                    //add true policy
-                    dbVarProp.applyTruePolicy(logicIdx);
-                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
+                    (**m_crtActions)[lastActionIndex] = newThm;
                     ret.push_back(lastActionIndex);
                     lastActionIndex++;
-                    dbVarProp = firstIdent;
                 }
-            }
+                dbVarProp = firstIdent;
+
+                //add false policy
+                dbVarProp.applyFalsePolicy(logicIdx);
+                newThm = apply(lastActionIndex, prop, dbVarProp, crtPath, logicIdx);
+                if (!newThm->isEvaluated())
+                {
+                    (**m_crtActions)[lastActionIndex] = newThm;
+                    ret.push_back(lastActionIndex);
+                    lastActionIndex++;
+                }
+                dbVarProp = firstIdent;
+            }*/
         }
     }
 
@@ -280,76 +232,73 @@ std::vector<Action> Rule<SubPropertyType>::getHumanActions(const ptr<ASubTheorem
     clearIdentifications();
 
     //get all possible paths from prop
-    if constexpr (std::is_same_v<SubPropertyType, Equivalent<ASubRule>>)
+    const auto& paths = std::is_same_v<SubPropertyType, Equivalent<ASubRule>> ? prop->getAllPaths() : prop->getImplPaths();
+    for (const auto& path : paths)
     {
-        for (const auto& path : prop->getAllPaths())
+        auto dbVarProp = m_basicIdentifications;
+        auto crtPath = path;
+        if (identify(prop, path, dbVarProp))
         {
-            auto dbVarProp = m_basicIdentifications;
-            auto crtPath = path;
-            if (identify(prop, path, dbVarProp))
+            if (dbVarProp.isTotallyIdentified())
             {
-                if (dbVarProp.isTotallyIdentified())
-                {
-                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                    ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
-                    lastActionIndex++;
-                }
-                else
-                {
-                    auto firstIdent = dbVarProp;
-
-                    //check default policy
-                    if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
-                    {
-                        (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                        ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
-                        lastActionIndex++;
-                    }
-                    dbVarProp = firstIdent;
-
-                    //add true policy
-                    dbVarProp.applyTruePolicy();
-                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                    ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
-                    lastActionIndex++;
-                    dbVarProp = firstIdent;
-                }
+                (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
+                lastActionIndex++;
             }
-        }
-    }
-    else
-    {
-        for (const auto& path : prop->getImplPaths())
-        {
-            auto dbVarProp = m_basicIdentifications;
-            auto crtPath = path;
-            if (identify(prop, path, dbVarProp))
+            else
             {
-                if (dbVarProp.isTotallyIdentified())
+                auto firstIdent = dbVarProp;
+                crtPath = path;
+
+                //check default policy
+                if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
                 {
                     (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                    ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
+                    ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path, "default"));
                     lastActionIndex++;
                 }
-                else
-                {
-                    auto firstIdent = dbVarProp;
+                dbVarProp = firstIdent;
+                crtPath = path;
 
-                    //check default policy
-                    if (dbVarProp.applyDefaultPolicy() && dbVarProp.isTotallyIdentified())
+                //add true policy
+                dbVarProp.applyTruePolicy();
+                auto newThm = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                if (!newThm->isEvaluated())
+                {
+                    (**m_crtActions)[lastActionIndex] = newThm;
+                    ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path, "true"));
+                    lastActionIndex++;
+                }
+                dbVarProp = firstIdent;
+                crtPath = path;
+
+                //add false policy
+                dbVarProp.applyFalsePolicy();
+                newThm = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                if (!newThm->isEvaluated())
+                {
+                    (**m_crtActions)[lastActionIndex] = newThm;
+                    ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path, "false"));
+                    lastActionIndex++;
+                }
+                dbVarProp = firstIdent;
+                crtPath = path;
+
+                //add a policy for each variable
+                auto dbVar = prop->getExtVars();
+                for (auto idVar: dbVar->nameVars())
+                {
+                    auto varBool = std::static_pointer_cast<const Boolean>(dbVar->find(idVar));
+                    dbVarProp.applyVarPolicy(varBool);
+                    newThm = apply(lastActionIndex, prop, dbVarProp, crtPath);
+                    if (!newThm->isEvaluated())
                     {
-                        (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                        ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
+                        (**m_crtActions)[lastActionIndex] = newThm;
+                        ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path, AVariable::getVarNameFromId(idVar)));
                         lastActionIndex++;
                     }
                     dbVarProp = firstIdent;
-
-                    //add true policy
-                    dbVarProp.applyTruePolicy();
-                    (**m_crtActions)[lastActionIndex] = apply(lastActionIndex, prop, dbVarProp, crtPath);
-                    ret.push_back(Action(lastActionIndex, this->m_name, this->toString(), path));
-                    lastActionIndex++;
-                    dbVarProp = firstIdent;
+                    crtPath = path;
                 }
             }
         }
