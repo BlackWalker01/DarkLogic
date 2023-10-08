@@ -2,6 +2,7 @@ import MainDarkLogic.darklogic as DarkLogic
 from threading import Thread, Condition, Lock
 from AI.event import Event
 from AI.aithread import AIThread
+from AI.node import Node
 
 
 def _start(masterAIThread, threadIdx):
@@ -74,6 +75,8 @@ class MasterAIThread(Thread):
         actions = DarkLogic.getActions(0)
         for action in actions:
             threadIdx = nbActions % len(self._slaveThreads)
+            if not threadIdx in Node.NbNodesByThreads:
+                Node.NbNodesByThreads[threadIdx] = 0
             self._ai.pushCrtAction([action], threadIdx)
             val = self._ai.valueOfActions([action])
             if val == 0:
@@ -104,6 +107,7 @@ class MasterAIThread(Thread):
                     break"""
 
         if not foundDemo:
+            Node.MAX_NODES = 10 ** 7 / (min(nbActions, len(self._slaveThreads)))
             # start slave threads
             if nbActions > len(self._slaveThreads):
                 for slaveThread in self._slaveThreads:
@@ -111,6 +115,7 @@ class MasterAIThread(Thread):
                     self._threadAlive[slaveThread.instanceId()] = slaveThread.instanceId()
             else:
                 for k in range(nbActions):
+                    Node.NbNodesByThreads[self._slaveThreads[k].instanceId()] = 0
                     self._slaveThreads[k]._start()
                     self._threadAlive[self._slaveThreads[k].instanceId()] = self._slaveThreads[k].instanceId()
         else:
@@ -124,13 +129,26 @@ class MasterAIThread(Thread):
     def _stopFromThread(self, threadIdx):
         # remove threadIdx thread in "living threads"
         del self._threadAlive[threadIdx]
+        # print(f"Rcv stop from thread n°{threadIdx}")
 
         # if no thread is alive, warn AI
         if len(self._threadAlive) == 0:
             self._ai.stopFromMasterThread()
-        # check if the other threads know they must stop
+            Node.NbNodesByThreads.clear()
         else:
             self._stop()
+            """# check if there is a demo
+            foundDemo = False
+            slaveThread = self._slaveThreads[threadIdx]
+            for action in slaveThread.actions():
+                val = self._ai.valueOfActions([action])
+                print(f"value for action = {action} is {val}")
+                if val < Node.VAL_INIT:
+                    foundDemo = True
+                    break
+            # if a thread found a demo, others should stop
+            if foundDemo:
+                self._stop()"""
 
     def run(self):
         while True:

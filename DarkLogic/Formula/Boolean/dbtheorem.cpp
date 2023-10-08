@@ -19,3 +19,8 @@ void DbTheorem::clear()
 {
 	m_db.clear();
 }
+
+size_t DbTheorem::size() const
+{
+	return m_db.size();
+}

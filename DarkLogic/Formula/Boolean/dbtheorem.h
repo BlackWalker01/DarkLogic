@@ -40,6 +40,7 @@ public:
 	ptr<Type> make_theorem_formula(LeftArg&& leftArg, RightArg&& rightArg);	
 
 	void clear();
+	size_t size() const;
 
 	~DbTheorem() = default;
 private:
@@ -109,6 +110,22 @@ inline ptr<Type> DbTheorem::make_theorem_formula(SubArg&& subArg)
 			}
 		}
 		auto ret = std::make_shared<const ConstSubArithmeticTheorem<ConstNaturalInteger>>(subArg);
+		m_db[cont] = ret;
+		return ret;
+	}
+	else if constexpr (std::is_base_of_v<SubTheorem<Boolean>, Type>)
+	{
+		std::string cont = subArg->toString();
+		auto it = m_db.find(cont);
+		if (it != m_db.end())
+		{
+			auto ret = std::dynamic_pointer_cast<const SubTheorem<Boolean>>(it->second);
+			if (ret)
+			{
+				return ret;
+			}
+		}
+		auto ret = std::make_shared<const SubTheorem<Boolean>>(subArg);
 		m_db[cont] = ret;
 		return ret;
 	}

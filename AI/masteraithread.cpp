@@ -94,7 +94,7 @@ void MasterAIThread::_start()
     if (!foundDemo)
     {
         //start slave threads
-        if (actions.size() > m_slaveThreads.size())
+        if (nbActions > m_slaveThreads.size())
         {
             for (auto& slaveThread : m_slaveThreads)
             {
@@ -104,7 +104,7 @@ void MasterAIThread::_start()
         }
         else
         {
-            for (unsigned char k = 0; k < actions.size(); k++)
+            for (unsigned char k = 0; k < nbActions; k++)
             {
                 m_slaveThreads[k]->start();
                 m_threadAlive[m_slaveThreads[k]->instanceId()] = m_slaveThreads[k]->instanceId();

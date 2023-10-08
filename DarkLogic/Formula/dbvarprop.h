@@ -34,12 +34,20 @@ public:
     bool containsHyp(const IDVar& idHyp) const;
     const ptr<IISubTheoremFormula>& operator[](const IDVar& idVar) const;
     ptr<IISubTheoremFormula>& operator[](const IDVar& idVar);
-    std::vector<ptr<ASubTheorem> > getHypAssoc(const IDVar& idHypVar);
+    const std::vector<ptr<ASubTheorem> >& getHypAssoc(const IDVar& idHypVar) const;
+    bool isHypAssocEmpty(const IDVar& idHypVar) const;
 
     void insertHypEmpty(const IDVar& idHypVar);
     void insertHypAssoc(const IDVar& idHypVar, const ptr<ASubTheorem>& prop);
 
     bool isTotallyIdentified() const;
+    bool applyDefaultPolicy();
+    bool applyTruePolicy();
+    bool applyTruePolicy(const size_t& logicIdx);
+    bool applyFalsePolicy();
+    bool applyFalsePolicy(const size_t& logicIdx);
+    bool applyVarPolicy(const ptr<Boolean>& varBool);
+    bool applyVarPolicy(const ptr<Boolean>& varBool, const size_t& logicIdx);
     static bool isHypVariable(const ptr<AVariable>& var);
 
     void clear();

@@ -7,7 +7,7 @@
 #include <condition_variable>
 #include <iostream>
 
-AI::AI(const size_t& maxInstanceIdx, const size_t& secondTimeout) : Player("BasicAI", 0, 1955),
+AI::AI(const size_t& maxInstanceIdx, const size_t& secondTimeout) : Player("BasicAI", 0, 1500), //1955
 m_secondTimeout(secondTimeout), m_masterThread(std::make_shared<MasterAIThread>(maxInstanceIdx,*this)), 
 	m_crtNode(std::make_unique<Node>(*this)), m_hasEvents(false), m_lock(m_mutex)
 {

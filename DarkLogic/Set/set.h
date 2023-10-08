@@ -38,7 +38,10 @@ public:
     static std::string name();
     static bool belongsTo();
     template<RuleType ruleType>
-    void insert(const ptr<ruleType>& rule);
+    void insert(const ptr<ruleType>& rule)
+    {
+        s_rules->insert(rule);
+    }
 
     constexpr bool operator==(const Set&) const
     {

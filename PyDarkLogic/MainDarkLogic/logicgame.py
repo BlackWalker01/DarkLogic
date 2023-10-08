@@ -5,6 +5,7 @@ from .enumfun import EnumFun
 
 import multiprocessing
 from MainDarkLogic.dbtheorem import DbTheorem
+from threading import Thread, Condition, Lock
 
 
 class Mode(Enum):
@@ -84,7 +85,7 @@ class LogicGame:
     _actionSwitcher = {EnumFun.GET_ACTION: _printActions,
                        EnumFun.PUSH_ACTION: _pushAction,
                        EnumFun.POP_ACTION: _popAction}
-    _AI_TIMEOUT = 20  # seconds
+    _AI_TIMEOUT = 300  # seconds
 
     def __init__(self, isAuto=False):
         self._mode = Mode.NoMode
@@ -93,9 +94,13 @@ class LogicGame:
         self._eloThm = 1500
         self._nbGames = 100
         self._dbThm = DbTheorem()
+        self._hasEvents = False
+        self._mutex = Lock()
+        self._eventQueue = []
+        self._condition_var = Condition(self._mutex)
 
     def start(self):
-        print("Welcome in LogicGame (v1.3.0)!")
+        print("Welcome in LogicGame "+DarkLogic.version()+"!")
 
         # create player and init Logic
         self._askPlayer()
@@ -122,7 +127,7 @@ class LogicGame:
         print("Human Mode")
         self._mode = Mode.Human
         DarkLogic.init(0)
-        self._player = Human()
+        self._player = Human(self)
 
     def _createBasicAI(self):
         from AI.ai import AI
@@ -131,7 +136,7 @@ class LogicGame:
         nbInstances = multiprocessing.cpu_count()
         # nbInstances = 1
         DarkLogic.init(nbInstances)
-        self._player = AI(nbInstances, LogicGame._AI_TIMEOUT)
+        self._player = AI(self, nbInstances, LogicGame._AI_TIMEOUT)
 
     def _createEvalAI(self):
         from AI.evalai import EvalAI
@@ -140,7 +145,7 @@ class LogicGame:
         nbInstances = multiprocessing.cpu_count()
         # nbInstances = 1
         DarkLogic.init(nbInstances)
-        self._player = EvalAI(nbInstances, LogicGame._AI_TIMEOUT)
+        self._player = EvalAI(self, nbInstances, LogicGame._AI_TIMEOUT)
 
     def _createNeuralAI(self):
         from AI.neuralai import NeuralAI
@@ -149,7 +154,7 @@ class LogicGame:
         # nbInstances = multiprocessing.cpu_count()
         nbInstances = 1
         DarkLogic.init(nbInstances)
-        self._player = NeuralAI(nbInstances, LogicGame._AI_TIMEOUT)
+        self._player = NeuralAI(self, nbInstances, LogicGame._AI_TIMEOUT, isDeterminist = True)
 
     def _createTheorem(self):
         # ask user to create theorem
@@ -209,19 +214,51 @@ class LogicGame:
 
     def _game(self):
         nbAttempts = 0
-        maxNbAttempts = 10
         hasWon = False
         self._nbGames += 1
         print("Game n°" + str(self._nbGames))
+        import time
+        remain_time = LogicGame._AI_TIMEOUT
+        action = None
+
         while not DarkLogic.isOver():
-            print("Attempt n°" + str(nbAttempts + 1) + "/" + str(maxNbAttempts))
-            action = self._player.play()
+            # start chrono
+            start = time.perf_counter()
+            print("Attempt n°" + str(nbAttempts + 1) + ", it remains "+str(remain_time)+" seconds")
+            self._player.setSecondTimeout(remain_time)
+            self._player.start_()
+            # wait for player to make its move
+            while not self._hasEvents:
+                with self._condition_var:
+                    hasTimedout = not self._condition_var.wait(remain_time)
+                    if hasTimedout:
+                        break
+
+            if hasTimedout:
+                """ self._player.stop_()"""
+                # waiting for threads to stop
+                while not self._hasEvents:
+                    with self._condition_var:
+                        self._condition_var.wait()
+            if len(self._eventQueue):
+                action = self._eventQueue[0]
+                self._eventQueue.pop()
+
+            self._hasEvents = False
+            self._eventQueue.clear()
+
+            end = time.perf_counter()
+            elapsed_seconds = end - start
+            remain_time -= elapsed_seconds
+
+            if hasTimedout or action == None or not isinstance(action, Action):
+                print("____________________________________________________________________________")
+                break
+
             LogicGame._actionSwitcher[action.fun()](self, action)
             print("____________________________________________________________________________")
             if action.fun() == EnumFun.PUSH_ACTION:
                 nbAttempts += 1
-                if nbAttempts == maxNbAttempts:
-                    break
 
         if DarkLogic.hasAlreadyPlayed():
             if DarkLogic.isDemonstrated():
@@ -235,23 +272,34 @@ class LogicGame:
             elif not DarkLogic.canBeDemonstrated():
                 print(self._player.name() + " lost! This theorem cannot be demonstrated! " +
                       "It can be true or false according to the values of its variables")
-            elif nbAttempts == maxNbAttempts:
-                print(self._player.name() + " lost! Too much attempts!")
+            elif hasTimedout:
+                print(self._player.name() + " lost! Time out!")
 
-            # update player's elo
-            W = 1 if hasWon else 0
-            exElo = self._player.elo()
-            newElo = round(exElo + 30 * (W - 1 / (1 + 10 ** ((self._eloThm - exElo) / 400))))
-            self._player.setElo(newElo)
         else:
             if DarkLogic.isDemonstrated():
                 print("The demonstration is already finished!")
             elif not DarkLogic.canBeDemonstrated():
                 print("This theorem cannot be demonstrated! " +
                       "It can be true or false according to the values of its variables")
+            elif hasTimedout:
+                print(self._player.name() + " lost! Time out!")
+
+        # update player's elo
+        W = 1 if hasWon else 0
+        exElo = self._player.elo()
+        newElo = round(exElo + 30 * (W - 1 / (1 + 10 ** ((self._eloThm - exElo) / 400))))
+        self._player.setElo(newElo)
 
         # clear Logic State
         DarkLogic.clearAll()
 
         # let player meditates the last game
         self._player.meditate()
+
+    def pushEvent(self, action):
+        self._mutex.acquire()
+        self._eventQueue.append(action)
+        self._mutex.release()
+        self._hasEvents = True
+        with self._condition_var:
+            self._condition_var.notify_all()

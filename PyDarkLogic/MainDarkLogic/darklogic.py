@@ -220,6 +220,8 @@ def toNormStrTheorem():
     """ toNormStrTheorem() -> str """
     return DarkLogic.toNormStrTheorem()
 
+def nbTheorems(instanceIdx):
+    return DarkLogic.nbTheorems(instanceIdx)
 
 # clear methods when the demonstration is over
 def clearAll():
@@ -237,3 +239,6 @@ def clear(*args, **kwargs):
     2. clear(self: int) -> None
     """
     return DarkLogic.clear(*args, **kwargs)
+
+def version():
+    return DarkLogic.version()

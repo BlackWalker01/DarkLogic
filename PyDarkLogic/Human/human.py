@@ -107,8 +107,8 @@ class Human(Player):
                  EnumFun.POP_ACTION: _popAction,
                  EnumFun.HELP: _help}
 
-    def __init__(self):
-        super().__init__("You")
+    def __init__(self, logicGame):
+        super().__init__(logicGame, "You")
 
     def play(self):
         ok = False

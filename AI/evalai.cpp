@@ -3,7 +3,7 @@
 EvalAI::EvalAI(const size_t& maxInstanceIdx, const size_t timeoutScds):
 	AI("EvalAI", maxInstanceIdx, timeoutScds)
 {
-    m_elo = 2550;
+    m_elo = 2500;
 }
 
 void EvalAI::explore(DbAction& actions, unsigned char threadIdx)

@@ -30,7 +30,7 @@ class DbTheorem:
         self.addTheorem("Semi-Identity and Semi-Double-Not", "(a=>a)&&(a=>!!a)", 1800)
         self.addTheorem("Contraposition", "(a=>b)=>(!b=>!a)", 1850)
         self.addTheorem("Semi-Identity and Semi-Double-Not and True", "(a=>a)&&(a=>!!a)&&True", 1900)
-        self.addTheorem("Contraposition and True", "(a=>b)=>(!b=>!a)", 1950)
+        self.addTheorem("Contraposition and True", "((a=>b)=>(!b=>!a))&&True", 1950)
         self.addTheorem("ExcludedMiddle", "a||!a", 2400)
         self.addTheorem("Semi-De Morgan law [R]", "!(a&&b)=>(!a||!b)", 2950)
         self.addTheorem("Semi-De Morgan law [L]", "(!a||!b)=>!(a&&b)", 2950)

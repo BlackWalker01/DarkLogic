@@ -16,8 +16,8 @@
 
 using namespace N_DarkLogic;
 
-Action::Action(const Id &_id, const std::string &_ruleName, const std::string &_ruleStr, const std::vector<Id> &_path):
-    m_id(_id), m_ruleName(_ruleName), m_ruleStr(_ruleStr), m_path(_path)
+Action::Action(const Id &_id, const std::string &_ruleName, const std::string &_ruleStr, const std::vector<Id> &_path, const std::string& _policy):
+    m_id(_id), m_ruleName(_ruleName), m_ruleStr(_ruleStr), m_path(_path), m_policy(_policy)
 {
 
 }
@@ -42,6 +42,13 @@ std::vector<Action::Id> Action::path() const
     return m_path;
 }
 
+std::string N_DarkLogic::Action::policy() const
+{
+    return m_policy;
+}
+
+
+
 std::string Action::toString() const
 {
     auto tabToString=[](const std::vector<Id>& tab)
@@ -58,5 +65,5 @@ std::string Action::toString() const
         ret+="]";
         return ret;
     };
-    return "{id: "+sizeToString(m_id)+", ruleName: "+m_ruleName+", rule:"+m_ruleStr+", path: "+tabToString(m_path)+"}";
+    return "{id: "+sizeToString(m_id)+", ruleName: "+m_ruleName+", rule:"+m_ruleStr+", path: "+tabToString(m_path)+", policy: "+m_policy+" }";
 }

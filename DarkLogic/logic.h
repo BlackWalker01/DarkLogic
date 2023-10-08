@@ -68,6 +68,7 @@ public:
     static std::string toStrTheorem();
     static std::string toStrTheorem(const size_t& instanceIdx);
     static std::string toNormStrTheorem();
+    static size_t nbTheorems(const size_t& instanceIdx);
 
     //operator access methods
     static std::string theoremName();

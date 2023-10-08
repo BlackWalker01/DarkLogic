@@ -7,6 +7,11 @@ namespace py = pybind11;
 
 using namespace N_DarkLogic;
 
+const unsigned int DarkLogic::s_maj = 1;
+const unsigned int DarkLogic::s_mid = 4;
+const unsigned int DarkLogic::s_min = 1;
+
+
 PYBIND11_MODULE(DarkLogic, m)
 {
 	py::class_<DarkLogic> darkLogic(m, "DarkLogic");
@@ -50,10 +55,12 @@ PYBIND11_MODULE(DarkLogic, m)
 		.def("toStrTheorem", py::overload_cast<>(&DarkLogic::toStrTheorem))
 		.def("toStrTheorem", py::overload_cast<const size_t&>(&DarkLogic::toStrTheorem))
 		.def("toNormStrTheorem", py::overload_cast<>(&DarkLogic::toNormStrTheorem))
+		.def("nbTheorems", py::overload_cast<const size_t&>(&DarkLogic::nbTheorems))
 
 		.def("clearAll", &DarkLogic::clearAll)
 		.def("clear", py::overload_cast<>(&DarkLogic::clear))
-		.def("clear", py::overload_cast<const size_t&>(&DarkLogic::clear));
+		.def("clear", py::overload_cast<const size_t&>(&DarkLogic::clear))
+		.def("version", &DarkLogic::version);
 
 	py::class_<Action> action(m, "Action");
 	action.def(py::init<const Action::Id&, const std::string&, const std::string&, const std::vector<Action::Id>&>())
@@ -308,4 +315,14 @@ bool N_DarkLogic::DarkLogic::hasAlreadyPlayed(const size_t& instanceIdx)
 bool N_DarkLogic::DarkLogic::canBeDemonstrated()
 {
 	return Logic::canBeDemonstrated();
+}
+
+size_t N_DarkLogic::DarkLogic::nbTheorems(const size_t& instanceIdx)
+{
+	return Logic::nbTheorems(instanceIdx);
+}
+
+std::string N_DarkLogic::DarkLogic::version()
+{
+	return uintToString(s_maj) + "." + uintToString(s_mid) + "." + uintToString(s_min);
 }
